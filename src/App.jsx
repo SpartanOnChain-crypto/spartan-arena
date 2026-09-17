@@ -96,27 +96,32 @@ export default function App() {
     </button>
   );
 
-  const ArenaCard = ({ title, icon: Icon, target, gradient, tag, players }) => (
+  const ArenaCard = ({ title, icon: Icon, target, bgBase, accentColor, renderArt, tag, players }) => (
     <div 
       onClick={() => setView(target)}
-      className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
+      className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.3)] overflow-hidden"
     >
-      {/* Animated Ethereal Border Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-white/10 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
+      {/* Animated Ethereal Border */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-white/20 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
       
       {/* Inner Card Container */}
-      <div className={`relative h-full w-full rounded-[15px] overflow-hidden ${gradient} flex flex-col justify-between`}>
-        {/* Subtle dot texture overlay */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500" />
+      <div className={`relative h-full w-full rounded-[15px] overflow-hidden ${bgBase} flex flex-col justify-between`}>
         
-        {/* Core Inner Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/10 blur-3xl rounded-full group-hover:bg-white/20 transition-all duration-700 group-hover:scale-125" />
-        
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Icon className="w-28 h-28 text-white/90 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500" />
+        {/* Custom Procedural Background Art */}
+        <div className="absolute inset-0 opacity-60 group-hover:opacity-100 transition-opacity duration-700">
+          {renderArt()}
         </div>
         
-        <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#050308] via-[#050308]/80 to-transparent backdrop-blur-sm border-t border-white/10 mt-auto">
+        {/* Core Inner Glow Behind Icon */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 blur-2xl rounded-full group-hover:bg-white/10 transition-all duration-700 group-hover:scale-150" />
+        
+        {/* Giant Floating Icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Icon className={`w-32 h-32 ${accentColor} drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`} />
+        </div>
+        
+        {/* Bottom Information Bar */}
+        <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-black via-black/90 to-transparent backdrop-blur-sm mt-auto">
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-widest drop-shadow-lg">{title}</h3>
           <div className="flex items-center gap-2 mt-2">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-200 bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-md border border-white/5">
@@ -132,25 +137,28 @@ export default function App() {
   return (
     <div className="flex h-screen bg-[#050308] text-neutral-100 font-sans overflow-hidden select-none relative">
       
-      {/* MAGICAL COSMIC BACKGROUND */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Deep space nebula glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-purple-900/20 blur-[150px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-900/15 blur-[150px] rounded-full mix-blend-screen animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-[40%] left-[60%] w-[40vw] h-[40vw] bg-red-900/10 blur-[120px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
-        {/* Subtle starlight texture */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiLz48L3N2Zz4=')] opacity-60" />
+      {/* BOLD MAGICAL COSMIC BACKGROUND */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#030105]">
+        {/* Real Procedural Noise Texture (Creates the Gritty/Magical Feel) */}
+        <div 
+          className="absolute inset-0 opacity-[0.25] mix-blend-color-dodge"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+        />
+        {/* Deep highly-saturated space nebula glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-purple-700/30 blur-[120px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-600/30 blur-[120px] rounded-full mix-blend-screen animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[30%] left-[50%] w-[50vw] h-[50vw] bg-red-700/20 blur-[100px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* LEFT SIDEBAR */}
-      <aside className="w-64 bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col z-20 shrink-0 hidden md:flex shadow-[5px_0_30px_rgba(0,0,0,0.5)]">
-        <div className="h-20 px-6 flex items-center gap-3 shrink-0 cursor-pointer border-b border-white/5" onClick={() => setView('home')}>
-          <div className="w-10 h-10 rounded bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/30">
-            <span className="font-spartan text-2xl font-black text-white drop-shadow-md">Λ</span>
+      <aside className="w-64 bg-black/50 backdrop-blur-2xl border-r border-white/5 flex flex-col z-20 shrink-0 hidden md:flex shadow-[5px_0_30px_rgba(0,0,0,0.8)]">
+        <div className="h-24 px-6 flex items-center gap-4 shrink-0 cursor-pointer border-b border-white/5" onClick={() => setView('home')}>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-600 to-red-800 flex items-center justify-center shadow-[0_0_25px_rgba(234,88,12,0.5)] border border-orange-400/40">
+            <span className="font-spartan text-3xl font-black text-white drop-shadow-md">Λ</span>
           </div>
           <div className="flex flex-col">
-            <h1 className="font-spartan text-2xl font-black tracking-widest text-white uppercase leading-none mt-1 drop-shadow-lg">Sparta</h1>
-            <span className="text-[9px] text-orange-400 font-black uppercase tracking-widest">Web3 Arena</span>
+            <h1 className="font-spartan text-2xl font-black tracking-widest text-white uppercase leading-none mt-1 drop-shadow-lg">Spartan</h1>
+            <span className="text-[11px] text-orange-400 font-black uppercase tracking-widest mt-1">Arena</span>
           </div>
         </div>
         
@@ -177,48 +185,48 @@ export default function App() {
       <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         
         {/* TOP NAV */}
-        <header className="h-20 border-b border-white/5 bg-black/20 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
+        <header className="h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
           <div className="flex-1 max-w-md hidden lg:block">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input 
                 type="text" 
                 placeholder="Search the arena..." 
-                className="w-full bg-black/40 border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-orange-500/50 focus:bg-black/60 transition-all shadow-inner"
+                className="w-full bg-black/50 border border-white/10 rounded-full py-3.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-orange-500/50 focus:bg-black/80 transition-all shadow-inner"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3 md:gap-5 ml-auto">
             {wallet && (
-              <div className="flex bg-black/40 border border-white/10 rounded-lg overflow-hidden shadow-inner backdrop-blur-md">
-                <div className="px-3 py-1.5 border-r border-white/10 flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-red-400" />
+              <div className="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-inner backdrop-blur-md">
+                <div className="px-4 py-2 border-r border-white/10 flex items-center gap-3">
+                  <Lock className="w-4 h-4 text-red-400" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
-                    <span className="text-red-400 font-bold text-sm leading-none mt-0.5">{balanceLocked.toLocaleString()}</span>
+                    <span className="text-[10px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
+                    <span className="text-red-400 font-black text-base leading-none mt-1">{balanceLocked.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="px-3 py-1.5 flex items-center gap-2 bg-orange-900/20">
+                <div className="px-4 py-2 flex items-center gap-3 bg-orange-900/20">
                   <Coins className="w-4 h-4 text-amber-400" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Balance</span>
-                    <span className="text-white font-bold text-sm leading-none mt-0.5">{balanceReal.toLocaleString()}</span>
+                    <span className="text-[10px] text-orange-200/50 uppercase font-bold leading-none">Balance</span>
+                    <span className="text-white font-black text-base leading-none mt-1">{balanceReal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             )}
 
             {username && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
+              <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
                 <User className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-bold text-white uppercase tracking-wider">{username}</span>
+                <span className="text-sm font-black text-white uppercase tracking-wider">{username}</span>
               </div>
             )}
 
             <button 
               onClick={connectWallet}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-6 py-2.5 rounded-lg text-sm font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
             >
               {!wallet && <Wallet className="w-4 h-4" />}
               {wallet ? "Wallet Connected" : "Sign In"}
@@ -234,7 +242,7 @@ export default function App() {
               
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
@@ -254,7 +262,7 @@ export default function App() {
                   <Skull className="absolute -right-10 -bottom-10 w-64 h-64 text-orange-500/30 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(234,88,12,0.5)]" />
                 </div>
 
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
@@ -281,55 +289,85 @@ export default function App() {
                 <CategoryPill icon={Skull} label="Live Multiplayer" />
               </div>
               
-              {/* Premium Game Grid */}
+              {/* Premium Realistic Game Grid */}
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="flex items-center gap-3 font-spartan text-xl font-black text-white uppercase tracking-widest drop-shadow-md">
-                    <span className="w-1.5 h-6 bg-gradient-to-b from-orange-400 to-red-600 rounded-full shadow-[0_0_10px_#ea580c]" />
+                  <h2 className="flex items-center gap-3 font-spartan text-2xl font-black text-white uppercase tracking-widest drop-shadow-md">
+                    <span className="w-1.5 h-7 bg-gradient-to-b from-orange-400 to-red-600 rounded-full shadow-[0_0_10px_#ea580c]" />
                     Spartan Originals
                   </h2>
                   <div className="flex gap-2">
-                    <button className="bg-white/5 border border-white/10 p-2 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-4 h-4 rotate-180" /></button>
-                    <button className="bg-white/5 border border-white/10 p-2 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-4 h-4" /></button>
+                    <button className="bg-black/50 border border-white/10 p-2.5 rounded-xl hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+                    <button className="bg-black/50 border border-white/10 p-2.5 rounded-xl hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-5 h-5" /></button>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   <ArenaCard 
                     title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="PvP"
-                    gradient="bg-gradient-to-br from-[#450a0a] via-[#7f1d1d] to-[#ea580c]" 
+                    bgBase="bg-[#1a0000]" accentColor="text-orange-400"
+                    renderArt={() => (
+                      <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(234,88,12,0.5),transparent_70%)]" />
+                        <div className="absolute top-1/4 left-0 w-[200%] h-32 bg-red-600/20 -rotate-45 blur-2xl" />
+                      </div>
+                    )}
                   />
                   <ArenaCard 
                     title="Chariot Crash" icon={TrendingUp} target="crash" players="89"
-                    gradient="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4f46e5]" 
+                    bgBase="bg-[#000514]" accentColor="text-cyan-400"
+                    renderArt={() => (
+                      <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                        <div className="absolute bottom-0 left-0 w-full h-full bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-cyan-500/40 via-blue-900/10 to-transparent blur-xl" />
+                      </div>
+                    )}
                   />
                   <ArenaCard 
                     title="Shield Wall" icon={Shield} target="plinko" players="312"
-                    gradient="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#10b981]" 
+                    bgBase="bg-[#011409]" accentColor="text-green-400"
+                    renderArt={() => (
+                      <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.3)_2px,transparent_2px)] bg-[size:16px_16px]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#011409] via-transparent to-emerald-900/30" />
+                      </div>
+                    )}
                   />
                   <ArenaCard 
                     title="Leonidas' Dice" icon={Dices} target="dice" players="56"
-                    gradient="bg-gradient-to-br from-[#4a044e] via-[#701a75] to-[#d946ef]" 
+                    bgBase="bg-[#140024]" accentColor="text-fuchsia-400"
+                    renderArt={() => (
+                      <div className="absolute inset-0">
+                        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
+                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(217,70,239,0.3),transparent_70%)] blur-lg" />
+                      </div>
+                    )}
                   />
                   <ArenaCard 
                     title="The 300 Stand" icon={Skull} target="stand" players="1,204" tag="Royale"
-                    gradient="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#f59e0b]" 
+                    bgBase="bg-[#240a00]" accentColor="text-yellow-500"
+                    renderArt={() => (
+                      <div className="absolute inset-0">
+                        <div className="absolute bottom-0 left-0 w-full h-[150%] bg-[radial-gradient(ellipse_at_bottom,rgba(234,88,12,0.4),transparent_60%)]" />
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
+                      </div>
+                    )}
                   />
                 </div>
               </div>
 
               {/* Live Arena Feed Table */}
               <div className="mt-12 mb-10">
-                <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-4">
+                <div className="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">
                   <button className="text-white font-black uppercase tracking-widest flex items-center gap-2 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg shadow-inner">
                     <History className="w-4 h-4 text-orange-500" /> Recent Battles
                   </button>
                   <button className="text-neutral-500 font-bold uppercase tracking-widest hover:text-white transition-colors">High Rollers</button>
                 </div>
                 
-                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                   <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-black/60 text-neutral-400 text-xs uppercase tracking-widest font-black border-b border-white/10">
+                    <thead className="bg-black/80 text-neutral-400 text-xs uppercase tracking-widest font-black border-b border-white/10">
                       <tr>
                         <th className="px-6 py-5">Game</th>
                         <th className="px-6 py-5">Warrior</th>
@@ -344,8 +382,8 @@ export default function App() {
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
                             <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game}
                           </td>
-                          <td className="px-6 py-4 font-bold text-neutral-300 tracking-wider">{feed.user}</td>
-                          <td className="px-6 py-4 text-right font-medium text-neutral-400 flex items-center justify-end gap-1.5">
+                          <td className="px-6 py-4 font-black text-neutral-300 tracking-wider">{feed.user}</td>
+                          <td className="px-6 py-4 text-right font-bold text-neutral-400 flex items-center justify-end gap-1.5">
                             {feed.wager} <Coins className="w-3.5 h-3.5 text-amber-500 drop-shadow-md" />
                           </td>
                           <td className="px-6 py-4 text-right font-black text-neutral-200">{feed.multiplier}</td>
@@ -359,8 +397,8 @@ export default function App() {
                 </div>
               </div>
 
-              <footer className="pt-8 pb-4 text-center text-[10px] text-neutral-500 uppercase tracking-widest font-black border-t border-white/10">
-                The Sparta Arena • Solana Network • Play Responsibly
+              <footer className="pt-8 pb-4 text-center text-[10px] text-neutral-500 uppercase tracking-widest font-black border-t border-white/5">
+                The Spartan Arena • Solana Network • Play Responsibly
               </footer>
             </div>
           )}
@@ -396,7 +434,7 @@ export default function App() {
 
           {/* INFORMATION ROUTES */}
           {view === 'rules' && (
-            <div className="max-w-3xl mx-auto bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 mt-10 mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative z-20">
+            <div className="max-w-3xl mx-auto bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 mt-10 mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative z-20">
               <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 border-b border-white/10 pb-6 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                 <ScrollText className="w-8 h-8 text-orange-500" /> Protocol Rules & Conditions
               </h1>
@@ -404,30 +442,30 @@ export default function App() {
               <div className="space-y-8 text-neutral-300 leading-relaxed text-sm">
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" /> Wallet Security & Protection
+                    <Shield className="w-6 h-6 text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" /> Wallet Security & Protection
                   </h3>
-                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
-                    Every wallet connected to The Sparta Arena is fully secured, encrypted, and protected. We do not have access to your private keys. All transactions are authorized strictly by you through your Web3 wallet provider on the Solana blockchain.
+                  <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
+                    Every wallet connected to The Spartan Arena is fully secured, encrypted, and protected. We do not have access to your private keys. All transactions are authorized strictly by you through your Web3 wallet provider on the Solana blockchain.
                   </p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
-                    <Coins className="w-5 h-5 text-orange-500 drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]" /> Match Fee & Payout Breakdown
+                    <Coins className="w-6 h-6 text-orange-500 drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]" /> Match Fee & Payout Breakdown
                   </h3>
-                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                  <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
                     When you emerge victorious in a multiplayer arena, the total pot is distributed automatically via smart contract: <br/><br/>
-                    <strong className="text-green-400 text-base drop-shadow-md">95%</strong> goes directly to the Winner's connected wallet.<br/>
-                    <strong className="text-purple-400 text-base drop-shadow-md">3%</strong> is automatically routed to fuel the Oracle's Jackpot.<br/>
-                    <strong className="text-orange-400 text-base drop-shadow-md">2%</strong> goes to the Spartan Onchain Treasury for continuous ecosystem development.
+                    <strong className="text-green-400 text-lg drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">95%</strong> goes directly to the Winner's connected wallet.<br/><br/>
+                    <strong className="text-purple-400 text-lg drop-shadow-[0_0_5px_rgba(192,132,252,0.5)]">3%</strong> is automatically routed to fuel the Oracle's Jackpot.<br/><br/>
+                    <strong className="text-orange-400 text-lg drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]">2%</strong> goes to the Spartan Onchain Treasury for continuous ecosystem development.
                   </p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
-                    <Lock className="w-5 h-5 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Welcome Allowance Play-Through
+                    <Lock className="w-6 h-6 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Welcome Allowance Play-Through
                   </h3>
-                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                  <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
                     The 1,000 $SPARTAN credit granted on account creation remains locked. Users must complete an aggregate wager turnover of 1,000 $SPARTAN across any arena games before balances unlock for chain withdrawal. Automated bot behavior will result in execution and forfeiture of funds.
                   </p>
                 </div>
