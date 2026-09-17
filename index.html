@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Sparta Arena | PvP Web3 Battle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              spartan: ['Cinzel', 'serif'],
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              magma: '#EA580C',
+              blood: '#B91C1C',
+              gold: '#F59E0B',
+              solana: '#9945FF',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 25px #EA580C, inset 0 0 20px #B91C1C; }
+        50% { box-shadow: 0 0 50px #F59E0B, 0 0 80px #EA580C, inset 0 0 35px #EA580C; }
+      }
+      .flame-glow {
+        animation: pulseGlow 1.8s infinite ease-in-out;
+      }
+    </style>
+  </head>
+  <body class="bg-[#050505] text-white antialiased selection:bg-orange-600 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/App.jsx"></script>
+  </body>
+</html>
