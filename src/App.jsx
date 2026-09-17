@@ -73,7 +73,7 @@ export default function App() {
       onClick={() => setView(target)}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
         active 
-        ? 'bg-neutral-800/80 text-white shadow-sm border border-neutral-700' 
+        ? 'bg-neutral-800/80 text-white shadow-[0_0_15px_rgba(234,88,12,0.15)] border border-orange-500/20' 
         : 'hover:bg-neutral-800/40 text-neutral-400 hover:text-neutral-200 border border-transparent'
       }`}
     >
@@ -87,8 +87,8 @@ export default function App() {
       onClick={() => setCategory(label)}
       className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all whitespace-nowrap ${
         category === label 
-        ? 'bg-orange-600 text-white shadow-[0_0_15px_#ea580c44]' 
-        : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white'
+        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-[0_0_15px_#ea580c44] border border-orange-400/50' 
+        : 'bg-black/40 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-white/5'
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -96,91 +96,113 @@ export default function App() {
     </button>
   );
 
-  const CasinoCard = ({ title, icon: Icon, target, gradient, tag, players }) => (
+  const ArenaCard = ({ title, icon: Icon, target, gradient, tag, players }) => (
     <div 
       onClick={() => setView(target)}
-      className={`relative w-full aspect-[4/5] rounded-xl cursor-pointer overflow-hidden group border border-white/5 transition-all hover:scale-105 hover:shadow-2xl ${gradient}`}
+      className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
     >
-      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Icon className="w-24 h-24 text-white/90 drop-shadow-xl group-hover:scale-110 transition-transform duration-500" />
-      </div>
-      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-        <h3 className="font-spartan text-lg font-black text-white uppercase tracking-wider">{title}</h3>
-        <div className="flex items-center gap-2 mt-1">
-          <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-300 bg-black/50 px-2 py-0.5 rounded">
-            <Activity className="w-3 h-3 text-green-400" /> {players} Playing
+      {/* Animated Ethereal Border Layer */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-white/10 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
+      
+      {/* Inner Card Container */}
+      <div className={`relative h-full w-full rounded-[15px] overflow-hidden ${gradient} flex flex-col justify-between`}>
+        {/* Subtle dot texture overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30 mix-blend-overlay group-hover:opacity-70 transition-opacity duration-500" />
+        
+        {/* Core Inner Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white/10 blur-3xl rounded-full group-hover:bg-white/20 transition-all duration-700 group-hover:scale-125" />
+        
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Icon className="w-28 h-28 text-white/90 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500" />
+        </div>
+        
+        <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#050308] via-[#050308]/80 to-transparent backdrop-blur-sm border-t border-white/10 mt-auto">
+          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-widest drop-shadow-lg">{title}</h3>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-200 bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-md border border-white/5">
+              <Activity className="w-3.5 h-3.5 text-green-400" /> {players} Active
+            </div>
+            {tag && <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest drop-shadow-[0_0_8px_rgba(234,88,12,0.8)]">{tag}</span>}
           </div>
-          {tag && <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">{tag}</span>}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-neutral-100 font-sans overflow-hidden select-none">
+    <div className="flex h-screen bg-[#050308] text-neutral-100 font-sans overflow-hidden select-none relative">
       
-      {/* LEFT SIDEBAR (Stake Style) */}
-      <aside className="w-64 bg-[#0f0f0f] border-r border-neutral-800/80 flex flex-col z-20 shrink-0 hidden md:flex shadow-2xl">
-        <div className="h-20 px-6 flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => setView('home')}>
-          <div className="w-10 h-10 rounded bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center shadow-lg">
-            <span className="font-spartan text-2xl font-black text-white">Λ</span>
+      {/* MAGICAL COSMIC BACKGROUND */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Deep space nebula glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-purple-900/20 blur-[150px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-900/15 blur-[150px] rounded-full mix-blend-screen animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[40%] left-[60%] w-[40vw] h-[40vw] bg-red-900/10 blur-[120px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
+        {/* Subtle starlight texture */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiLz48L3N2Zz4=')] opacity-60" />
+      </div>
+
+      {/* LEFT SIDEBAR */}
+      <aside className="w-64 bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col z-20 shrink-0 hidden md:flex shadow-[5px_0_30px_rgba(0,0,0,0.5)]">
+        <div className="h-20 px-6 flex items-center gap-3 shrink-0 cursor-pointer border-b border-white/5" onClick={() => setView('home')}>
+          <div className="w-10 h-10 rounded bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/30">
+            <span className="font-spartan text-2xl font-black text-white drop-shadow-md">Λ</span>
           </div>
           <div className="flex flex-col">
-            <h1 className="font-spartan text-xl font-black tracking-widest text-white uppercase leading-none mt-1">Sparta</h1>
-            <span className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">Arena & Casino</span>
+            <h1 className="font-spartan text-2xl font-black tracking-widest text-white uppercase leading-none mt-1 drop-shadow-lg">Sparta</h1>
+            <span className="text-[9px] text-orange-400 font-black uppercase tracking-widest">Web3 Arena</span>
           </div>
         </div>
         
-        <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-1 custom-scrollbar">
-          <SidebarItem icon={LayoutDashboard} label="Casino Lobby" target="home" active={view === 'home'} />
-          <div className="my-4 border-t border-neutral-800/50" />
-          <p className="px-4 text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-2">Spartan Originals</p>
+        <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-1 custom-scrollbar relative z-10">
+          <SidebarItem icon={LayoutDashboard} label="Arena Lobby" target="home" active={view === 'home'} />
+          <div className="my-4 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Spartan Originals</p>
           <SidebarItem icon={Swords} label="Colosseum Tap" target="tap" active={view === 'tap'} />
           <SidebarItem icon={Flame} label="Chariot Crash" target="crash" active={view === 'crash'} />
           <SidebarItem icon={Dices} label="Leonidas' Dice" target="dice" active={view === 'dice'} />
           <SidebarItem icon={Shield} label="Shield Wall" target="plinko" active={view === 'plinko'} />
-          <div className="my-4 border-t border-neutral-800/50" />
-          <p className="px-4 text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-2">Live Multiplayer</p>
+          <div className="my-4 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Live Multiplayer</p>
           <SidebarItem icon={Skull} label="The 300 Stand" target="stand" active={view === 'stand'} />
           <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" active={view === 'jackpot'} />
-          <div className="my-4 border-t border-neutral-800/50" />
-          <p className="px-4 text-[11px] text-neutral-500 font-bold uppercase tracking-wider mb-2">Information</p>
+          <div className="my-4 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Information</p>
           <SidebarItem icon={Trophy} label="Leaderboard" target="leaderboard" active={view === 'leaderboard'} />
           <SidebarItem icon={ScrollText} label="Rules & Terms" target="rules" active={view === 'rules'} />
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden bg-[#0a0a0a]">
+      <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         
         {/* TOP NAV */}
-        <header className="h-20 border-b border-neutral-800/80 bg-[#0f0f0f] px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm">
+        <header className="h-20 border-b border-white/5 bg-black/20 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
           <div className="flex-1 max-w-md hidden lg:block">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input 
                 type="text" 
-                placeholder="Search your game..." 
-                className="w-full bg-[#1a1a1a] border border-neutral-800 rounded-full py-2.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-orange-500/50 transition-colors"
+                placeholder="Search the arena..." 
+                className="w-full bg-black/40 border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-orange-500/50 focus:bg-black/60 transition-all shadow-inner"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3 md:gap-5 ml-auto">
             {wallet && (
-              <div className="flex bg-[#1a1a1a] border border-neutral-800 rounded-lg overflow-hidden shadow-inner">
-                <div className="px-3 py-1.5 border-r border-neutral-800 flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-red-500" />
+              <div className="flex bg-black/40 border border-white/10 rounded-lg overflow-hidden shadow-inner backdrop-blur-md">
+                <div className="px-3 py-1.5 border-r border-white/10 flex items-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-red-400" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-neutral-500 uppercase font-bold leading-none">Locked</span>
+                    <span className="text-[9px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
                     <span className="text-red-400 font-bold text-sm leading-none mt-0.5">{balanceLocked.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="px-3 py-1.5 flex items-center gap-2">
-                  <Coins className="w-4 h-4 text-amber-500" />
+                <div className="px-3 py-1.5 flex items-center gap-2 bg-orange-900/20">
+                  <Coins className="w-4 h-4 text-amber-400" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-neutral-500 uppercase font-bold leading-none">Balance</span>
+                    <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Balance</span>
                     <span className="text-white font-bold text-sm leading-none mt-0.5">{balanceReal.toLocaleString()}</span>
                   </div>
                 </div>
@@ -188,15 +210,15 @@ export default function App() {
             )}
 
             {username && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#1a1a1a] border border-neutral-800 rounded-lg cursor-pointer hover:bg-neutral-800 transition-colors">
-                <User className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm font-bold text-white uppercase">{username}</span>
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-black/40 border border-white/10 rounded-lg cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
+                <User className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-bold text-white uppercase tracking-wider">{username}</span>
               </div>
             )}
 
             <button 
               onClick={connectWallet}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 px-6 py-2.5 rounded-lg text-sm font-black uppercase tracking-wider transition-all text-white shadow-lg"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-6 py-2.5 rounded-lg text-sm font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
             >
               {!wallet && <Wallet className="w-4 h-4" />}
               {wallet ? "Wallet Connected" : "Sign In"}
@@ -205,47 +227,49 @@ export default function App() {
         </header>
 
         {/* DYNAMIC VIEW ROUTING */}
-        <div className="flex-1 overflow-y-auto relative custom-scrollbar">
+        <div className="flex-1 overflow-y-auto relative custom-scrollbar z-10">
           
           {view === 'home' && (
             <div className="max-w-7xl mx-auto p-4 md:p-8">
               
-              {/* Promo Banners (7Bit/Stake Style Carousel) */}
+              {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-900 to-[#0a0a0a] border border-orange-500/20 shadow-2xl h-64 md:h-72 cursor-pointer group">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
-                    <h2 className="text-white font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-80 flex items-center gap-2">
+                    <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-90 flex items-center gap-2">
                       <Zap className="w-4 h-4 text-amber-400" /> Welcome Pack
                     </h2>
-                    <h1 className="font-spartan text-3xl md:text-5xl font-black text-amber-500 drop-shadow-md mb-2 leading-tight">
+                    <h1 className="font-spartan text-3xl md:text-5xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2 leading-tight">
                       First 1,000 Warriors
                     </h1>
-                    <p className="text-neutral-300 text-sm md:text-base font-medium mb-6">
-                      Register your blade to claim <strong className="text-white">1,000 $SPARTAN</strong> locked bonus.
+                    <p className="text-orange-100/70 text-sm md:text-base font-medium mb-6">
+                      Register your blade to claim <strong className="text-amber-400">1,000 $SPARTAN</strong> locked bonus.
                     </p>
-                    <button onClick={connectWallet} className="self-start bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-xl hover:bg-neutral-200 transition-colors">
+                    <button onClick={connectWallet} className="self-start bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:bg-neutral-200 transition-all">
                       Claim Now
                     </button>
                   </div>
-                  <Skull className="absolute -right-10 -bottom-10 w-64 h-64 text-orange-500/20 group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
+                  <Skull className="absolute -right-10 -bottom-10 w-64 h-64 text-orange-500/30 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(234,88,12,0.5)]" />
                 </div>
 
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-[#0a0a0a] border border-purple-500/20 shadow-2xl h-64 md:h-72 cursor-pointer group hidden lg:block">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50" />
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
-                    <h2 className="text-white font-black uppercase tracking-widest text-sm mb-2 opacity-80">Oracle's Jackpot</h2>
-                    <h1 className="font-spartan text-4xl font-black text-white drop-shadow-md mb-2">
-                      1,250,000 <span className="text-purple-400">$SPRT</span>
+                    <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
+                    <h1 className="font-spartan text-4xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2">
+                      1,250,000 <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">$SPRT</span>
                     </h1>
-                    <p className="text-neutral-300 font-medium mb-6">
+                    <p className="text-purple-100/70 font-medium mb-6">
                       The treasury grows with every drop of blood.
                     </p>
-                    <button onClick={() => setView('jackpot')} className="self-start bg-purple-600 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-xl hover:bg-purple-500 transition-colors">
+                    <button onClick={() => setView('jackpot')} className="self-start bg-purple-600 border border-purple-400 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:bg-purple-500 transition-all">
                       View Pot
                     </button>
                   </div>
-                  <Trophy className="absolute -right-4 top-1/2 -translate-y-1/2 w-48 h-48 text-purple-400/20 group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
+                  <Trophy className="absolute -right-4 top-1/2 -translate-y-1/2 w-48 h-48 text-purple-400/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" />
                 </div>
               </div>
 
@@ -257,76 +281,76 @@ export default function App() {
                 <CategoryPill icon={Skull} label="Live Multiplayer" />
               </div>
               
-              {/* Game Grid (Stake Style) */}
+              {/* Premium Game Grid */}
               <div className="mb-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="flex items-center gap-2 font-spartan text-xl font-black text-white uppercase tracking-widest">
-                    <span className="w-1.5 h-6 bg-orange-600 rounded-full" />
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="flex items-center gap-3 font-spartan text-xl font-black text-white uppercase tracking-widest drop-shadow-md">
+                    <span className="w-1.5 h-6 bg-gradient-to-b from-orange-400 to-red-600 rounded-full shadow-[0_0_10px_#ea580c]" />
                     Spartan Originals
                   </h2>
                   <div className="flex gap-2">
-                    <button className="bg-neutral-900 p-2 rounded hover:bg-neutral-800 text-neutral-400"><ChevronRight className="w-4 h-4 rotate-180" /></button>
-                    <button className="bg-neutral-900 p-2 rounded hover:bg-neutral-800 text-neutral-400"><ChevronRight className="w-4 h-4" /></button>
+                    <button className="bg-white/5 border border-white/10 p-2 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-4 h-4 rotate-180" /></button>
+                    <button className="bg-white/5 border border-white/10 p-2 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-4 h-4" /></button>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  <CasinoCard 
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                  <ArenaCard 
                     title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="PvP"
-                    gradient="bg-gradient-to-br from-red-600 to-orange-700" 
+                    gradient="bg-gradient-to-br from-[#450a0a] via-[#7f1d1d] to-[#ea580c]" 
                   />
-                  <CasinoCard 
+                  <ArenaCard 
                     title="Chariot Crash" icon={TrendingUp} target="crash" players="89"
-                    gradient="bg-gradient-to-br from-indigo-600 to-blue-800" 
+                    gradient="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4f46e5]" 
                   />
-                  <CasinoCard 
+                  <ArenaCard 
                     title="Shield Wall" icon={Shield} target="plinko" players="312"
-                    gradient="bg-gradient-to-br from-emerald-600 to-teal-800" 
+                    gradient="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#10b981]" 
                   />
-                  <CasinoCard 
+                  <ArenaCard 
                     title="Leonidas' Dice" icon={Dices} target="dice" players="56"
-                    gradient="bg-gradient-to-br from-purple-600 to-fuchsia-800" 
+                    gradient="bg-gradient-to-br from-[#4a044e] via-[#701a75] to-[#d946ef]" 
                   />
-                  <CasinoCard 
+                  <ArenaCard 
                     title="The 300 Stand" icon={Skull} target="stand" players="1,204" tag="Royale"
-                    gradient="bg-gradient-to-br from-amber-600 to-yellow-800" 
+                    gradient="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#f59e0b]" 
                   />
                 </div>
               </div>
 
-              {/* Live Casino Feed Table (Stake/Rollbit Style) */}
+              {/* Live Arena Feed Table */}
               <div className="mt-12 mb-10">
-                <div className="flex items-center gap-4 mb-4 border-b border-neutral-800 pb-4">
-                  <button className="text-white font-bold flex items-center gap-2 bg-neutral-800/50 px-4 py-2 rounded-lg">
+                <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-4">
+                  <button className="text-white font-black uppercase tracking-widest flex items-center gap-2 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg shadow-inner">
                     <History className="w-4 h-4 text-orange-500" /> Recent Battles
                   </button>
-                  <button className="text-neutral-500 font-bold hover:text-white transition-colors">High Rollers</button>
+                  <button className="text-neutral-500 font-bold uppercase tracking-widest hover:text-white transition-colors">High Rollers</button>
                 </div>
                 
-                <div className="bg-[#0f0f0f] border border-neutral-800/80 rounded-xl overflow-hidden">
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                   <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-[#141414] text-neutral-500 text-xs uppercase tracking-wider font-bold">
+                    <thead className="bg-black/60 text-neutral-400 text-xs uppercase tracking-widest font-black border-b border-white/10">
                       <tr>
-                        <th className="px-6 py-4 font-medium">Game</th>
-                        <th className="px-6 py-4 font-medium">Warrior</th>
-                        <th className="px-6 py-4 font-medium text-right">Wager</th>
-                        <th className="px-6 py-4 font-medium text-right">Multiplier</th>
-                        <th className="px-6 py-4 font-medium text-right">Payout</th>
+                        <th className="px-6 py-5">Game</th>
+                        <th className="px-6 py-5">Warrior</th>
+                        <th className="px-6 py-5 text-right">Wager</th>
+                        <th className="px-6 py-5 text-right">Multiplier</th>
+                        <th className="px-6 py-5 text-right">Payout</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-800/50">
+                    <tbody className="divide-y divide-white/5">
                       {liveFeed.map((feed) => (
-                        <tr key={feed.id} className="hover:bg-white/5 transition-colors">
-                          <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-neutral-700" /> {feed.game}
+                        <tr key={feed.id} className="hover:bg-white/5 transition-colors duration-200">
+                          <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
+                            <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game}
                           </td>
-                          <td className="px-6 py-4 font-bold text-neutral-300">{feed.user}</td>
+                          <td className="px-6 py-4 font-bold text-neutral-300 tracking-wider">{feed.user}</td>
                           <td className="px-6 py-4 text-right font-medium text-neutral-400 flex items-center justify-end gap-1.5">
-                            {feed.wager} <Coins className="w-3 h-3 text-amber-500" />
+                            {feed.wager} <Coins className="w-3.5 h-3.5 text-amber-500 drop-shadow-md" />
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-neutral-300">{feed.multiplier}</td>
-                          <td className={`px-6 py-4 text-right font-black flex items-center justify-end gap-1.5 ${feed.type === 'win' ? 'text-green-500' : 'text-neutral-500'}`}>
-                            {feed.payout} {feed.type === 'win' && <Coins className="w-3 h-3 text-green-500" />}
+                          <td className="px-6 py-4 text-right font-black text-neutral-200">{feed.multiplier}</td>
+                          <td className={`px-6 py-4 text-right font-black flex items-center justify-end gap-1.5 ${feed.type === 'win' ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]' : 'text-neutral-500'}`}>
+                            {feed.payout} {feed.type === 'win' && <Coins className="w-3.5 h-3.5 text-green-400" />}
                           </td>
                         </tr>
                       ))}
@@ -335,8 +359,8 @@ export default function App() {
                 </div>
               </div>
 
-              <footer className="pt-8 pb-4 text-center text-xs text-neutral-600 uppercase tracking-widest font-bold border-t border-neutral-800">
-                The Sparta Arena Casino • Solana Network • Play Responsibly
+              <footer className="pt-8 pb-4 text-center text-[10px] text-neutral-500 uppercase tracking-widest font-black border-t border-white/10">
+                The Sparta Arena • Solana Network • Play Responsibly
               </footer>
             </div>
           )}
@@ -354,74 +378,96 @@ export default function App() {
 
           {/* GAME ROUTE STUBS */}
           {['crash', 'dice', 'plinko', 'stand', 'jackpot'].includes(view) && (
-            <div className="flex flex-col items-center justify-center h-full text-center pb-20 mt-20">
-              <div className="w-24 h-24 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-6 shadow-2xl">
-                <Lock className="w-10 h-10 text-neutral-600" />
+            <div className="flex flex-col items-center justify-center h-full text-center pb-20 mt-20 relative z-20">
+              <div className="w-28 h-28 rounded-3xl bg-black/50 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                <Lock className="w-12 h-12 text-neutral-500" />
               </div>
-              <h1 className="font-spartan text-4xl font-black text-white mb-4 uppercase tracking-widest">
+              <h1 className="font-spartan text-4xl font-black text-white mb-4 uppercase tracking-widest drop-shadow-lg">
                 {view === 'crash' ? 'Chariot Crash' : view === 'dice' ? "Leonidas' Dice" : view === 'plinko' ? "Shield Wall" : view === 'stand' ? "The 300 Stand" : "Oracle's Jackpot"}
               </h1>
-              <p className="text-neutral-400 max-w-md">
-                Smart contract audit in progress. This game will unlock in the next phase of the arena deployment.
+              <p className="text-neutral-400 max-w-md font-medium leading-relaxed">
+                Smart contract audit in progress. This arena will unlock in the next phase of deployment.
               </p>
-              <button onClick={() => setView('home')} className="mt-8 bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-lg font-bold text-sm transition-colors">
-                Back to Lobby
+              <button onClick={() => setView('home')} className="mt-8 bg-white/10 border border-white/20 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg">
+                Return to Lobby
               </button>
             </div>
           )}
 
           {/* INFORMATION ROUTES */}
           {view === 'rules' && (
-            <div className="max-w-3xl mx-auto bg-[#0f0f0f] border border-neutral-800 rounded-2xl p-10 mt-10 mb-10 shadow-2xl">
-              <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 border-b border-neutral-800 pb-4 flex items-center gap-3">
-                <ScrollText className="w-8 h-8" /> Casino Rules & Conditions
+            <div className="max-w-3xl mx-auto bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 mt-10 mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative z-20">
+              <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 border-b border-white/10 pb-6 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                <ScrollText className="w-8 h-8 text-orange-500" /> Protocol Rules & Conditions
               </h1>
+              
               <div className="space-y-8 text-neutral-300 leading-relaxed text-sm">
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><div className="w-1.5 h-4 bg-orange-500 rounded" /> Welcome Allowance Play-Through</h3>
-                  <p className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-800">The 1,000 $SPARTAN credit granted on account creation remains locked. Users must complete an aggregate turnover (wagers) of 1,000 $SPARTAN across arena games before balances unlock for chain withdrawal. Bots will be executed.</p>
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" /> Wallet Security & Protection
+                  </h3>
+                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                    Every wallet connected to The Sparta Arena is fully secured, encrypted, and protected. We do not have access to your private keys. All transactions are authorized strictly by you through your Web3 wallet provider on the Solana blockchain.
+                  </p>
                 </div>
+
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><div className="w-1.5 h-4 bg-orange-500 rounded" /> Arena Protocol Fee</h3>
-                  <p className="bg-neutral-900/50 p-4 rounded-lg border border-neutral-800">A standard 2.5% protocol fee is retained from all multiplayer match pots. This tribute funds the global Oracle's Jackpot pool.</p>
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <Coins className="w-5 h-5 text-orange-500 drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]" /> Match Fee & Payout Breakdown
+                  </h3>
+                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                    When you emerge victorious in a multiplayer arena, the total pot is distributed automatically via smart contract: <br/><br/>
+                    <strong className="text-green-400 text-base drop-shadow-md">95%</strong> goes directly to the Winner's connected wallet.<br/>
+                    <strong className="text-purple-400 text-base drop-shadow-md">3%</strong> is automatically routed to fuel the Oracle's Jackpot.<br/>
+                    <strong className="text-orange-400 text-base drop-shadow-md">2%</strong> goes to the Spartan Onchain Treasury for continuous ecosystem development.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <Lock className="w-5 h-5 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Welcome Allowance Play-Through
+                  </h3>
+                  <p className="bg-black/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                    The 1,000 $SPARTAN credit granted on account creation remains locked. Users must complete an aggregate wager turnover of 1,000 $SPARTAN across any arena games before balances unlock for chain withdrawal. Automated bot behavior will result in execution and forfeiture of funds.
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
           {view === 'leaderboard' && (
-            <div className="max-w-4xl mx-auto mt-10 mb-10">
-              <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 flex items-center gap-4">
-                <Trophy className="w-8 h-8 text-amber-500" /> Hall of Legends
+            <div className="max-w-4xl mx-auto mt-10 mb-10 relative z-20">
+              <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                <Trophy className="w-10 h-10 text-amber-500" /> Hall of Legends
               </h1>
-              <div className="bg-[#0f0f0f] border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-[#141414] text-neutral-400 text-xs uppercase tracking-widest border-b border-neutral-800">
+                  <thead className="bg-black/60 text-neutral-400 text-xs uppercase tracking-widest border-b border-white/10 font-black">
                     <tr>
-                      <th className="p-5">Rank</th>
-                      <th className="p-5">Warrior</th>
-                      <th className="p-5">Win Rate</th>
-                      <th className="p-5 text-right">Total Won</th>
+                      <th className="p-6">Rank</th>
+                      <th className="p-6">Warrior</th>
+                      <th className="p-6">Win Rate</th>
+                      <th className="p-6 text-right">Total Won</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-800/50">
-                    <tr className="bg-gradient-to-r from-amber-900/20 to-transparent">
-                      <td className="p-5 font-black text-yellow-500 text-lg">#1</td>
-                      <td className="p-5 font-bold text-white uppercase tracking-wider">ARES_99</td>
-                      <td className="p-5 font-medium text-neutral-300">78%</td>
-                      <td className="p-5 text-right font-black text-amber-400">142,500 $SPRT</td>
+                  <tbody className="divide-y divide-white/5">
+                    <tr className="bg-gradient-to-r from-amber-900/30 to-transparent">
+                      <td className="p-6 font-black text-yellow-500 text-xl drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">#1</td>
+                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">ARES_99</td>
+                      <td className="p-6 font-bold text-neutral-300">78%</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">142,500 $SPRT</td>
                     </tr>
-                    <tr className="bg-gradient-to-r from-neutral-600/10 to-transparent">
-                      <td className="p-5 font-black text-neutral-400 text-lg">#2</td>
-                      <td className="p-5 font-bold text-white uppercase tracking-wider">LEONIDAS</td>
-                      <td className="p-5 font-medium text-neutral-300">65%</td>
-                      <td className="p-5 text-right font-black text-amber-400">89,200 $SPRT</td>
+                    <tr className="bg-gradient-to-r from-neutral-600/20 to-transparent">
+                      <td className="p-6 font-black text-neutral-300 text-xl drop-shadow-[0_0_10px_rgba(163,163,163,0.5)]">#2</td>
+                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">LEONIDAS</td>
+                      <td className="p-6 font-bold text-neutral-300">65%</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">89,200 $SPRT</td>
                     </tr>
-                    <tr className="bg-gradient-to-r from-orange-900/10 to-transparent">
-                      <td className="p-5 font-black text-orange-600 text-lg">#3</td>
-                      <td className="p-5 font-bold text-white uppercase tracking-wider">BLOOD_GHOST</td>
-                      <td className="p-5 font-medium text-neutral-300">61%</td>
-                      <td className="p-5 text-right font-black text-amber-400">45,100 $SPRT</td>
+                    <tr className="bg-gradient-to-r from-orange-900/20 to-transparent">
+                      <td className="p-6 font-black text-orange-600 text-xl drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]">#3</td>
+                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">BLOOD_GHOST</td>
+                      <td className="p-6 font-bold text-neutral-300">61%</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">45,100 $SPRT</td>
                     </tr>
                   </tbody>
                 </table>
@@ -434,15 +480,16 @@ export default function App() {
 
       {/* SIGN UP MODAL */}
       {showSignup && (
-        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0f0f0f] border border-neutral-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-600 to-amber-500" />
-            <Skull className="w-16 h-16 text-amber-500 mx-auto mb-4 drop-shadow-[0_0_15px_#f59e0b]" />
-            <h2 className="font-spartan text-2xl font-black text-white uppercase tracking-widest mb-2">Claim Your Spoils</h2>
-            <p className="text-sm text-neutral-400 mb-6 font-medium">
-              Create a warrior alias to credit <strong className="text-amber-500">1,000 Locked $SPARTAN</strong> to your session.
+        <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="bg-black/60 border border-white/10 rounded-[2rem] p-10 max-w-md w-full shadow-[0_0_80px_rgba(234,88,12,0.3)] text-center relative overflow-hidden backdrop-blur-2xl">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-600 via-red-600 to-amber-500" />
+            <div className="absolute -top-20 -left-20 w-48 h-48 bg-orange-600/20 blur-[60px] rounded-full pointer-events-none" />
+            <Skull className="w-20 h-20 text-amber-500 mx-auto mb-6 drop-shadow-[0_0_20px_#f59e0b] relative z-10" />
+            <h2 className="font-spartan text-3xl font-black text-white uppercase tracking-widest mb-3 relative z-10">Claim Your Spoils</h2>
+            <p className="text-sm text-neutral-300 mb-8 font-medium leading-relaxed relative z-10">
+              Create a warrior alias to instantly credit <strong className="text-amber-400 font-bold drop-shadow-md">1,000 Locked $SPARTAN</strong> to your session.
             </p>
-            <form onSubmit={handleSignup}>
+            <form onSubmit={handleSignup} className="relative z-10">
               <input 
                 type="text" 
                 maxLength={12}
@@ -450,11 +497,11 @@ export default function App() {
                 placeholder="ENTER USERNAME"
                 value={tempName}
                 onChange={e => setTempName(e.target.value)}
-                className="w-full bg-[#141414] border border-neutral-800 rounded-xl px-4 py-3.5 text-center text-white font-black uppercase tracking-widest mb-4 focus:outline-none focus:border-orange-500 focus:bg-black transition-all"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-center text-white font-black uppercase tracking-widest mb-5 focus:outline-none focus:border-orange-500 focus:bg-black/80 transition-all shadow-inner"
               />
               <button 
                 type="submit"
-                className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:brightness-110 text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-lg transition-all"
+                className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:brightness-110 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_0_30px_rgba(234,88,12,0.5)] transition-all border border-orange-400/50"
               >
                 Enter the Arena
               </button>
@@ -466,7 +513,6 @@ export default function App() {
   );
 }
 
-// --- COLOSSEUM TAP GAME COMPONENT ---
 function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby'); 
   const [wager, setWager] = useState(100);
@@ -542,28 +588,28 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   if (view === 'lobby') {
     return (
-      <div className="w-full max-w-md mx-auto bg-[#0f0f0f] border border-neutral-800 rounded-3xl p-8 shadow-2xl relative text-center mt-10">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white"><ChevronRight className="w-6 h-6 rotate-180" /></button>
-        <div className="flex justify-center mb-4 mt-2">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-700 rounded-2xl flex items-center justify-center shadow-[0_0_30px_#ea580c44]">
-            <Swords className="w-10 h-10 text-white drop-shadow-md" />
+      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative text-center mt-10 z-20">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex justify-center mb-6 mt-4">
+          <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-orange-700 rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_rgba(234,88,12,0.4)] border border-orange-400/30">
+            <Swords className="w-12 h-12 text-white drop-shadow-md" />
           </div>
         </div>
-        <h2 className="font-spartan text-2xl font-black text-white tracking-wider mb-1">THE COLOSSEUM</h2>
+        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 drop-shadow-lg">THE COLOSSEUM</h2>
         <p className="text-sm text-neutral-400 mb-8 font-medium">10-Second PvP Tap Battles</p>
         
-        <div className="bg-[#141414] border border-neutral-800 rounded-xl p-4 mb-6">
-          <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider block mb-3 text-left">Wager Amount</label>
-          <div className="flex items-center justify-between gap-2">
+        <div className="bg-black/50 border border-white/5 rounded-2xl p-5 mb-8 shadow-inner">
+          <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block mb-4 text-left">Select Wager ($Spartan)</label>
+          <div className="flex items-center justify-between gap-3">
             {[50, 100, 250, 500].map(amt => (
-              <button key={amt} onClick={() => setWager(amt)} className={`flex-1 py-2.5 rounded-lg text-sm font-bold border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_10px_#ea580c33]' : 'border-neutral-800 bg-[#0f0f0f] text-neutral-400 hover:border-neutral-600 hover:text-white'}`}>
+              <button key={amt} onClick={() => setWager(amt)} className={`flex-1 py-3 rounded-xl text-sm font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
                 {amt}
               </button>
             ))}
           </div>
         </div>
-        <div className="flex flex-col gap-3">
-          <button onClick={startPractice} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_20px_#ea580c44] transition-all flex items-center justify-center gap-2 text-white">
+        <div className="flex flex-col gap-4">
+          <button onClick={startPractice} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-3 text-white border border-orange-400/50">
             <Bot className="w-5 h-5" /> Start Match vs Bot
           </button>
         </div>
@@ -573,10 +619,10 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   if (view === 'countdown') {
     return (
-      <div className="h-[60vh] flex items-center justify-center text-center animate-pulse">
+      <div className="h-[60vh] flex items-center justify-center text-center animate-pulse relative z-20">
         <div>
-          <h3 className="text-sm uppercase tracking-widest text-neutral-500 font-bold mb-2">Prepare for Battle</h3>
-          <span className="font-spartan text-8xl font-black text-orange-500 drop-shadow-[0_0_30px_#ea580c]">{countdown}</span>
+          <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Prepare Your Blade</h3>
+          <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_50px_rgba(234,88,12,0.8)]">{countdown}</span>
         </div>
       </div>
     );
@@ -584,30 +630,32 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   if (view === 'arena') {
     return (
-      <div className="w-full flex flex-col items-center mt-10">
+      <div className="w-full flex flex-col items-center mt-10 relative z-20">
         <div className="mb-8 flex flex-col items-center">
-          <span className="text-xs uppercase tracking-widest text-neutral-500 font-bold mb-2">Time Remaining</span>
-          <div className="px-8 py-2.5 rounded-full border border-neutral-800 bg-[#0f0f0f] shadow-inner">
-            <span className="font-spartan text-4xl font-black text-amber-400">{timeLeft}s</span>
+          <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-black mb-3">Time Remaining</span>
+          <div className="px-10 py-3 rounded-full border border-white/10 bg-black/50 shadow-inner backdrop-blur-md">
+            <span className="font-spartan text-5xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">{timeLeft}s</span>
           </div>
         </div>
-        <div className="w-full max-w-lg mb-10">
-          <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-3">
-            <span className="text-orange-400 flex items-center gap-2"><User className="w-4 h-4"/> You: {myTaps}</span>
-            <span className="text-red-500 flex items-center gap-2">Undead Bot: {oppTaps} <Bot className="w-4 h-4"/></span>
+        <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-2xl">
+          <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
+            <span className="text-orange-400 flex items-center gap-2 drop-shadow-md"><User className="w-4 h-4"/> You: {myTaps}</span>
+            <span className="text-red-500 flex items-center gap-2 drop-shadow-md">Undead Bot: {oppTaps} <Bot className="w-4 h-4"/></span>
           </div>
-          <div className="w-full h-4 bg-[#0f0f0f] rounded-full overflow-hidden border border-neutral-800 flex shadow-inner">
-            <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 to-amber-500 transition-all duration-100" />
-            <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 to-purple-900 transition-all duration-100" />
+          <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex shadow-inner relative">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-50 z-10 mix-blend-overlay pointer-events-none" />
+            <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-400 transition-all duration-100 shadow-[0_0_20px_rgba(245,158,11,0.8)] z-0" />
+            <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 via-purple-900 to-[#050308] transition-all duration-100 z-0" />
           </div>
         </div>
         <div className="relative my-4">
           {tapsEffect.map(t => (
-            <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-2xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-ping">+1</span>
+            <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-4xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-[ping_0.6s_ease-out_forwards] drop-shadow-[0_0_15px_rgba(245,158,11,0.8)] z-50">+1</span>
           ))}
-          <button onClick={handleStrike} className="w-72 h-72 rounded-full bg-[#0a0a0a] border-[6px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_50px_#ea580c66]">
-            <span className="font-spartan text-7xl font-black text-orange-500 drop-shadow-[0_0_20px_#ea580c]">Λ</span>
-            <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-4 uppercase">STRIKE</span>
+          <button onClick={handleStrike} className="w-80 h-80 rounded-full bg-[#050308] border-[8px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_80px_rgba(234,88,12,0.6)] group">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-orange-500/20 to-transparent pointer-events-none" />
+            <span className="font-spartan text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_30px_rgba(234,88,12,0.8)] group-active:scale-90 transition-transform">Λ</span>
+            <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-6 uppercase drop-shadow-md">STRIKE</span>
           </button>
         </div>
       </div>
@@ -616,30 +664,34 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   if (view === 'result') {
     return (
-      <div className="w-full max-w-md mx-auto mt-10 bg-[#0f0f0f] border border-neutral-800 rounded-3xl p-10 shadow-2xl text-center">
+      <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 shadow-[0_30px_60px_rgba(0,0,0,0.8)] text-center relative z-20 overflow-hidden">
+        <div className={`absolute top-0 left-0 w-full h-2 ${winner === 'you' ? 'bg-gradient-to-r from-amber-400 to-yellow-600' : winner === 'opp' ? 'bg-gradient-to-r from-red-600 to-red-900' : 'bg-neutral-600'}`} />
+        
         {winner === 'you' ? (
           <>
-            <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-4 drop-shadow-[0_0_20px_#f59e0b]" />
-            <h2 className="font-spartan text-4xl font-black text-amber-400 tracking-wider mb-2">VICTORY</h2>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl py-4 px-6 mb-8 mt-6">
-              <span className="text-sm font-bold text-amber-500/80 uppercase block mb-1">Payout</span>
-              <span className="text-2xl font-black text-amber-400">+{wager * 2} $SPARTAN</span>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/20 blur-[80px] rounded-full pointer-events-none" />
+            <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] relative z-10" />
+            <h2 className="font-spartan text-5xl font-black text-amber-400 tracking-wider mb-2 relative z-10 drop-shadow-lg">VICTORY</h2>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
+              <span className="text-xs font-black text-amber-500/80 uppercase tracking-widest block mb-2">Spoils Claimed</span>
+              <span className="text-4xl font-black text-amber-400 drop-shadow-md">+{wager * 2} <span className="text-xl">$SPRT</span></span>
             </div>
           </>
         ) : winner === 'opp' ? (
           <>
-            <Skull className="w-20 h-20 text-red-600 mx-auto mb-4 drop-shadow-[0_0_20px_#dc2626]" />
-            <h2 className="font-spartan text-4xl font-black text-red-600 tracking-wider mb-2">SLAIN</h2>
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl py-4 px-6 mb-8 mt-6">
-               <span className="text-sm font-bold text-red-500/80 uppercase block mb-1">Lost Wager</span>
-              <span className="text-2xl font-black text-red-500">-{wager} $SPARTAN</span>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/20 blur-[80px] rounded-full pointer-events-none" />
+            <Skull className="w-24 h-24 text-red-600 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(220,38,38,0.6)] relative z-10" />
+            <h2 className="font-spartan text-5xl font-black text-red-600 tracking-wider mb-2 relative z-10 drop-shadow-lg">SLAIN</h2>
+            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
+               <span className="text-xs font-black text-red-500/80 uppercase tracking-widest block mb-2">Wager Lost</span>
+              <span className="text-4xl font-black text-red-500 drop-shadow-md">-{wager} <span className="text-xl">$SPRT</span></span>
             </div>
           </>
         ) : (
-          <h2 className="font-spartan text-3xl font-black text-neutral-300 tracking-wider mb-8">DRAW</h2>
+          <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
         )}
-        <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-black text-sm tracking-widest uppercase transition-colors">
-          Play Again
+        <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-sm tracking-widest uppercase transition-all shadow-lg relative z-10">
+          Return to Arena
         </button>
       </div>
     );
