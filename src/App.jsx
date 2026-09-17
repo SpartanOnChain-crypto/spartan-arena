@@ -5,8 +5,7 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair,
-  CircleDot
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -148,7 +147,7 @@ export default function App() {
   return (
     <div className="flex h-screen bg-[#0a0200] text-neutral-100 font-sans overflow-hidden select-none relative">
       
-      {/* SMOLDERING FIRE BACKGROUND (NO NOISE TEXTURE) */}
+      {/* SMOLDERING FIRE BACKGROUND */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#050100]">
         <div className="absolute bottom-0 left-0 w-full h-[120%] bg-gradient-to-t from-[#ea580c]/10 via-[#7f1d1d]/10 to-transparent" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-orange-600/20 blur-[100px] rounded-full mix-blend-screen animate-[pulse_6s_ease-in-out_infinite]" />
@@ -176,12 +175,12 @@ export default function App() {
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Spartan Originals (PvP)</p>
           <SidebarItem icon={Swords} label="Colosseum Tap" target="tap" active={view === 'tap'} />
           <SidebarItem icon={TrendingUp} label="Chariot Deathrace" target="crash" active={view === 'crash'} />
-          <SidebarItem icon={Shield} label="Phalanx Stance" target="phalanx" active={view === 'phalanx'} />
-          <SidebarItem icon={Dices} label="Bones of Sparta" target="bones" active={view === 'bones'} />
+          <SidebarItem icon={Shield} label="Phalanx Stance" target="plinko" active={view === 'plinko'} />
+          <SidebarItem icon={Dices} label="Bones of Sparta" target="dice" active={view === 'dice'} />
           <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
           
           <div className="my-3 border-t border-white/5" />
-          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Events</p>
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Multiplayer</p>
           <SidebarItem icon={Skull} label="The 300 Stand" target="stand" active={view === 'stand'} />
           <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" active={view === 'jackpot'} />
           
@@ -260,7 +259,6 @@ export default function App() {
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-90 flex items-center gap-2">
@@ -280,7 +278,6 @@ export default function App() {
                 </div>
 
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
@@ -318,9 +315,9 @@ export default function App() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   <ArenaCard 
-                    title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="PvP"
+                    title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="1v1 PvP"
                     bgBase="bg-[#1a0500]" accentColor="text-orange-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -340,7 +337,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Phalanx Stance" icon={Shield} target="phalanx" players="312" tag="1v1 PvP"
+                    title="Phalanx Stance" icon={Shield} target="plinko" players="312" tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -350,7 +347,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Bones of Sparta" icon={Dices} target="bones" players="56" tag="1v1 PvP"
+                    title="Bones of Sparta" icon={Dices} target="dice" players="56" tag="1v1 PvP"
                     bgBase="bg-[#1a0024]" accentColor="text-fuchsia-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -419,36 +416,16 @@ export default function App() {
           )}
 
           {/* ALL GAMES ROUTING */}
-          {view === 'tap' && <GameTap wallet={wallet} addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          {view === 'crash' && <GameChariot addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          {view === 'phalanx' && <GamePhalanx addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          {view === 'bones' && <GameBones addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          
-          {view === 'stand' && (
-            <div className="flex flex-col items-center justify-center h-full text-center pb-20 mt-20 relative z-20">
-              <div className="w-28 h-28 rounded-3xl bg-black/50 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                <Skull className="w-12 h-12 text-yellow-500" />
-              </div>
-              <h1 className="font-spartan text-4xl font-black text-white mb-4 uppercase tracking-widest drop-shadow-lg">The 300 Stand</h1>
-              <p className="text-neutral-400 max-w-md font-medium leading-relaxed">Massive PvP Battle Royale currently under smart contract construction.</p>
-              <button onClick={() => setView('home')} className="mt-8 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg">Return to Lobby</button>
-            </div>
-          )}
-
-          {view === 'jackpot' && (
-             <div className="flex flex-col items-center justify-center h-full text-center pb-20 mt-20 relative z-20">
-             <div className="w-28 h-28 rounded-3xl bg-black/50 border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-               <Zap className="w-12 h-12 text-purple-500" />
-             </div>
-             <h1 className="font-spartan text-4xl font-black text-white mb-4 uppercase tracking-widest drop-shadow-lg">Oracle's Jackpot</h1>
-             <p className="text-neutral-400 max-w-md font-medium leading-relaxed">Treasury lottery contracts unlock at the end of the current epoch.</p>
-             <button onClick={() => setView('home')} className="mt-8 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg">Return to Lobby</button>
-           </div>
-          )}
+          {view === 'tap' && <ArenaGame wallet={wallet} addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'crash' && <ChariotDeathrace addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'dice' && <BonesOfSparta addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'plinko' && <PhalanxStance addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'stand' && <The300Stand addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'jackpot' && <OracleJackpot addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           
           {/* SUGGEST A GAME */}
           {view === 'suggest' && (
-            <div className="max-w-2xl mx-auto mt-20 relative z-20 px-4">
+            <div className="max-w-2xl mx-auto mt-20 relative z-20">
               <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg">
@@ -513,7 +490,7 @@ export default function App() {
           )}
 
           {view === 'leaderboard' && (
-            <div className="max-w-4xl mx-auto mt-10 mb-10 relative z-20 px-4">
+            <div className="max-w-4xl mx-auto mt-10 mb-10 relative z-20">
               <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                 <Trophy className="w-10 h-10 text-amber-500" /> Hall of Legends
               </h1>
@@ -559,90 +536,30 @@ export default function App() {
 }
 
 // -------------------------------------------------------------
-// REUSABLE MATCHMAKING LOBBY COMPONENT
+// GAME COMPONENTS
 // -------------------------------------------------------------
 
-function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onStart }) {
+function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
+  const [view, setView] = useState('lobby'); 
   const [wager, setWager] = useState('100');
   const [league, setLeague] = useState('little');
   const [roomCode, setRoomCode] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const littleLeague = ['100', '500', '1K', '5K', '10K'];
-  const bigLeague = ['50K', '100K', '500K', '1M'];
-
-  const handleStart = () => {
-    setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); onStart(wager); }, 2000);
-  };
-
-  return (
-    <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
-      <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-      <div className="flex flex-col items-center mb-8">
-        <div className={`w-20 h-20 bg-gradient-to-br ${iconColor} rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2`}>
-          <Icon className="w-10 h-10 text-white drop-shadow-md" />
-        </div>
-        <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">{title}</h2>
-        <p className="text-sm text-neutral-400 font-medium text-center">{subtitle}</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Ranked Matchmaking Side */}
-        <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
-          <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked PvP Matchmaking</h3>
-          <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
-            <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
-            <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-orange-600/20 text-orange-400' : 'text-neutral-500'}`}>Big League</button>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mb-6">
-            {(league === 'little' ? littleLeague : bigLeague).map(amt => (
-              <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                {amt}
-              </button>
-            ))}
-          </div>
-          <button onClick={handleStart} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
-            {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
-          </button>
-        </div>
-
-        {/* Private Room Side */}
-        <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
-           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
-          <div>
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
-            <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
-          </div>
-          <button onClick={handleStart} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
-            Join Private Match
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const getPayoutStr = (wager, multiplier) => {
-  if (wager.includes('M')) return (parseFloat(wager)*multiplier) + 'M';
-  if (wager.includes('K')) return (parseFloat(wager)*multiplier) + 'K';
-  return (parseFloat(wager)*multiplier).toString();
-};
-
-// -------------------------------------------------------------
-// GAME 1: COLOSSEUM TAP
-// -------------------------------------------------------------
-
-function GameTap({ wallet, addWager, addFeed, username, onBack }) {
-  const [view, setView] = useState('lobby'); 
-  const [wager, setWager] = useState('100');
+  
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState(10.0);
   const [myTaps, setMyTaps] = useState(0);
   const [oppTaps, setOppTaps] = useState(0);
   const [winner, setWinner] = useState(null);
   const [tapsEffect, setTapsEffect] = useState([]);
+
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const startMatch = () => {
+    setIsSearching(true);
+    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
+  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -681,7 +598,8 @@ function GameTap({ wallet, addWager, addFeed, username, onBack }) {
     if (myTaps > oppTaps) {
       setWinner('you');
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
-      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
+      const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${payoutStr}`, 'win');
     } else if (oppTaps > myTaps) {
       setWinner('opp');
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
@@ -693,66 +611,140 @@ function GameTap({ wallet, addWager, addFeed, username, onBack }) {
   const totalTaps = myTaps + oppTaps || 1;
   const myLeadPct = Math.min(100, Math.max(0, (myTaps / totalTaps) * 100));
 
-  if (view === 'lobby') return <MatchmakingLobby title="Colosseum Tap" subtitle="10-Second PvP Combat" icon={Swords} iconColor="from-red-600 to-orange-700" onBack={onBack} onStart={(w) => { setWager(w); setView('countdown'); }} />;
-  if (view === 'countdown') return (
-    <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
-      <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Found. Prepare Your Blade.</h3>
-      <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 animate-pulse">{countdown}</span>
-    </div>
-  );
-  if (view === 'arena') return (
-    <div className="w-full flex flex-col items-center mt-10 relative z-20">
-      <div className="mb-8 flex flex-col items-center">
-        <div className="px-10 py-3 rounded-full border border-white/10 bg-black/50 shadow-inner">
-          <span className="font-spartan text-5xl font-black text-amber-400">{timeLeft}s</span>
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-2xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-700 rounded-2xl flex items-center justify-center shadow-[0_0_40px_rgba(234,88,12,0.4)] border border-orange-400/30 mb-4 mt-2">
+            <Swords className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase">Colosseum Tap</h2>
+          <p className="text-sm text-neutral-400 font-medium">10-Second PvP Combat</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked Matchmaking</h3>
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-orange-600/20 text-orange-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
+                  {amt}
+                </button>
+              ))}
+            </div>
+            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
+            </button>
+          </div>
+
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+            </div>
+            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
         </div>
       </div>
-      <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 shadow-2xl">
-        <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
-          <span className="text-orange-400 flex items-center gap-2"><User className="w-4 h-4"/> You: {myTaps}</span>
-          <span className="text-red-500 flex items-center gap-2">Enemy: {oppTaps} <Bot className="w-4 h-4"/></span>
-        </div>
-        <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex relative">
-          <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 to-yellow-400 transition-all duration-100" />
-          <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 to-purple-900 transition-all duration-100" />
+    );
+  }
+
+  if (view === 'countdown') {
+    return (
+      <div className="h-[60vh] flex items-center justify-center text-center animate-pulse relative z-20">
+        <div>
+          <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Match Found. Prepare Your Blade.</h3>
+          <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_50px_rgba(234,88,12,0.8)]">{countdown}</span>
         </div>
       </div>
-      <div className="relative my-4">
-        {tapsEffect.map(t => (
-          <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-4xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-[ping_0.6s_ease-out_forwards]">+1</span>
-        ))}
-        <button onClick={handleStrike} className="w-80 h-80 rounded-full bg-[#050308] border-[8px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_80px_rgba(234,88,12,0.6)]">
-          <span className="font-spartan text-8xl font-black text-orange-500">Λ</span>
-          <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-6 uppercase">STRIKE</span>
+    );
+  }
+
+  if (view === 'arena') {
+    return (
+      <div className="w-full flex flex-col items-center mt-10 relative z-20">
+        <div className="mb-8 flex flex-col items-center">
+          <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-black mb-3">Time Remaining</span>
+          <div className="px-10 py-3 rounded-full border border-white/10 bg-black/50 shadow-inner backdrop-blur-md">
+            <span className="font-spartan text-5xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">{timeLeft}s</span>
+          </div>
+        </div>
+        <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-2xl">
+          <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
+            <span className="text-orange-400 flex items-center gap-2 drop-shadow-md"><User className="w-4 h-4"/> You: {myTaps}</span>
+            <span className="text-red-500 flex items-center gap-2 drop-shadow-md">Enemy: {oppTaps} <Bot className="w-4 h-4"/></span>
+          </div>
+          <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex shadow-inner relative">
+            <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-400 transition-all duration-100 shadow-[0_0_20px_rgba(245,158,11,0.8)] z-0" />
+            <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 via-purple-900 to-[#050308] transition-all duration-100 z-0" />
+          </div>
+        </div>
+        <div className="relative my-4">
+          {tapsEffect.map(t => (
+            <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-4xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-[ping_0.6s_ease-out_forwards] z-50">+1</span>
+          ))}
+          <button onClick={handleStrike} className="w-80 h-80 rounded-full bg-[#050308] border-[8px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_80px_rgba(234,88,12,0.6)] group">
+            <span className="font-spartan text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_30px_rgba(234,88,12,0.8)] group-active:scale-90 transition-transform">Λ</span>
+            <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-6 uppercase drop-shadow-md">STRIKE</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'result') {
+    return (
+      <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 shadow-[0_30px_60px_rgba(0,0,0,0.8)] text-center relative z-20 overflow-hidden">
+        <div className={`absolute top-0 left-0 w-full h-2 ${winner === 'you' ? 'bg-gradient-to-r from-amber-400 to-yellow-600' : 'bg-gradient-to-r from-red-600 to-red-900'}`} />
+        {winner === 'you' ? (
+          <>
+            <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] relative z-10" />
+            <h2 className="font-spartan text-5xl font-black text-amber-400 tracking-wider mb-2 relative z-10 drop-shadow-lg">VICTORY</h2>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
+              <span className="text-xs font-black text-amber-500/80 uppercase tracking-widest block mb-2">Spoils Claimed</span>
+              <span className="text-4xl font-black text-amber-400 drop-shadow-md">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} <span className="text-xl">$SPRT</span></span>
+            </div>
+          </>
+        ) : winner === 'opp' ? (
+          <>
+            <Skull className="w-24 h-24 text-red-600 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(220,38,38,0.6)] relative z-10" />
+            <h2 className="font-spartan text-5xl font-black text-red-600 tracking-wider mb-2 relative z-10 drop-shadow-lg">SLAIN</h2>
+            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
+               <span className="text-xs font-black text-red-500/80 uppercase tracking-widest block mb-2">Wager Lost</span>
+              <span className="text-4xl font-black text-red-500 drop-shadow-md">-{wager} <span className="text-xl">$SPRT</span></span>
+            </div>
+          </>
+        ) : (
+          <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
+        )}
+        <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-sm tracking-widest uppercase transition-all shadow-lg relative z-10">
+          Return to Matchmaking
         </button>
       </div>
-    </div>
-  );
-  if (view === 'result') return (
-    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
-      {winner === 'you' ? (
-        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2><div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPRT</span></div></>
-      ) : winner === 'opp' ? (
-        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
-      ) : (
-        <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
-      )}
-      <button onClick={() => setView('lobby')} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
-    </div>
-  );
+    );
+  }
 }
 
-// -------------------------------------------------------------
-// GAME 2: CHARIOT DEATHRACE (3-Player PvP)
-// -------------------------------------------------------------
-
-function GameChariot({ addWager, addFeed, username, onBack }) {
+function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('1K');
+  const [league, setLeague] = useState('little');
+  const [roomCode, setRoomCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [multiplier, setMultiplier] = useState(1.00);
-  const [myStatus, setMyStatus] = useState('racing'); // racing, bailed, crashed
+  const [myStatus, setMyStatus] = useState('racing'); 
   const [myBail, setMyBail] = useState(0);
   const [opp1Status, setOpp1Status] = useState('racing');
   const [opp2Status, setOpp2Status] = useState('racing');
@@ -760,6 +752,14 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
   const [crashPoint, setCrashPoint] = useState(0);
   const [opp1Target, setOpp1Target] = useState(0);
   const [opp2Target, setOpp2Target] = useState(0);
+
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const startMatch = () => {
+    setIsSearching(true);
+    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
+  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -771,16 +771,13 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
       setOpp1Target(1.0 + Math.random() * 3.5);
       setOpp2Target(1.0 + Math.random() * 3.5);
       setMultiplier(1.0);
-      setMyStatus('racing');
-      setOpp1Status('racing');
-      setOpp2Status('racing');
+      setMyStatus('racing'); setOpp1Status('racing'); setOpp2Status('racing');
       setView('arena');
     }
   }, [view, countdown]);
 
   useEffect(() => {
     if (view !== 'arena') return;
-    
     if (multiplier >= crashPoint) {
       if (myStatus === 'racing') setMyStatus('crashed');
       if (opp1Status === 'racing') setOpp1Status('crashed');
@@ -788,7 +785,6 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
       setTimeout(() => settleMatch(), 1500);
       return;
     }
-
     const timer = setInterval(() => {
       setMultiplier(m => {
         const next = m + 0.02;
@@ -809,25 +805,73 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
   const settleMatch = () => {
     setView('result');
     addWager(wager);
-    
     let winner = 'none';
-    if (myStatus === 'bailed' && myBail >= opp1Target && myBail >= opp2Target) winner = 'you';
+    if (myStatus === 'bailed' && myBail >= (opp1Status==='bailed'?opp1Target:0) && myBail >= (opp2Status==='bailed'?opp2Target:0)) winner = 'you';
     
     if (winner === 'you') {
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-      addFeed(username || 'Hoplite', "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${getPayoutStr(wager, 3)}`, 'win');
+      const payoutStr = wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : (parseFloat(wager)*3).toString();
+      addFeed(username || 'Hoplite', "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${payoutStr}`, 'win');
     } else {
       addFeed(username || 'Hoplite', "Chariot Deathrace", wager, "0.0x", `-${wager}`, 'loss');
     }
   };
 
-  if (view === 'lobby') return <MatchmakingLobby title="Chariot Deathrace" subtitle="3-Player PvP Survival. Bail before the crash." icon={TrendingUp} iconColor="from-cyan-600 to-blue-800" onBack={onBack} onStart={(w) => { setWager(w); setView('countdown'); }} />;
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-cyan-600 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
+            <TrendingUp className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Chariot Deathrace</h2>
+          <p className="text-sm text-neutral-400 font-medium text-center">3-Player PvP. Bail before the crash.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-cyan-500"/> Ranked PvP Matchmaking</h3>
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-cyan-600/20 text-cyan-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-cyan-500 bg-cyan-600/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
+                  {amt}
+                </button>
+              ))}
+            </div>
+            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-cyan-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
+            </button>
+          </div>
+
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+            </div>
+            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">2 Opponents Joined. The Race Begins In:</h3>
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600 animate-pulse">{countdown}</span>
     </div>
   );
+
   if (view === 'arena') return (
     <div className="w-full flex flex-col items-center mt-10 relative z-20">
       <div className="w-full max-w-3xl flex justify-between gap-4 mb-10">
@@ -855,6 +899,7 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
       </button>
     </div>
   );
+
   if (view === 'result') {
     const iWon = myStatus === 'bailed' && myBail >= (opp1Status==='bailed'?opp1Target:0) && myBail >= (opp2Status==='bailed'?opp2Target:0);
     return (
@@ -862,29 +907,36 @@ function GameChariot({ addWager, addFeed, username, onBack }) {
         <h2 className={`font-spartan text-4xl font-black tracking-wider mb-6 ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? 'LAST SURVIVOR' : 'DEFEATED'}</h2>
         <div className="bg-white/5 border border-white/10 rounded-2xl py-6 px-8 mb-8">
            <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-2">{iWon ? '3-Player Pot Claimed' : 'Wager Lost'}</span>
-           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? getPayoutStr(wager, 3) : wager} $SPRT</span>
+           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : parseFloat(wager)*3) : wager}</span>
         </div>
-        <button onClick={() => setView('lobby')} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Race Again</button>
+        <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Race Again</button>
       </div>
     );
   }
 }
 
-// -------------------------------------------------------------
-// GAME 3: PHALANX STANCE (1v1 Tactical)
-// -------------------------------------------------------------
-
-function GamePhalanx({ addWager, addFeed, username, onBack }) {
+function PhalanxStance({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('100');
+  const [league, setLeague] = useState('little');
+  const [roomCode, setRoomCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [myScore, setMyScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
-  const [roundState, setRoundState] = useState('choosing'); // choosing, revealed
+  const [roundState, setRoundState] = useState('choosing');
   const [myChoice, setMyChoice] = useState('');
   const [oppChoice, setOppChoice] = useState('');
   const [roundResult, setRoundResult] = useState('');
+
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const startMatch = () => {
+    setIsSearching(true);
+    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
+  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -900,8 +952,7 @@ function GamePhalanx({ addWager, addFeed, username, onBack }) {
     if(roundState !== 'choosing') return;
     const choices = ['Spear', 'Shield', 'Parry'];
     const oppC = choices[Math.floor(Math.random() * 3)];
-    setMyChoice(choice);
-    setOppChoice(oppC);
+    setMyChoice(choice); setOppChoice(oppC);
     
     let res = 'draw';
     if (choice === 'Spear' && oppC === 'Parry') res = 'win';
@@ -923,25 +974,73 @@ function GamePhalanx({ addWager, addFeed, username, onBack }) {
             addWager(wager);
             if(m === 2) {
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-              addFeed(username || 'Hoplite', "Phalanx Stance", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
+              const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+              addFeed(username || 'Hoplite', "Phalanx Stance", wager, "2.0x", `+${payoutStr}`, 'win');
             } else {
               addFeed(username || 'Hoplite', "Phalanx Stance", wager, "0.0x", `-${wager}`, 'loss');
             }
             setView('result');
         } else {
-            setRoundState('choosing');
-            setMyChoice('');
+            setRoundState('choosing'); setMyChoice('');
         }
     }, 2500);
   };
 
-  if (view === 'lobby') return <MatchmakingLobby title="Phalanx Stance" subtitle="1v1 Tactical Quick-Draw. Best of 3." icon={Shield} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w) => { setWager(w); setView('countdown'); }} />;
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-teal-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
+            <Shield className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Phalanx Stance</h2>
+          <p className="text-sm text-neutral-400 font-medium text-center">1v1 Tactical PvP Duel. Best of 3.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-teal-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-green-500"/> Ranked PvP Matchmaking</h3>
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-green-600/20 text-green-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-green-500 bg-green-600/20 text-green-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
+                  {amt}
+                </button>
+              ))}
+            </div>
+            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-600 to-teal-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-green-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
+            </button>
+          </div>
+
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+            </div>
+            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Locked. Prepare Stance.</h3>
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span>
     </div>
   );
+
   if (view === 'arena') return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-10 relative z-20">
       <div className="w-full flex justify-between items-center mb-12 bg-black/50 border border-white/10 rounded-2xl p-6 shadow-inner">
@@ -971,7 +1070,7 @@ function GamePhalanx({ addWager, addFeed, username, onBack }) {
                <span className="text-xs text-neutral-500 font-bold uppercase">Breaks Spear</span>
             </button>
             <button onClick={()=>playRound('Parry')} className="bg-black/60 border border-white/10 hover:border-purple-500 rounded-2xl p-8 flex flex-col items-center group transition-all hover:scale-105 shadow-xl">
-               <CircleDot className="w-16 h-16 text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
+               <Target className="w-16 h-16 text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
                <span className="font-black text-xl uppercase tracking-widest text-white mb-2">Parry</span>
                <span className="text-xs text-neutral-500 font-bold uppercase">Deflects Shield</span>
             </button>
@@ -997,30 +1096,38 @@ function GamePhalanx({ addWager, addFeed, username, onBack }) {
       )}
     </div>
   );
+
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {myScore === 2 ? (
-        <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{getPayoutStr(wager, 2)} $SPRT</span></div></>
+        <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPRT</span></div></>
       ) : (
         <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
       )}
-      <button onClick={() => setView('lobby')} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
+      <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
     </div>
   );
 }
 
-// -------------------------------------------------------------
-// GAME 4: BONES OF SPARTA (1v1 Dice)
-// -------------------------------------------------------------
-
-function GameBones({ addWager, addFeed, username, onBack }) {
+function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('100');
+  const [league, setLeague] = useState('little');
+  const [roomCode, setRoomCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [myRoll, setMyRoll] = useState(0);
   const [oppRoll, setOppRoll] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
+
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const startMatch = () => {
+    setIsSearching(true);
+    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
+  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -1034,7 +1141,6 @@ function GameBones({ addWager, addFeed, username, onBack }) {
 
   const handleRoll = () => {
     setIsRolling(true);
-    // Simulate dice rolling animation
     const anim = setInterval(() => {
       setMyRoll(Math.floor(Math.random() * 100) + 1);
       setOppRoll(Math.floor(Math.random() * 100) + 1);
@@ -1044,7 +1150,7 @@ function GameBones({ addWager, addFeed, username, onBack }) {
       clearInterval(anim);
       let m = Math.floor(Math.random() * 100) + 1;
       let o = Math.floor(Math.random() * 100) + 1;
-      if (m === o) m = Math.min(100, m + 1); // Avoid tie for simplicity
+      if (m === o) m = Math.min(100, m + 1); 
       setMyRoll(m); setOppRoll(o);
       setIsRolling(false);
       
@@ -1052,7 +1158,8 @@ function GameBones({ addWager, addFeed, username, onBack }) {
         addWager(wager);
         if (m > o) {
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-          addFeed(username || 'Hoplite', "Bones of Sparta", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
+          const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+          addFeed(username || 'Hoplite', "Bones of Sparta", wager, "2.0x", `+${payoutStr}`, 'win');
         } else {
           addFeed(username || 'Hoplite', "Bones of Sparta", wager, "0.0x", `-${wager}`, 'loss');
         }
@@ -1061,13 +1168,61 @@ function GameBones({ addWager, addFeed, username, onBack }) {
     }, 1500);
   };
 
-  if (view === 'lobby') return <MatchmakingLobby title="Bones of Sparta" subtitle="1v1 High-Roller Dice Duel." icon={Dices} iconColor="from-fuchsia-600 to-purple-800" onBack={onBack} onStart={(w) => { setWager(w); setView('countdown'); }} />;
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-fuchsia-600 to-purple-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
+            <Dices className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Bones of Sparta</h2>
+          <p className="text-sm text-neutral-400 font-medium text-center">1v1 PvP High-Roller Dice Duel.</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 to-purple-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-fuchsia-500"/> Ranked PvP Matchmaking</h3>
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-fuchsia-600/20 text-fuchsia-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-fuchsia-500 bg-fuchsia-600/20 text-fuchsia-400 shadow-[0_0_15px_rgba(217,70,239,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
+                  {amt}
+                </button>
+              ))}
+            </div>
+            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(217,70,239,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-fuchsia-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
+            </button>
+          </div>
+
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+            </div>
+            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Matched. Grab the Bones.</h3>
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-fuchsia-400 to-purple-600 animate-pulse">{countdown}</span>
     </div>
   );
+
   if (view === 'arena') return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-20 relative z-20">
        <div className="w-full flex justify-between gap-8 mb-12">
@@ -1090,14 +1245,133 @@ function GameBones({ addWager, addFeed, username, onBack }) {
        )}
     </div>
   );
+
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {myRoll > oppRoll ? (
-        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2><div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{getPayoutStr(wager, 2)} $SPRT</span></div></>
+        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2><div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPRT</span></div></>
       ) : (
         <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
       )}
-      <button onClick={() => setView('lobby')} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
+      <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
     </div>
   );
 }
+
+// -------------------------------------------------------------
+// GAME 5: THE 300 STAND & JACKPOT
+// -------------------------------------------------------------
+
+function The300Stand({ addWager, addFeed, username, onBack }) {
+  const [view, setView] = useState('lobby');
+  const [wave, setWave] = useState(1);
+  const [timeToBlock, setTimeToBlock] = useState(3);
+  const [blocked, setBlocked] = useState(false);
+  const [status, setStatus] = useState('');
+
+  const startStand = () => { setWave(1); setTimeToBlock(3); setBlocked(false); setStatus(''); setView('stand'); };
+
+  useEffect(() => {
+    if (view !== 'stand' || status !== '') return;
+    if (timeToBlock > 0 && !blocked) {
+      const t = setTimeout(() => setTimeToBlock(prev => prev - 1), 1000);
+      return () => clearTimeout(t);
+    } else if (timeToBlock === 0 && !blocked) {
+      setStatus('dead');
+      addWager('10K');
+      addFeed(username || 'Hoplite', "The 300 Stand", "10K", "0.0x", "-10K", 'loss');
+    }
+  }, [view, timeToBlock, blocked, status]);
+
+  const handleBlock = () => {
+    if (status !== '' || blocked) return;
+    setBlocked(true);
+    if (wave === 5) {
+      setStatus('won');
+      confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+      addWager('10K');
+      addFeed(username || 'Hoplite', "The 300 Stand", "10K", "10.0x", "+100K", 'win');
+    } else {
+      setTimeout(() => { setWave(w => w + 1); setTimeToBlock(3); setBlocked(false); }, 1500);
+    }
+  };
+
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20 text-center">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <Skull className="w-20 h-20 text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_#eab308]" />
+        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">The 300 Stand</h2>
+        <p className="text-sm text-neutral-400 mb-8 font-medium">Survive 5 waves of arrows. Buy-in: 10K $SPARTAN.</p>
+        <button onClick={startStand} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,179,8,0.4)] text-white">
+          Enter The Pass
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20 text-center">
+      <h2 className="font-spartan text-xl font-black text-amber-500 uppercase tracking-widest mb-6">Wave {wave} / 5</h2>
+      {status === 'dead' ? (
+        <div>
+          <Crosshair className="w-24 h-24 text-red-600 mx-auto mb-4 animate-pulse" />
+          <h2 className="font-spartan text-4xl font-black text-red-500 uppercase tracking-widest mb-6">PIERCED!</h2>
+          <button onClick={() => setView('lobby')} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Return to Camp</button>
+        </div>
+      ) : status === 'won' ? (
+        <div>
+          <Trophy className="w-24 h-24 text-yellow-400 mx-auto mb-4 drop-shadow-[0_0_20px_#facc15]" />
+          <h2 className="font-spartan text-4xl font-black text-yellow-400 uppercase tracking-widest mb-2">IMMORTAL</h2>
+          <p className="text-yellow-200 font-bold mb-6">You survived the stand. +100K $SPARTAN</p>
+          <button onClick={() => setView('lobby')} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Return to Camp</button>
+        </div>
+      ) : (
+        <div>
+          <div className="w-32 h-32 mx-auto border-4 border-red-500 rounded-full flex items-center justify-center mb-8 animate-pulse shadow-[0_0_30px_rgba(220,38,38,0.4)]">
+            <span className="font-spartan text-5xl font-black text-red-500">{timeToBlock}</span>
+          </div>
+          <button onClick={handleBlock} disabled={blocked} className={`w-full py-6 rounded-2xl font-black text-2xl tracking-widest uppercase transition-all ${blocked ? 'bg-green-600 border-green-400 text-white' : 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.6)]'}`}>
+            {blocked ? "SHIELD RAISED" : "RAISE SHIELD"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OracleJackpot({ username, onBack }) {
+  const [view, setView] = useState('lobby');
+  const [drawing, setDrawing] = useState(false);
+
+  const drawJackpot = () => {
+    setDrawing(true);
+    setTimeout(() => { setDrawing(false); setView('result'); }, 3000);
+  };
+
+  if (view === 'lobby') {
+    return (
+      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20 text-center">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <Zap className={`w-20 h-20 text-purple-400 mx-auto mb-4 drop-shadow-[0_0_15px_#c084fc] ${drawing ? 'animate-ping' : ''}`} />
+        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">Oracle's Jackpot</h2>
+        <p className="text-sm text-neutral-400 mb-8 font-medium">Global Treasury: 1,250,000 $SPRT</p>
+        <button onClick={drawJackpot} disabled={drawing} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(168,85,247,0.4)] text-white disabled:opacity-50">
+          {drawing ? "Consulting Oracle..." : "Buy Ticket (5K)"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
+      <Skull className="w-24 h-24 text-neutral-600 mx-auto mb-6" />
+      <h2 className="font-spartan text-3xl font-black text-neutral-400 tracking-wider mb-2 uppercase">NOT CHOSEN</h2>
+      <p className="text-neutral-500 font-medium mb-8">The Oracle favored another warrior this cycle.</p>
+      <button onClick={() => setView('lobby')} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Return</button>
+    </div>
+  );
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
