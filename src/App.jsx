@@ -5,8 +5,7 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair,
-  CircleDot, ArrowUpRight, HelpCircle, Info
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -23,24 +22,46 @@ export default function App() {
   const [view, setView] = useState('home');
   const [category, setCategory] = useState('Lobby');
 
-  // Real-time Crypto Price Tickers (Auto-fluctuates smoothly)
+  // Live Crypto Prices State
   const [cryptoPrices, setCryptoPrices] = useState({
-    SOL: { price: 154.20, change: '+4.8%' },
-    BTC: { price: 65840.00, change: '+2.1%' },
-    ETH: { price: 2680.50, change: '+1.6%' },
-    SPRT: { price: 0.0485, change: '+18.4%' }
+    SOL: { price: 0, change: 0 },
+    BTC: { price: 0, change: 0 },
+    ETH: { price: 0, change: 0 },
+    SPARTAN: { price: 0.0000046, change: 12.4 } // Default fallback matching ~4.6k MC
   });
 
+  // Live API Fetcher (Binance + DexScreener)
   useEffect(() => {
-    const tickerInterval = setInterval(() => {
-      setCryptoPrices(prev => ({
-        SOL: { ...prev.SOL, price: +(prev.SOL.price + (Math.random() * 0.4 - 0.2)).toFixed(2) },
-        BTC: { ...prev.BTC, price: +(prev.BTC.price + (Math.random() * 20 - 10)).toFixed(2) },
-        ETH: { ...prev.ETH, price: +(prev.ETH.price + (Math.random() * 2 - 1)).toFixed(2) },
-        SPRT: { ...prev.SPRT, price: +(prev.SPRT.price + (Math.random() * 0.0006 - 0.0003)).toFixed(4) }
-      }));
-    }, 3500);
-    return () => clearInterval(tickerInterval);
+    const fetchPrices = async () => {
+      try {
+        const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
+        const binanceData = await binanceRes.json();
+        
+        const btc = binanceData.find(d => d.symbol === 'BTCUSDT');
+        const eth = binanceData.find(d => d.symbol === 'ETHUSDT');
+        const sol = binanceData.find(d => d.symbol === 'SOLUSDT');
+
+        const dsRes = await fetch('https://api.dexscreener.com/latest/dex/tokens/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi');
+        const dsData = await dsRes.json();
+        const spartanPair = dsData?.pairs?.[0];
+
+        setCryptoPrices({
+          BTC: { price: parseFloat(btc?.lastPrice || 0), change: parseFloat(btc?.priceChangePercent || 0) },
+          ETH: { price: parseFloat(eth?.lastPrice || 0), change: parseFloat(eth?.priceChangePercent || 0) },
+          SOL: { price: parseFloat(sol?.lastPrice || 0), change: parseFloat(sol?.priceChangePercent || 0) },
+          SPARTAN: { 
+            price: spartanPair ? parseFloat(spartanPair.priceUsd) : 0.0000046, 
+            change: spartanPair ? parseFloat(spartanPair.priceChange?.h24 || 0) : 12.4 
+          }
+        });
+      } catch (err) {
+        console.error("Failed to fetch live prices", err);
+      }
+    };
+
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 15000); 
+    return () => clearInterval(interval);
   }, []);
   
   const [liveFeed, setLiveFeed] = useState([
@@ -209,7 +230,7 @@ export default function App() {
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Community</p>
           <SidebarLink icon={Twitter} label="X (Twitter)" href="https://x.com/SpartansOnchain" />
           <SidebarLink icon={MessageCircle} label="Discord" href="https://discord.gg/ME8PRr8YG" />
-          <SidebarLink icon={BarChart3} label="Dexscreener" href="https://dexscreener.com/solana/dyow5usgjfsm6qfqnpowa2z5s44appe1bf7srbwq12ym" />
+          <SidebarLink icon={BarChart3} label="Dexscreener" href="https://dexscreener.com/solana/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi" />
           
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Information</p>
@@ -224,7 +245,6 @@ export default function App() {
         {/* TOP NAV WITH LIVE CRYPTO TICKERS */}
         <header className="h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
           
-          {/* Left: Search Bar */}
           <div className="w-64 hidden xl:block shrink-0">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -236,41 +256,45 @@ export default function App() {
             </div>
           </div>
 
-          {/* Center: Live SOL, BTC, ETH, $SPARTAN Tickers */}
-          <div className="flex items-center gap-2.5 mx-auto overflow-x-auto py-1 px-2 custom-scrollbar">
+          {/* LIVE TICKERS CENTER NAV */}
+          <div className="flex items-center gap-4 mx-auto overflow-x-auto py-1 px-4 custom-scrollbar flex-1 justify-center">
             {/* SOL */}
             <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
               <span className="text-[11px] font-black text-purple-400">SOL</span>
-              <span className="text-xs font-bold text-white">${cryptoPrices.SOL.price}</span>
-              <span className="text-[10px] font-black text-green-400">{cryptoPrices.SOL.change}</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.SOL.price > 0 ? cryptoPrices.SOL.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '...'}</span>
+              <span className={`text-[10px] font-black ${cryptoPrices.SOL.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {cryptoPrices.SOL.change >= 0 ? '+' : ''}{cryptoPrices.SOL.change.toFixed(2)}%
+              </span>
             </div>
-
             {/* BTC */}
             <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
               <span className="text-[11px] font-black text-amber-500">BTC</span>
-              <span className="text-xs font-bold text-white">${cryptoPrices.BTC.price.toLocaleString()}</span>
-              <span className="text-[10px] font-black text-green-400">{cryptoPrices.BTC.change}</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.BTC.price > 0 ? cryptoPrices.BTC.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '...'}</span>
+              <span className={`text-[10px] font-black ${cryptoPrices.BTC.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {cryptoPrices.BTC.change >= 0 ? '+' : ''}{cryptoPrices.BTC.change.toFixed(2)}%
+              </span>
             </div>
-
             {/* ETH */}
             <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
               <span className="text-[11px] font-black text-blue-400">ETH</span>
-              <span className="text-xs font-bold text-white">${cryptoPrices.ETH.price.toLocaleString()}</span>
-              <span className="text-[10px] font-black text-green-400">{cryptoPrices.ETH.change}</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.ETH.price > 0 ? cryptoPrices.ETH.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '...'}</span>
+              <span className={`text-[10px] font-black ${cryptoPrices.ETH.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {cryptoPrices.ETH.change >= 0 ? '+' : ''}{cryptoPrices.ETH.change.toFixed(2)}%
+              </span>
             </div>
-
-            {/* $SPARTAN */}
+            {/* SPARTAN */}
             <div className="flex items-center gap-2 bg-gradient-to-r from-orange-950/60 to-red-950/60 border border-orange-500/30 rounded-xl px-3.5 py-1.5 shadow-[0_0_15px_rgba(234,88,12,0.2)]">
               <div className="flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
-                <span className="text-[11px] font-black text-orange-400 tracking-wider leading-none">$SPRT</span>
+                <span className="text-[11px] font-black text-orange-400 tracking-wider leading-none">$SPARTAN</span>
               </div>
-              <span className="text-xs font-black text-white leading-none">${cryptoPrices.SPRT.price}</span>
-              <span className="text-[10px] font-black text-green-400 leading-none">{cryptoPrices.SPRT.change}</span>
+              <span className="text-xs font-black text-white leading-none">${cryptoPrices.SPARTAN.price > 0 ? cryptoPrices.SPARTAN.price.toFixed(7) : '...'}</span>
+              <span className={`text-[10px] font-black leading-none ${cryptoPrices.SPARTAN.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {cryptoPrices.SPARTAN.change >= 0 ? '+' : ''}{cryptoPrices.SPARTAN.change.toFixed(2)}%
+              </span>
             </div>
           </div>
 
-          {/* Right: Wallet & Auth */}
           <div className="flex items-center gap-3 shrink-0">
             {wallet && (
               <div className="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-inner backdrop-blur-md">
@@ -317,6 +341,7 @@ export default function App() {
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-90 flex items-center gap-2">
@@ -336,11 +361,12 @@ export default function App() {
                 </div>
 
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
                     <h1 className="font-spartan text-4xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2">
-                      1,250,000 <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">$SPRT</span>
+                      1,250,000 <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">$SPARTAN</span>
                     </h1>
                     <p className="text-purple-100/70 font-medium mb-6">
                       The treasury grows with every drop of blood.
@@ -395,7 +421,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Phalanx Stance" icon={Shield} target="plinko" players="312" tag="1v1 PvP"
+                    title="Phalanx Stance" icon={Shield} target="phalanx" players="312" tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -405,7 +431,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Bones of Sparta" icon={Dices} target="dice" players="56" tag="1v1 PvP"
+                    title="Bones of Sparta" icon={Dices} target="bones" players="56" tag="1v1 PvP"
                     bgBase="bg-[#1a0024]" accentColor="text-fuchsia-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -567,19 +593,19 @@ export default function App() {
                       <td className="p-6 font-black text-yellow-500 text-xl drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">#1</td>
                       <td className="p-6 font-black text-white uppercase tracking-wider text-base">ARES_99</td>
                       <td className="p-6 font-bold text-neutral-300">78%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">142,500 $SPRT</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">142,500 $SPARTAN</td>
                     </tr>
                     <tr className="bg-gradient-to-r from-neutral-600/20 to-transparent">
                       <td className="p-6 font-black text-neutral-300 text-xl drop-shadow-[0_0_10px_rgba(163,163,163,0.5)]">#2</td>
                       <td className="p-6 font-black text-white uppercase tracking-wider text-base">LEONIDAS</td>
                       <td className="p-6 font-bold text-neutral-300">65%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">89,200 $SPRT</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">89,200 $SPARTAN</td>
                     </tr>
                     <tr className="bg-gradient-to-r from-orange-900/20 to-transparent">
                       <td className="p-6 font-black text-orange-600 text-xl drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]">#3</td>
                       <td className="p-6 font-black text-white uppercase tracking-wider text-base">BLOOD_GHOST</td>
                       <td className="p-6 font-bold text-neutral-300">61%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">45,100 $SPRT</td>
+                      <td className="p-6 text-right font-black text-amber-400 text-base">45,100 $SPARTAN</td>
                     </tr>
                   </tbody>
                 </table>
@@ -594,7 +620,7 @@ export default function App() {
 }
 
 // -------------------------------------------------------------
-// REUSABLE MATCHMAKING LOBBY COMPONENT
+// REUSABLE MATCHMAKING LOBBY & HOW TO PLAY WRAPPER
 // -------------------------------------------------------------
 
 function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onStart, children }) {
@@ -612,6 +638,8 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
 
   return (
     <div className="w-full max-w-4xl mx-auto pb-16 pt-6 px-4 relative z-20">
+      
+      {/* Lobby Form */}
       <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative">
         <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
         <div className="flex flex-col items-center mb-8">
@@ -623,7 +651,6 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
-          {/* Ranked Matchmaking Side */}
           <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
             <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked PvP Matchmaking</h3>
@@ -643,7 +670,6 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
             </button>
           </div>
 
-          {/* Private Room Side */}
           <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
             <div>
@@ -658,8 +684,9 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
         </div>
       </div>
 
-      {/* INDIVIDUAL GAME DETAILS & HOW TO PLAY (Underneath the Lobby) */}
+      {/* GAME SPECIFIC 'HOW TO PLAY' DESCRIPTIONS (Passed as children) */}
       {children}
+
     </div>
   );
 }
@@ -742,14 +769,14 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       onBack={onBack} 
       onStart={(w) => { setWager(w); setView('countdown'); }}
     >
-      {/* Individual Details for Colosseum Tap */}
+      {/* HOW TO PLAY: COLOSSEUM TAP */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Info className="w-6 h-6 text-orange-500" />
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Colosseum Tap</h3>
         </div>
 
-        {/* Example Visual Diagram */}
+        {/* Visual Diagram */}
         <div className="w-full bg-black/60 border border-orange-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-2xl rounded-full pointer-events-none" />
           <h4 className="text-xs font-black uppercase tracking-widest text-orange-400 mb-4 flex items-center gap-2">
@@ -780,7 +807,6 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
           </div>
         </div>
 
-        {/* Step-by-Step Instructions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
           <div>
             <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -806,7 +832,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
               Instant Spoils
             </h5>
             <p className="text-neutral-400 leading-relaxed text-xs">
-              The warrior with the highest strike count when the timer hits zero is awarded 95% of the total duel pot. 3% fuels the Oracle and 2% aids the Treasury.
+              The warrior with the highest strike count when the timer hits zero is awarded 95% of the total duel pot.
             </p>
           </div>
         </div>
@@ -853,9 +879,9 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {winner === 'you' ? (
-        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2><div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPRT</span></div></>
+        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2><div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPARTAN</span></div></>
       ) : winner === 'opp' ? (
-        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
+        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
       ) : (
         <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
       )}
@@ -948,19 +974,19 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       onBack={onBack} 
       onStart={(w) => { setWager(w); setView('countdown'); }}
     >
-      {/* Individual Details for Chariot Deathrace */}
+      {/* HOW TO PLAY: CHARIOT DEATHRACE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Info className="w-6 h-6 text-cyan-400" />
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Chariot Deathrace</h3>
         </div>
 
-        {/* Example Visual Diagram */}
+        {/* Visual Diagram */}
         <div className="w-full bg-black/60 border border-cyan-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
           <h4 className="text-xs font-black uppercase tracking-widest text-cyan-400 mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" /> Multiplier Survival Mechanics
           </h4>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
             <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
               <span className="text-xs text-neutral-400 font-bold block mb-1">Challenger 1</span>
               <span className="text-lg font-black text-neutral-300">Bailed @ 1.8x</span>
@@ -1054,7 +1080,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
         <h2 className={`font-spartan text-4xl font-black tracking-wider mb-6 ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? 'LAST SURVIVOR' : 'DEFEATED'}</h2>
         <div className="bg-white/5 border border-white/10 rounded-2xl py-6 px-8 mb-8">
            <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-2">{iWon ? '3-Player Pot Claimed' : 'Wager Lost'}</span>
-           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : parseFloat(wager)*3) : wager}</span>
+           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : parseFloat(wager)*3) : wager} $SPARTAN</span>
         </div>
         <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Race Again</button>
       </div>
@@ -1135,19 +1161,19 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       onBack={onBack} 
       onStart={(w) => { setWager(w); setView('countdown'); }}
     >
-      {/* Individual Details for Phalanx Stance */}
+      {/* HOW TO PLAY: PHALANX STANCE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Info className="w-6 h-6 text-green-400" />
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Phalanx Stance</h3>
         </div>
 
-        {/* Example Visual Diagram */}
+        {/* Visual Diagram */}
         <div className="w-full bg-black/60 border border-green-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden text-center">
           <h4 className="text-xs font-black uppercase tracking-widest text-green-400 mb-4 flex items-center justify-center gap-2">
             <Shield className="w-4 h-4" /> Tactical Combat Triangle
           </h4>
-          <div className="flex flex-wrap justify-center items-center gap-6 py-2">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6 py-2">
             <div className="border border-orange-500/50 bg-orange-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
               <Crosshair className="w-6 h-6 text-orange-400" />
               <div className="text-left">
@@ -1155,7 +1181,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
                 <span className="text-[10px] text-green-400 font-bold">Pierces Parry</span>
               </div>
             </div>
-            <span className="text-neutral-500 font-bold">➔</span>
+            <span className="text-neutral-500 font-bold hidden md:block">➔</span>
             <div className="border border-purple-500/50 bg-purple-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
               <Target className="w-6 h-6 text-purple-400" />
               <div className="text-left">
@@ -1163,7 +1189,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
                 <span className="text-[10px] text-green-400 font-bold">Deflects Shield</span>
               </div>
             </div>
-            <span className="text-neutral-500 font-bold">➔</span>
+            <span className="text-neutral-500 font-bold hidden md:block">➔</span>
             <div className="border border-green-500/50 bg-green-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
               <Shield className="w-6 h-6 text-green-400" />
               <div className="text-left">
@@ -1181,7 +1207,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
               1v1 Quick-Draw
             </h5>
             <p className="text-neutral-400 leading-relaxed text-xs">
-              Both warriors match stakes and enter the line of battle. Matches take under 20 seconds.
+              Both warriors match stakes and enter the line of battle. Matches are rapid-fire and take under 20 seconds.
             </p>
           </div>
           <div>
@@ -1273,9 +1299,9 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {myScore === 2 ? (
-        <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPRT</span></div></>
+        <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
       ) : (
-        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
+        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
       )}
       <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
     </div>
@@ -1343,20 +1369,20 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       onBack={onBack} 
       onStart={(w) => { setWager(w); setView('countdown'); }}
     >
-      {/* Individual Details for Bones of Sparta */}
+      {/* HOW TO PLAY: BONES OF SPARTA */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Info className="w-6 h-6 text-fuchsia-400" />
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Bones of Sparta</h3>
         </div>
 
-        {/* Example Visual Diagram */}
+        {/* Visual Diagram */}
         <div className="w-full bg-black/60 border border-fuchsia-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
           <h4 className="text-xs font-black uppercase tracking-widest text-fuchsia-400 mb-4 flex items-center gap-2">
             <Dices className="w-4 h-4" /> 1v1 High-Roll Showdown
           </h4>
           <div className="grid grid-cols-2 gap-4 text-center items-center max-w-md mx-auto">
-            <div className="bg-fuchsia-950/30 border border-fuchsia-500/40 p-4 rounded-xl">
+            <div className="bg-fuchsia-950/30 border border-fuchsia-500/40 p-4 rounded-xl shadow-[0_0_15px_rgba(217,70,239,0.2)]">
               <span className="text-xs text-fuchsia-300 font-bold block mb-1">Your Toss</span>
               <span className="font-spartan text-5xl font-black text-green-400">88</span>
               <span className="text-[10px] text-green-400 font-bold block mt-1">WINNER</span>
@@ -1394,7 +1420,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
               High Roll Takes All
             </h5>
             <p className="text-neutral-400 leading-relaxed text-xs">
-              Highest score takes the entire duel bounty directly to their session balance. Ties prompt a sudden death re-roll.
+              Highest score takes the entire duel bounty directly to their session balance. Ties prompt an immediate sudden death re-roll.
             </p>
           </div>
         </div>
@@ -1435,9 +1461,9 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {myRoll > oppRoll ? (
-        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2><div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPRT</span></div></>
+        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2><div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
       ) : (
-        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
+        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
       )}
       <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
     </div>
@@ -1490,18 +1516,19 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
           <Skull className="w-20 h-20 text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_#eab308]" />
           <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">The 300 Stand</h2>
           <p className="text-sm text-neutral-400 mb-8 font-medium">Survive 5 waves of arrows. Buy-in: 10K $SPARTAN.</p>
-          <button onClick={startStand} className="w-full max-w-md py-4.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,179,8,0.4)] text-white">
+          <button onClick={startStand} className="w-full max-w-md mx-auto py-4.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,179,8,0.4)] text-white block">
             Enter The Pass (10K Stake)
           </button>
         </div>
 
-        {/* Individual Details for The 300 Stand */}
+        {/* HOW TO PLAY: THE 300 STAND */}
         <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
             <Info className="w-6 h-6 text-yellow-500" />
             <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play The 300 Stand</h3>
           </div>
 
+          {/* Visual Diagram */}
           <div className="w-full bg-black/60 border border-yellow-500/20 rounded-2xl p-6 mb-6 text-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center justify-center gap-2">
               <Crosshair className="w-4 h-4" /> Survival Wave Progression
@@ -1509,10 +1536,10 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
             <div className="flex justify-between max-w-lg mx-auto py-2">
               {[1, 2, 3, 4, 5].map(w => (
                 <div key={w} className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full border border-yellow-500/50 bg-black flex items-center justify-center font-bold text-yellow-400 mb-1">
+                  <div className={`w-10 h-10 rounded-full border border-yellow-500/50 flex items-center justify-center font-bold text-yellow-400 mb-1 ${w === 5 ? 'bg-gradient-to-br from-yellow-600 to-amber-800 shadow-[0_0_15px_#eab308]' : 'bg-black'}`}>
                     W{w}
                   </div>
-                  <span className="text-[10px] text-neutral-400">{w === 5 ? '10x Grand Pot' : 'Pass'}</span>
+                  <span className={`text-[10px] ${w === 5 ? 'text-yellow-400 font-black' : 'text-neutral-400'}`}>{w === 5 ? '10x Grand Pot' : 'Pass'}</span>
                 </div>
               ))}
             </div>
@@ -1598,19 +1625,20 @@ function OracleJackpot({ username, onBack }) {
           <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
           <Zap className={`w-20 h-20 text-purple-400 mx-auto mb-4 drop-shadow-[0_0_15px_#c084fc] ${drawing ? 'animate-ping' : ''}`} />
           <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">Oracle's Jackpot</h2>
-          <p className="text-sm text-neutral-400 mb-8 font-medium">Global Accumulated Treasury: 1,250,000 $SPRT</p>
-          <button onClick={drawJackpot} disabled={drawing} className="w-full max-w-md py-4.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(168,85,247,0.4)] text-white disabled:opacity-50">
-            {drawing ? "Consulting Oracle..." : "Buy Ticket (5K $SPRT)"}
+          <p className="text-sm text-neutral-400 mb-8 font-medium">Global Accumulated Treasury: 1,250,000 $SPARTAN</p>
+          <button onClick={drawJackpot} disabled={drawing} className="w-full max-w-md mx-auto py-4.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(168,85,247,0.4)] text-white disabled:opacity-50 block">
+            {drawing ? "Consulting Oracle..." : "Buy Ticket (5K $SPARTAN)"}
           </button>
         </div>
 
-        {/* Individual Details for Oracle Jackpot */}
+        {/* HOW TO PLAY: ORACLE'S JACKPOT */}
         <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
             <Info className="w-6 h-6 text-purple-400" />
             <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Oracle's Jackpot</h3>
           </div>
 
+          {/* Visual Diagram */}
           <div className="w-full bg-black/60 border border-purple-500/20 rounded-2xl p-6 mb-6 text-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-purple-400 mb-3 flex items-center justify-center gap-2">
               <Zap className="w-4 h-4" /> 3% Global Protocol Inflow
