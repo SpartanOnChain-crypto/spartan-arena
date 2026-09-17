@@ -5,7 +5,8 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair,
+  CircleDot, ArrowUpRight, HelpCircle, Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -21,6 +22,26 @@ export default function App() {
   
   const [view, setView] = useState('home');
   const [category, setCategory] = useState('Lobby');
+
+  // Real-time Crypto Price Tickers (Auto-fluctuates smoothly)
+  const [cryptoPrices, setCryptoPrices] = useState({
+    SOL: { price: 154.20, change: '+4.8%' },
+    BTC: { price: 65840.00, change: '+2.1%' },
+    ETH: { price: 2680.50, change: '+1.6%' },
+    SPRT: { price: 0.0485, change: '+18.4%' }
+  });
+
+  useEffect(() => {
+    const tickerInterval = setInterval(() => {
+      setCryptoPrices(prev => ({
+        SOL: { ...prev.SOL, price: +(prev.SOL.price + (Math.random() * 0.4 - 0.2)).toFixed(2) },
+        BTC: { ...prev.BTC, price: +(prev.BTC.price + (Math.random() * 20 - 10)).toFixed(2) },
+        ETH: { ...prev.ETH, price: +(prev.ETH.price + (Math.random() * 2 - 1)).toFixed(2) },
+        SPRT: { ...prev.SPRT, price: +(prev.SPRT.price + (Math.random() * 0.0006 - 0.0003)).toFixed(4) }
+      }));
+    }, 3500);
+    return () => clearInterval(tickerInterval);
+  }, []);
   
   const [liveFeed, setLiveFeed] = useState([
     { id: 1, user: "XERXES_99", game: "Chariot Deathrace", wager: "250", multiplier: "2.0x", payout: "+750", type: 'win' },
@@ -200,52 +221,89 @@ export default function App() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         
-        {/* TOP NAV */}
+        {/* TOP NAV WITH LIVE CRYPTO TICKERS */}
         <header className="h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
-          <div className="flex-1 max-w-md hidden lg:block">
+          
+          {/* Left: Search Bar */}
+          <div className="w-64 hidden xl:block shrink-0">
             <div className="relative">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input 
                 type="text" 
-                placeholder="Search the arena..." 
-                className="w-full bg-black/50 border border-white/10 rounded-full py-3.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-orange-500/50 focus:bg-black/80 transition-all shadow-inner"
+                placeholder="Search arena..." 
+                className="w-full bg-black/50 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-orange-500/50 transition-all shadow-inner"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-5 ml-auto">
+          {/* Center: Live SOL, BTC, ETH, $SPARTAN Tickers */}
+          <div className="flex items-center gap-2.5 mx-auto overflow-x-auto py-1 px-2 custom-scrollbar">
+            {/* SOL */}
+            <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
+              <span className="text-[11px] font-black text-purple-400">SOL</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.SOL.price}</span>
+              <span className="text-[10px] font-black text-green-400">{cryptoPrices.SOL.change}</span>
+            </div>
+
+            {/* BTC */}
+            <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
+              <span className="text-[11px] font-black text-amber-500">BTC</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.BTC.price.toLocaleString()}</span>
+              <span className="text-[10px] font-black text-green-400">{cryptoPrices.BTC.change}</span>
+            </div>
+
+            {/* ETH */}
+            <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
+              <span className="text-[11px] font-black text-blue-400">ETH</span>
+              <span className="text-xs font-bold text-white">${cryptoPrices.ETH.price.toLocaleString()}</span>
+              <span className="text-[10px] font-black text-green-400">{cryptoPrices.ETH.change}</span>
+            </div>
+
+            {/* $SPARTAN */}
+            <div className="flex items-center gap-2 bg-gradient-to-r from-orange-950/60 to-red-950/60 border border-orange-500/30 rounded-xl px-3.5 py-1.5 shadow-[0_0_15px_rgba(234,88,12,0.2)]">
+              <div className="flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
+                <span className="text-[11px] font-black text-orange-400 tracking-wider leading-none">$SPRT</span>
+              </div>
+              <span className="text-xs font-black text-white leading-none">${cryptoPrices.SPRT.price}</span>
+              <span className="text-[10px] font-black text-green-400 leading-none">{cryptoPrices.SPRT.change}</span>
+            </div>
+          </div>
+
+          {/* Right: Wallet & Auth */}
+          <div className="flex items-center gap-3 shrink-0">
             {wallet && (
               <div className="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-inner backdrop-blur-md">
-                <div className="px-4 py-2 border-r border-white/10 flex items-center gap-3">
-                  <Lock className="w-4 h-4 text-red-400" />
+                <div className="px-3 py-1.5 border-r border-white/10 flex items-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-red-400" />
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
-                    <span className="text-red-400 font-black text-base leading-none mt-1">{balanceLocked.toLocaleString()}</span>
+                    <span className="text-[9px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
+                    <span className="text-red-400 font-black text-xs leading-none mt-1">{balanceLocked.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="px-4 py-2 flex items-center gap-3 bg-orange-900/20">
-                  <Coins className="w-4 h-4 text-amber-400" />
+                <div className="px-3 py-1.5 flex items-center gap-2 bg-orange-900/20">
+                  <Coins className="w-3.5 h-3.5 text-amber-400" />
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-orange-200/50 uppercase font-bold leading-none">Balance</span>
-                    <span className="text-white font-black text-base leading-none mt-1">{balanceReal.toLocaleString()}</span>
+                    <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Ready</span>
+                    <span className="text-white font-black text-xs leading-none mt-1">{balanceReal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             )}
 
             {username && (
-              <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
-                <User className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-black text-white uppercase tracking-wider">{username}</span>
+              <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-black/50 border border-white/10 rounded-xl cursor-pointer hover:bg-white/5 transition-colors backdrop-blur-md">
+                <User className="w-3.5 h-3.5 text-orange-500" />
+                <span className="text-xs font-black text-white uppercase tracking-wider">{username}</span>
               </div>
             )}
 
             <button 
               onClick={connectWallet}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
             >
-              {!wallet && <Wallet className="w-4 h-4" />}
-              {wallet ? "Wallet Connected" : "Sign In"}
+              {!wallet && <Wallet className="w-3.5 h-3.5" />}
+              {wallet ? "Connected" : "Sign In"}
             </button>
           </div>
         </header>
@@ -425,7 +483,7 @@ export default function App() {
           
           {/* SUGGEST A GAME */}
           {view === 'suggest' && (
-            <div className="max-w-2xl mx-auto mt-20 relative z-20">
+            <div className="max-w-2xl mx-auto mt-20 relative z-20 px-4">
               <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg">
@@ -490,7 +548,7 @@ export default function App() {
           )}
 
           {view === 'leaderboard' && (
-            <div className="max-w-4xl mx-auto mt-10 mb-10 relative z-20">
+            <div className="max-w-4xl mx-auto mt-10 mb-10 relative z-20 px-4">
               <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                 <Trophy className="w-10 h-10 text-amber-500" /> Hall of Legends
               </h1>
@@ -536,30 +594,95 @@ export default function App() {
 }
 
 // -------------------------------------------------------------
-// GAME COMPONENTS
+// REUSABLE MATCHMAKING LOBBY COMPONENT
+// -------------------------------------------------------------
+
+function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onStart, children }) {
+  const [wager, setWager] = useState('100');
+  const [league, setLeague] = useState('little');
+  const [roomCode, setRoomCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const handleStart = () => {
+    setIsSearching(true);
+    setTimeout(() => { setIsSearching(false); onStart(wager); }, 2000);
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto pb-16 pt-6 px-4 relative z-20">
+      <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative">
+        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+        <div className="flex flex-col items-center mb-8">
+          <div className={`w-20 h-20 bg-gradient-to-br ${iconColor} rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2`}>
+            <Icon className="w-10 h-10 text-white drop-shadow-md" />
+          </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">{title}</h2>
+          <p className="text-sm text-neutral-400 font-medium text-center">{subtitle}</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+          {/* Ranked Matchmaking Side */}
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked PvP Matchmaking</h3>
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-orange-600/20 text-orange-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
+                  {amt}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleStart} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
+            </button>
+          </div>
+
+          {/* Private Room Side */}
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+            </div>
+            <button onClick={handleStart} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* INDIVIDUAL GAME DETAILS & HOW TO PLAY (Underneath the Lobby) */}
+      {children}
+    </div>
+  );
+}
+
+const getPayoutStr = (wager, multiplier) => {
+  if (wager.includes('M')) return (parseFloat(wager)*multiplier) + 'M';
+  if (wager.includes('K')) return (parseFloat(wager)*multiplier) + 'K';
+  return (parseFloat(wager)*multiplier).toString();
+};
+
+// -------------------------------------------------------------
+// GAME 1: COLOSSEUM TAP
 // -------------------------------------------------------------
 
 function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby'); 
   const [wager, setWager] = useState('100');
-  const [league, setLeague] = useState('little');
-  const [roomCode, setRoomCode] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState(10.0);
   const [myTaps, setMyTaps] = useState(0);
   const [oppTaps, setOppTaps] = useState(0);
   const [winner, setWinner] = useState(null);
   const [tapsEffect, setTapsEffect] = useState([]);
-
-  const littleLeague = ['100', '500', '1K', '5K', '10K'];
-  const bigLeague = ['50K', '100K', '500K', '1M'];
-
-  const startMatch = () => {
-    setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
-  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -598,8 +721,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
     if (myTaps > oppTaps) {
       setWinner('you');
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
-      const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
-      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${payoutStr}`, 'win');
+      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
     } else if (oppTaps > myTaps) {
       setWinner('opp');
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
@@ -611,136 +733,144 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const totalTaps = myTaps + oppTaps || 1;
   const myLeadPct = Math.min(100, Math.max(0, (myTaps / totalTaps) * 100));
 
-  if (view === 'lobby') {
-    return (
-      <div className="w-full max-w-2xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-700 rounded-2xl flex items-center justify-center shadow-[0_0_40px_rgba(234,88,12,0.4)] border border-orange-400/30 mb-4 mt-2">
-            <Swords className="w-10 h-10 text-white drop-shadow-md" />
-          </div>
-          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase">Colosseum Tap</h2>
-          <p className="text-sm text-neutral-400 font-medium">10-Second PvP Combat</p>
+  if (view === 'lobby') return (
+    <MatchmakingLobby 
+      title="Colosseum Tap" 
+      subtitle="10-Second PvP Combat" 
+      icon={Swords} 
+      iconColor="from-red-600 to-orange-700" 
+      onBack={onBack} 
+      onStart={(w) => { setWager(w); setView('countdown'); }}
+    >
+      {/* Individual Details for Colosseum Tap */}
+      <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+          <Info className="w-6 h-6 text-orange-500" />
+          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Colosseum Tap</h3>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked Matchmaking</h3>
-            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
-              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
-              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-orange-600/20 text-orange-400' : 'text-neutral-500'}`}>Big League</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
-                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                  {amt}
-                </button>
-              ))}
-            </div>
-            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
-              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
-            </button>
-          </div>
 
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
-             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
-            <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
-              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+        {/* Example Visual Diagram */}
+        <div className="w-full bg-black/60 border border-orange-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-2xl rounded-full pointer-events-none" />
+          <h4 className="text-xs font-black uppercase tracking-widest text-orange-400 mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4" /> Live Strike Mechanic Preview
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-center">
+            <div className="bg-white/5 border border-white/5 rounded-xl p-4">
+              <span className="text-xs font-bold text-neutral-400 block mb-1">1. Match Clock</span>
+              <span className="font-spartan text-3xl font-black text-amber-400">10.0s</span>
+              <p className="text-[11px] text-neutral-500 mt-1">High-frequency clicking window</p>
             </div>
-            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
-              Join Private Match
-            </button>
+            <div className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col items-center">
+              <span className="text-xs font-bold text-neutral-400 block mb-2">2. Central Blade</span>
+              <div className="w-12 h-12 rounded-full border-2 border-orange-500 bg-black flex items-center justify-center shadow-[0_0_15px_#ea580c55]">
+                <span className="font-spartan font-black text-orange-500">Λ</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-2">Every click triggers +1 Strike</p>
+            </div>
+            <div className="bg-white/5 border border-white/5 rounded-xl p-4">
+              <span className="text-xs font-bold text-neutral-400 block mb-1">3. Momentum Gauge</span>
+              <div className="w-full h-3 bg-neutral-800 rounded-full overflow-hidden flex my-2">
+                <div className="w-[65%] bg-gradient-to-r from-orange-600 to-amber-500" />
+                <div className="w-[35%] bg-red-800" />
+              </div>
+              <p className="text-[11px] text-green-400 font-bold">Highest total taps wins pot</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Step-by-Step Instructions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-600/30 border border-orange-500 text-orange-400 text-xs flex items-center justify-center font-bold">1</span>
+              Choose Staking Tier
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Select Little League (100 to 10K) or Big League (50K to 1M). You will be matched against a real challenger in that exact wager pool.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-600/30 border border-orange-500 text-orange-400 text-xs flex items-center justify-center font-bold">2</span>
+              10-Second Combat
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              When the countdown concludes, unleash maximum clicking speed on the central Spartan crest. The momentum tug-of-war bar tracks lead in real-time.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-600/30 border border-orange-500 text-orange-400 text-xs flex items-center justify-center font-bold">3</span>
+              Instant Spoils
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              The warrior with the highest strike count when the timer hits zero is awarded 95% of the total duel pot. 3% fuels the Oracle and 2% aids the Treasury.
+            </p>
           </div>
         </div>
       </div>
-    );
-  }
+    </MatchmakingLobby>
+  );
 
-  if (view === 'countdown') {
-    return (
-      <div className="h-[60vh] flex items-center justify-center text-center animate-pulse relative z-20">
-        <div>
-          <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Match Found. Prepare Your Blade.</h3>
-          <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_50px_rgba(234,88,12,0.8)]">{countdown}</span>
+  if (view === 'countdown') return (
+    <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
+      <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Found. Prepare Your Blade.</h3>
+      <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 animate-pulse">{countdown}</span>
+    </div>
+  );
+
+  if (view === 'arena') return (
+    <div className="w-full flex flex-col items-center mt-10 relative z-20">
+      <div className="mb-8 flex flex-col items-center">
+        <div className="px-10 py-3 rounded-full border border-white/10 bg-black/50 shadow-inner">
+          <span className="font-spartan text-5xl font-black text-amber-400">{timeLeft}s</span>
         </div>
       </div>
-    );
-  }
-
-  if (view === 'arena') {
-    return (
-      <div className="w-full flex flex-col items-center mt-10 relative z-20">
-        <div className="mb-8 flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-black mb-3">Time Remaining</span>
-          <div className="px-10 py-3 rounded-full border border-white/10 bg-black/50 shadow-inner backdrop-blur-md">
-            <span className="font-spartan text-5xl font-black text-amber-400 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">{timeLeft}s</span>
-          </div>
+      <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 shadow-2xl">
+        <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
+          <span className="text-orange-400 flex items-center gap-2"><User className="w-4 h-4"/> You: {myTaps}</span>
+          <span className="text-red-500 flex items-center gap-2">Enemy: {oppTaps} <Bot className="w-4 h-4"/></span>
         </div>
-        <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-2xl">
-          <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
-            <span className="text-orange-400 flex items-center gap-2 drop-shadow-md"><User className="w-4 h-4"/> You: {myTaps}</span>
-            <span className="text-red-500 flex items-center gap-2 drop-shadow-md">Enemy: {oppTaps} <Bot className="w-4 h-4"/></span>
-          </div>
-          <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex shadow-inner relative">
-            <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-400 transition-all duration-100 shadow-[0_0_20px_rgba(245,158,11,0.8)] z-0" />
-            <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 via-purple-900 to-[#050308] transition-all duration-100 z-0" />
-          </div>
-        </div>
-        <div className="relative my-4">
-          {tapsEffect.map(t => (
-            <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-4xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-[ping_0.6s_ease-out_forwards] z-50">+1</span>
-          ))}
-          <button onClick={handleStrike} className="w-80 h-80 rounded-full bg-[#050308] border-[8px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_80px_rgba(234,88,12,0.6)] group">
-            <span className="font-spartan text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_30px_rgba(234,88,12,0.8)] group-active:scale-90 transition-transform">Λ</span>
-            <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-6 uppercase drop-shadow-md">STRIKE</span>
-          </button>
+        <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex relative">
+          <div style={{ width: `${myLeadPct}%` }} className="bg-gradient-to-r from-orange-600 to-yellow-400 transition-all duration-100" />
+          <div style={{ width: `${100 - myLeadPct}%` }} className="bg-gradient-to-l from-red-700 to-purple-900 transition-all duration-100" />
         </div>
       </div>
-    );
-  }
-
-  if (view === 'result') {
-    return (
-      <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 shadow-[0_30px_60px_rgba(0,0,0,0.8)] text-center relative z-20 overflow-hidden">
-        <div className={`absolute top-0 left-0 w-full h-2 ${winner === 'you' ? 'bg-gradient-to-r from-amber-400 to-yellow-600' : 'bg-gradient-to-r from-red-600 to-red-900'}`} />
-        {winner === 'you' ? (
-          <>
-            <Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(245,158,11,0.6)] relative z-10" />
-            <h2 className="font-spartan text-5xl font-black text-amber-400 tracking-wider mb-2 relative z-10 drop-shadow-lg">VICTORY</h2>
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
-              <span className="text-xs font-black text-amber-500/80 uppercase tracking-widest block mb-2">Spoils Claimed</span>
-              <span className="text-4xl font-black text-amber-400 drop-shadow-md">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} <span className="text-xl">$SPRT</span></span>
-            </div>
-          </>
-        ) : winner === 'opp' ? (
-          <>
-            <Skull className="w-24 h-24 text-red-600 mx-auto mb-6 drop-shadow-[0_0_30px_rgba(220,38,38,0.6)] relative z-10" />
-            <h2 className="font-spartan text-5xl font-black text-red-600 tracking-wider mb-2 relative z-10 drop-shadow-lg">SLAIN</h2>
-            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
-               <span className="text-xs font-black text-red-500/80 uppercase tracking-widest block mb-2">Wager Lost</span>
-              <span className="text-4xl font-black text-red-500 drop-shadow-md">-{wager} <span className="text-xl">$SPRT</span></span>
-            </div>
-          </>
-        ) : (
-          <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
-        )}
-        <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-sm tracking-widest uppercase transition-all shadow-lg relative z-10">
-          Return to Matchmaking
+      <div className="relative my-4">
+        {tapsEffect.map(t => (
+          <span key={t.id} style={{ left: t.x, top: t.y }} className="absolute text-4xl font-black text-amber-300 pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-[ping_0.6s_ease-out_forwards]">+1</span>
+        ))}
+        <button onClick={handleStrike} className="w-80 h-80 rounded-full bg-[#050308] border-[8px] border-orange-600 flex flex-col items-center justify-center relative select-none active:scale-95 transition-transform duration-75 shadow-[0_0_80px_rgba(234,88,12,0.6)]">
+          <span className="font-spartan text-8xl font-black text-orange-500">Λ</span>
+          <span className="font-spartan text-sm font-black tracking-widest text-amber-400 mt-6 uppercase">STRIKE</span>
         </button>
       </div>
-    );
-  }
+    </div>
+  );
+
+  if (view === 'result') return (
+    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
+      {winner === 'you' ? (
+        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2><div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPRT</span></div></>
+      ) : winner === 'opp' ? (
+        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPRT</span></div></>
+      ) : (
+        <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
+      )}
+      <button onClick={() => setView('lobby')} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
+    </div>
+  );
 }
+
+// -------------------------------------------------------------
+// GAME 2: CHARIOT DEATHRACE (3-Player PvP)
+// -------------------------------------------------------------
 
 function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('1K');
-  const [league, setLeague] = useState('little');
-  const [roomCode, setRoomCode] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [multiplier, setMultiplier] = useState(1.00);
@@ -752,14 +882,6 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   const [crashPoint, setCrashPoint] = useState(0);
   const [opp1Target, setOpp1Target] = useState(0);
   const [opp2Target, setOpp2Target] = useState(0);
-
-  const littleLeague = ['100', '500', '1K', '5K', '10K'];
-  const bigLeague = ['50K', '100K', '500K', '1M'];
-
-  const startMatch = () => {
-    setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
-  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -817,53 +939,78 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     }
   };
 
-  if (view === 'lobby') {
-    return (
-      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-cyan-600 to-blue-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
-            <TrendingUp className="w-10 h-10 text-white drop-shadow-md" />
-          </div>
-          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Chariot Deathrace</h2>
-          <p className="text-sm text-neutral-400 font-medium text-center">3-Player PvP. Bail before the crash.</p>
+  if (view === 'lobby') return (
+    <MatchmakingLobby 
+      title="Chariot Deathrace" 
+      subtitle="3-Player PvP. Bail before the crash." 
+      icon={TrendingUp} 
+      iconColor="from-cyan-600 to-blue-800" 
+      onBack={onBack} 
+      onStart={(w) => { setWager(w); setView('countdown'); }}
+    >
+      {/* Individual Details for Chariot Deathrace */}
+      <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+          <Info className="w-6 h-6 text-cyan-400" />
+          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Chariot Deathrace</h3>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-600" />
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-cyan-500"/> Ranked PvP Matchmaking</h3>
-            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
-              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
-              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-cyan-600/20 text-cyan-400' : 'text-neutral-500'}`}>Big League</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
-                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-cyan-500 bg-cyan-600/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                  {amt}
-                </button>
-              ))}
-            </div>
-            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-cyan-400/50">
-              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
-            </button>
-          </div>
 
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
-             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
-            <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
-              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+        {/* Example Visual Diagram */}
+        <div className="w-full bg-black/60 border border-cyan-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
+          <h4 className="text-xs font-black uppercase tracking-widest text-cyan-400 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" /> Multiplier Survival Mechanics
+          </h4>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
+              <span className="text-xs text-neutral-400 font-bold block mb-1">Challenger 1</span>
+              <span className="text-lg font-black text-neutral-300">Bailed @ 1.8x</span>
+              <span className="text-[10px] text-neutral-500 block mt-1">Too early</span>
             </div>
-            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
-              Join Private Match
-            </button>
+            <div className="bg-cyan-950/40 border border-cyan-500/40 p-4 rounded-xl shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+              <span className="text-xs text-cyan-400 font-bold block mb-1">You</span>
+              <span className="text-lg font-black text-green-400">Bailed @ 3.4x</span>
+              <span className="text-[10px] text-green-400 font-bold block mt-1">WINNER (Highest Bail)</span>
+            </div>
+            <div className="bg-red-950/30 border border-red-500/30 p-4 rounded-xl">
+              <span className="text-xs text-red-400 font-bold block mb-1">Challenger 2</span>
+              <span className="text-lg font-black text-red-500">Crashed @ 3.8x</span>
+              <span className="text-[10px] text-red-500 block mt-1">Eliminated</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600/30 border border-cyan-500 text-cyan-400 text-xs flex items-center justify-center font-bold">1</span>
+              Three Enter
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Exactly three gladiator chariots queue into the arena. Each puts up the matched stake to build a 3x global pot.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600/30 border border-cyan-500 text-cyan-400 text-xs flex items-center justify-center font-bold">2</span>
+              Hold Your Nerve
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              The speed multiplier rockets upward. Hit "Bail Out" to secure your jump before the crash point claims your chariot.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-cyan-600/30 border border-cyan-500 text-cyan-400 text-xs flex items-center justify-center font-bold">3</span>
+              Last Survivor Takes All
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              The warrior who stays in the chariot longest without crashing takes the entire 3-player bounty. Greed will cost you everything.
+            </p>
           </div>
         </div>
       </div>
-    );
-  }
+    </MatchmakingLobby>
+  );
 
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
@@ -915,12 +1062,13 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   }
 }
 
+// -------------------------------------------------------------
+// GAME 3: PHALANX STANCE (1v1 Tactical)
+// -------------------------------------------------------------
+
 function PhalanxStance({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('100');
-  const [league, setLeague] = useState('little');
-  const [roomCode, setRoomCode] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [myScore, setMyScore] = useState(0);
@@ -929,14 +1077,6 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   const [myChoice, setMyChoice] = useState('');
   const [oppChoice, setOppChoice] = useState('');
   const [roundResult, setRoundResult] = useState('');
-
-  const littleLeague = ['100', '500', '1K', '5K', '10K'];
-  const bigLeague = ['50K', '100K', '500K', '1M'];
-
-  const startMatch = () => {
-    setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
-  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -986,53 +1126,86 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     }, 2500);
   };
 
-  if (view === 'lobby') {
-    return (
-      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-teal-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
-            <Shield className="w-10 h-10 text-white drop-shadow-md" />
-          </div>
-          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Phalanx Stance</h2>
-          <p className="text-sm text-neutral-400 font-medium text-center">1v1 Tactical PvP Duel. Best of 3.</p>
+  if (view === 'lobby') return (
+    <MatchmakingLobby 
+      title="Phalanx Stance" 
+      subtitle="1v1 Tactical PvP Duel. Best of 3." 
+      icon={Shield} 
+      iconColor="from-green-600 to-teal-800" 
+      onBack={onBack} 
+      onStart={(w) => { setWager(w); setView('countdown'); }}
+    >
+      {/* Individual Details for Phalanx Stance */}
+      <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+          <Info className="w-6 h-6 text-green-400" />
+          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Phalanx Stance</h3>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-teal-600" />
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-green-500"/> Ranked PvP Matchmaking</h3>
-            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
-              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
-              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-green-600/20 text-green-400' : 'text-neutral-500'}`}>Big League</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
-                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-green-500 bg-green-600/20 text-green-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                  {amt}
-                </button>
-              ))}
-            </div>
-            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-600 to-teal-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-green-400/50">
-              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
-            </button>
-          </div>
 
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
-             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
-            <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
-              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+        {/* Example Visual Diagram */}
+        <div className="w-full bg-black/60 border border-green-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden text-center">
+          <h4 className="text-xs font-black uppercase tracking-widest text-green-400 mb-4 flex items-center justify-center gap-2">
+            <Shield className="w-4 h-4" /> Tactical Combat Triangle
+          </h4>
+          <div className="flex flex-wrap justify-center items-center gap-6 py-2">
+            <div className="border border-orange-500/50 bg-orange-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
+              <Crosshair className="w-6 h-6 text-orange-400" />
+              <div className="text-left">
+                <span className="font-black text-sm text-white block leading-none">SPEAR</span>
+                <span className="text-[10px] text-green-400 font-bold">Pierces Parry</span>
+              </div>
             </div>
-            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
-              Join Private Match
-            </button>
+            <span className="text-neutral-500 font-bold">➔</span>
+            <div className="border border-purple-500/50 bg-purple-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
+              <Target className="w-6 h-6 text-purple-400" />
+              <div className="text-left">
+                <span className="font-black text-sm text-white block leading-none">PARRY</span>
+                <span className="text-[10px] text-green-400 font-bold">Deflects Shield</span>
+              </div>
+            </div>
+            <span className="text-neutral-500 font-bold">➔</span>
+            <div className="border border-green-500/50 bg-green-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
+              <Shield className="w-6 h-6 text-green-400" />
+              <div className="text-left">
+                <span className="font-black text-sm text-white block leading-none">SHIELD</span>
+                <span className="text-[10px] text-green-400 font-bold">Breaks Spear</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">1</span>
+              1v1 Quick-Draw
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Both warriors match stakes and enter the line of battle. Matches take under 20 seconds.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">2</span>
+              Best of 3 Clashes
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Secretly select your stance before the round timer expires. Stances are revealed simultaneously. First warrior to 2 strikes claims victory.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">3</span>
+              Double Payout
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Winner receives the 2x pot (minus standard 5% protocol tributes). Instant rematch available on settlement.
+            </p>
           </div>
         </div>
       </div>
-    );
-  }
+    </MatchmakingLobby>
+  );
 
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
@@ -1109,25 +1282,18 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   );
 }
 
+// -------------------------------------------------------------
+// GAME 4: BONES OF SPARTA (1v1 Dice)
+// -------------------------------------------------------------
+
 function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('100');
-  const [league, setLeague] = useState('little');
-  const [roomCode, setRoomCode] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [countdown, setCountdown] = useState(3);
   
   const [myRoll, setMyRoll] = useState(0);
   const [oppRoll, setOppRoll] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
-
-  const littleLeague = ['100', '500', '1K', '5K', '10K'];
-  const bigLeague = ['50K', '100K', '500K', '1M'];
-
-  const startMatch = () => {
-    setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); setView('countdown'); }, 2000);
-  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -1168,53 +1334,73 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
     }, 1500);
   };
 
-  if (view === 'lobby') {
-    return (
-      <div className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 md:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-fuchsia-600 to-purple-800 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mb-4 mt-2">
-            <Dices className="w-10 h-10 text-white drop-shadow-md" />
-          </div>
-          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase text-center">Bones of Sparta</h2>
-          <p className="text-sm text-neutral-400 font-medium text-center">1v1 PvP High-Roller Dice Duel.</p>
+  if (view === 'lobby') return (
+    <MatchmakingLobby 
+      title="Bones of Sparta" 
+      subtitle="1v1 PvP High-Roller Dice Duel." 
+      icon={Dices} 
+      iconColor="from-fuchsia-600 to-purple-800" 
+      onBack={onBack} 
+      onStart={(w) => { setWager(w); setView('countdown'); }}
+    >
+      {/* Individual Details for Bones of Sparta */}
+      <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+        <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+          <Info className="w-6 h-6 text-fuchsia-400" />
+          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Bones of Sparta</h3>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 to-purple-600" />
-            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-fuchsia-500"/> Ranked PvP Matchmaking</h3>
-            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
-              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
-              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-fuchsia-600/20 text-fuchsia-400' : 'text-neutral-500'}`}>Big League</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
-                <button key={amt} onClick={() => setWager(amt)} className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-fuchsia-500 bg-fuchsia-600/20 text-fuchsia-400 shadow-[0_0_15px_rgba(217,70,239,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                  {amt}
-                </button>
-              ))}
-            </div>
-            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(217,70,239,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-fuchsia-400/50">
-              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Match"}
-            </button>
-          </div>
 
-          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
-             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
-            <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
-              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge rivals directly. Wagers are set by the creator.</p>
-              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+        {/* Example Visual Diagram */}
+        <div className="w-full bg-black/60 border border-fuchsia-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
+          <h4 className="text-xs font-black uppercase tracking-widest text-fuchsia-400 mb-4 flex items-center gap-2">
+            <Dices className="w-4 h-4" /> 1v1 High-Roll Showdown
+          </h4>
+          <div className="grid grid-cols-2 gap-4 text-center items-center max-w-md mx-auto">
+            <div className="bg-fuchsia-950/30 border border-fuchsia-500/40 p-4 rounded-xl">
+              <span className="text-xs text-fuchsia-300 font-bold block mb-1">Your Toss</span>
+              <span className="font-spartan text-5xl font-black text-green-400">88</span>
+              <span className="text-[10px] text-green-400 font-bold block mt-1">WINNER</span>
             </div>
-            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
-              Join Private Match
-            </button>
+            <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
+              <span className="text-xs text-neutral-400 font-bold block mb-1">Enemy Toss</span>
+              <span className="font-spartan text-5xl font-black text-neutral-500">42</span>
+              <span className="text-[10px] text-red-500 font-bold block mt-1">DEFEATED</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-fuchsia-600/30 border border-fuchsia-500 text-fuchsia-400 text-xs flex items-center justify-center font-bold">1</span>
+              Match Wager
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Select your stake level. Enter public matchmaking to find a rival or challenge a friend directly via private arena room code.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-fuchsia-600/30 border border-fuchsia-500 text-fuchsia-400 text-xs flex items-center justify-center font-bold">2</span>
+              Simultaneous Toss
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Both warriors shake and slam their carved bone cups at the same instant. Each die generates a verifiable random outcome from 1 to 100.
+            </p>
+          </div>
+          <div>
+            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-fuchsia-600/30 border border-fuchsia-500 text-fuchsia-400 text-xs flex items-center justify-center font-bold">3</span>
+              High Roll Takes All
+            </h5>
+            <p className="text-neutral-400 leading-relaxed text-xs">
+              Highest score takes the entire duel bounty directly to their session balance. Ties prompt a sudden death re-roll.
+            </p>
           </div>
         </div>
       </div>
-    );
-  }
+    </MatchmakingLobby>
+  );
 
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
@@ -1298,14 +1484,70 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
 
   if (view === 'lobby') {
     return (
-      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20 text-center">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <Skull className="w-20 h-20 text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_#eab308]" />
-        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">The 300 Stand</h2>
-        <p className="text-sm text-neutral-400 mb-8 font-medium">Survive 5 waves of arrows. Buy-in: 10K $SPARTAN.</p>
-        <button onClick={startStand} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,179,8,0.4)] text-white">
-          Enter The Pass
-        </button>
+      <div className="w-full max-w-4xl mx-auto pb-16 pt-6 px-4 relative z-20">
+        <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative text-center">
+          <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+          <Skull className="w-20 h-20 text-yellow-500 mx-auto mb-4 drop-shadow-[0_0_15px_#eab308]" />
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">The 300 Stand</h2>
+          <p className="text-sm text-neutral-400 mb-8 font-medium">Survive 5 waves of arrows. Buy-in: 10K $SPARTAN.</p>
+          <button onClick={startStand} className="w-full max-w-md py-4.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,179,8,0.4)] text-white">
+            Enter The Pass (10K Stake)
+          </button>
+        </div>
+
+        {/* Individual Details for The 300 Stand */}
+        <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <Info className="w-6 h-6 text-yellow-500" />
+            <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play The 300 Stand</h3>
+          </div>
+
+          <div className="w-full bg-black/60 border border-yellow-500/20 rounded-2xl p-6 mb-6 text-center">
+            <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center justify-center gap-2">
+              <Crosshair className="w-4 h-4" /> Survival Wave Progression
+            </h4>
+            <div className="flex justify-between max-w-lg mx-auto py-2">
+              {[1, 2, 3, 4, 5].map(w => (
+                <div key={w} className="flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full border border-yellow-500/50 bg-black flex items-center justify-center font-bold text-yellow-400 mb-1">
+                    W{w}
+                  </div>
+                  <span className="text-[10px] text-neutral-400">{w === 5 ? '10x Grand Pot' : 'Pass'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-yellow-600/30 border border-yellow-500 text-yellow-400 text-xs flex items-center justify-center font-bold">1</span>
+                Buy-in to the Phalanx
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                Enter the Hot Gates with a standard 10,000 $SPARTAN contribution.
+              </p>
+            </div>
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-yellow-600/30 border border-yellow-500 text-yellow-400 text-xs flex items-center justify-center font-bold">2</span>
+                Block the Volleys
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                Arrows blot out the sun. Tap 'Raise Shield' within the 3-second reaction timer to survive each incoming wave.
+              </p>
+            </div>
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-yellow-600/30 border border-yellow-500 text-yellow-400 text-xs flex items-center justify-center font-bold">3</span>
+                10x Immortal Treasury
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                Survive all 5 waves to claim the grand 100,000 $SPARTAN payout. Failure on any wave forfeits your tribute.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1351,14 +1593,63 @@ function OracleJackpot({ username, onBack }) {
 
   if (view === 'lobby') {
     return (
-      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20 text-center">
-        <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <Zap className={`w-20 h-20 text-purple-400 mx-auto mb-4 drop-shadow-[0_0_15px_#c084fc] ${drawing ? 'animate-ping' : ''}`} />
-        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">Oracle's Jackpot</h2>
-        <p className="text-sm text-neutral-400 mb-8 font-medium">Global Treasury: 1,250,000 $SPRT</p>
-        <button onClick={drawJackpot} disabled={drawing} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(168,85,247,0.4)] text-white disabled:opacity-50">
-          {drawing ? "Consulting Oracle..." : "Buy Ticket (5K)"}
-        </button>
+      <div className="w-full max-w-4xl mx-auto pb-16 pt-6 px-4 relative z-20">
+        <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative text-center">
+          <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full"><ChevronRight className="w-5 h-5 rotate-180" /></button>
+          <Zap className={`w-20 h-20 text-purple-400 mx-auto mb-4 drop-shadow-[0_0_15px_#c084fc] ${drawing ? 'animate-ping' : ''}`} />
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 uppercase">Oracle's Jackpot</h2>
+          <p className="text-sm text-neutral-400 mb-8 font-medium">Global Accumulated Treasury: 1,250,000 $SPRT</p>
+          <button onClick={drawJackpot} disabled={drawing} className="w-full max-w-md py-4.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(168,85,247,0.4)] text-white disabled:opacity-50">
+            {drawing ? "Consulting Oracle..." : "Buy Ticket (5K $SPRT)"}
+          </button>
+        </div>
+
+        {/* Individual Details for Oracle Jackpot */}
+        <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+            <Info className="w-6 h-6 text-purple-400" />
+            <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Oracle's Jackpot</h3>
+          </div>
+
+          <div className="w-full bg-black/60 border border-purple-500/20 rounded-2xl p-6 mb-6 text-center">
+            <h4 className="text-xs font-black uppercase tracking-widest text-purple-400 mb-3 flex items-center justify-center gap-2">
+              <Zap className="w-4 h-4" /> 3% Global Protocol Inflow
+            </h4>
+            <p className="text-xs text-neutral-300 max-w-lg mx-auto leading-relaxed">
+              Every single PVP duel in the Colosseum, Chariot track, and Dice tables deposits a mandatory 3% tribute directly into this pot.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-purple-600/30 border border-purple-500 text-purple-400 text-xs flex items-center justify-center font-bold">1</span>
+                Acquire Entries
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                Each 5,000 $SPARTAN ticket grants one permanent cryptographic entry for the current epoch's drawing.
+              </p>
+            </div>
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-purple-600/30 border border-purple-500 text-purple-400 text-xs flex items-center justify-center font-bold">2</span>
+                Oracle Selection
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                At the conclusion of the epoch, the Solana on-chain VRF program picks a single winner at random.
+              </p>
+            </div>
+            <div>
+              <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-purple-600/30 border border-purple-500 text-purple-400 text-xs flex items-center justify-center font-bold">3</span>
+                Total Treasury Payout
+              </h5>
+              <p className="text-neutral-400 leading-relaxed text-xs">
+                100% of the gathered multi-million $SPARTAN treasury transfers directly into the victorious gladiator's wallet.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
