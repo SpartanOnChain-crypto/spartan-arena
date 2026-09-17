@@ -4,7 +4,8 @@ import {
   Shield, Trophy, Wallet, Skull, Bot, 
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
-  TrendingUp, Activity, History
+  TrendingUp, Activity, History, MessageCircle, 
+  Twitter, BarChart3, Lightbulb, Users, Key
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -22,11 +23,11 @@ export default function App() {
   const [category, setCategory] = useState('Lobby');
   
   const [liveFeed, setLiveFeed] = useState([
-    { id: 1, user: "XERXES_99", game: "Chariot Crash", wager: 250, multiplier: "2.0x", payout: "+500", type: 'win' },
-    { id: 2, user: "LEONIDAS", game: "Colosseum Tap", wager: 100, multiplier: "0.0x", payout: "-100", type: 'loss' },
-    { id: 3, user: "ARES_WRATH", game: "Leonidas' Dice", wager: 500, multiplier: "3.5x", payout: "+1750", type: 'win' },
-    { id: 4, user: "BLOOD_GHOST", game: "Shield Wall", wager: 50, multiplier: "0.5x", payout: "-25", type: 'loss' },
-    { id: 5, user: "IMMORTAL", game: "The 300 Stand", wager: 1000, multiplier: "10.0x", payout: "+10000", type: 'win' },
+    { id: 1, user: "XERXES_99", game: "Chariot Crash", wager: "250", multiplier: "2.0x", payout: "+500", type: 'win' },
+    { id: 2, user: "LEONIDAS", game: "Colosseum Tap", wager: "10K", multiplier: "0.0x", payout: "-10K", type: 'loss' },
+    { id: 3, user: "ARES_WRATH", game: "Leonidas' Dice", wager: "500", multiplier: "3.5x", payout: "+1750", type: 'win' },
+    { id: 4, user: "BLOOD_GHOST", game: "Shield Wall", wager: "50K", multiplier: "0.5x", payout: "-25K", type: 'loss' },
+    { id: 5, user: "IMMORTAL", game: "The 300 Stand", wager: "1M", multiplier: "10.0x", payout: "+10M", type: 'win' },
   ]);
 
   const connectWallet = async () => {
@@ -59,7 +60,13 @@ export default function App() {
   };
 
   const addWager = (amount) => {
-    const newTotal = wageredTotal + amount;
+    // Parse 'K' and 'M' back to numbers for logic if needed, but keeping simple for UI
+    const numericAmount = typeof amount === 'string' ? 
+      (amount.includes('M') ? parseFloat(amount) * 1000000 : 
+       amount.includes('K') ? parseFloat(amount) * 1000 : parseFloat(amount)) 
+      : amount;
+      
+    const newTotal = wageredTotal + numericAmount;
     setWageredTotal(newTotal);
     if (newTotal >= 1000 && balanceLocked > 0) {
       setBalanceReal(prev => prev + balanceLocked);
@@ -82,6 +89,18 @@ export default function App() {
     </button>
   );
 
+  const SidebarLink = ({ icon: Icon, label, href }) => (
+    <a 
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-neutral-800/40 text-neutral-400 hover:text-white border border-transparent"
+    >
+      <Icon className="w-5 h-5 text-neutral-500" />
+      <span className="font-bold text-sm tracking-wide">{label}</span>
+    </a>
+  );
+
   const CategoryPill = ({ icon: Icon, label }) => (
     <button 
       onClick={() => setCategory(label)}
@@ -99,29 +118,28 @@ export default function App() {
   const ArenaCard = ({ title, icon: Icon, target, bgBase, accentColor, renderArt, tag, players }) => (
     <div 
       onClick={() => setView(target)}
-      className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.3)] overflow-hidden"
+      className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
     >
-      {/* Animated Ethereal Border */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-white/20 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
       
-      {/* Inner Card Container */}
       <div className={`relative h-full w-full rounded-[15px] overflow-hidden ${bgBase} flex flex-col justify-between`}>
-        
-        {/* Custom Procedural Background Art */}
-        <div className="absolute inset-0 opacity-60 group-hover:opacity-100 transition-opacity duration-700">
+        <div className="absolute inset-0 opacity-80 group-hover:opacity-100 transition-opacity duration-700">
           {renderArt()}
         </div>
         
-        {/* Core Inner Glow Behind Icon */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 blur-2xl rounded-full group-hover:bg-white/10 transition-all duration-700 group-hover:scale-150" />
-        
-        {/* Giant Floating Icon */}
+        {/* Holographic 3D Logo Effect */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <Icon className={`w-32 h-32 ${accentColor} drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`} />
+          <div className="relative">
+            {/* Core Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/20 blur-xl rounded-full group-hover:bg-white/30 transition-all duration-700 group-hover:scale-150" />
+            {/* Ambient Ring */}
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-white/10 ${accentColor} opacity-20 group-hover:scale-110 transition-all duration-500`} />
+            {/* Main Icon */}
+            <Icon className={`relative z-10 w-28 h-28 ${accentColor} drop-shadow-[0_20px_30px_rgba(0,0,0,0.9)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`} style={{ filter: "drop-shadow(0px 0px 10px rgba(255,255,255,0.2))" }} />
+          </div>
         </div>
         
-        {/* Bottom Information Bar */}
-        <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-black via-black/90 to-transparent backdrop-blur-sm mt-auto">
+        <div className="absolute bottom-0 left-0 w-full p-5 bg-gradient-to-t from-black via-black/90 to-transparent backdrop-blur-sm mt-auto z-20">
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-widest drop-shadow-lg">{title}</h3>
           <div className="flex items-center gap-2 mt-2">
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-neutral-200 bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-md border border-white/5">
@@ -135,19 +153,17 @@ export default function App() {
   );
 
   return (
-    <div className="flex h-screen bg-[#050308] text-neutral-100 font-sans overflow-hidden select-none relative">
+    <div className="flex h-screen bg-[#030105] text-neutral-100 font-sans overflow-hidden select-none relative">
       
-      {/* BOLD MAGICAL COSMIC BACKGROUND */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#030105]">
-        {/* Real Procedural Noise Texture (Creates the Gritty/Magical Feel) */}
+      {/* BOLDER MAGICAL COSMIC BACKGROUND */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div 
-          className="absolute inset-0 opacity-[0.25] mix-blend-color-dodge"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+          className="absolute inset-0 opacity-[0.4] mix-blend-overlay"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
         />
-        {/* Deep highly-saturated space nebula glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-purple-700/30 blur-[120px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-600/30 blur-[120px] rounded-full mix-blend-screen animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-[30%] left-[50%] w-[50vw] h-[50vw] bg-red-700/20 blur-[100px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-purple-700/50 blur-[130px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-600/50 blur-[130px] rounded-full mix-blend-screen animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[30%] left-[50%] w-[50vw] h-[50vw] bg-red-700/40 blur-[100px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* LEFT SIDEBAR */}
@@ -164,18 +180,28 @@ export default function App() {
         
         <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-1 custom-scrollbar relative z-10">
           <SidebarItem icon={LayoutDashboard} label="Arena Lobby" target="home" active={view === 'home'} />
-          <div className="my-4 border-t border-white/5" />
-          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Spartan Originals</p>
+          
+          <div className="my-3 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Spartan Originals</p>
           <SidebarItem icon={Swords} label="Colosseum Tap" target="tap" active={view === 'tap'} />
           <SidebarItem icon={Flame} label="Chariot Crash" target="crash" active={view === 'crash'} />
           <SidebarItem icon={Dices} label="Leonidas' Dice" target="dice" active={view === 'dice'} />
           <SidebarItem icon={Shield} label="Shield Wall" target="plinko" active={view === 'plinko'} />
-          <div className="my-4 border-t border-white/5" />
-          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Live Multiplayer</p>
+          <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
+          
+          <div className="my-3 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Multiplayer</p>
           <SidebarItem icon={Skull} label="The 300 Stand" target="stand" active={view === 'stand'} />
           <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" active={view === 'jackpot'} />
-          <div className="my-4 border-t border-white/5" />
-          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-2">Information</p>
+          
+          <div className="my-3 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Community</p>
+          <SidebarLink icon={Twitter} label="X (Twitter)" href="https://x.com/SpartansOnchain" />
+          <SidebarLink icon={MessageCircle} label="Discord" href="https://discord.gg/ME8PRr8YG" />
+          <SidebarLink icon={BarChart3} label="Dexscreener" href="https://dexscreener.com/solana/dyow5usgjfsm6qfqnpowa2z5s44appe1bf7srbwq12ym" />
+          
+          <div className="my-3 border-t border-white/5" />
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Information</p>
           <SidebarItem icon={Trophy} label="Leaderboard" target="leaderboard" active={view === 'leaderboard'} />
           <SidebarItem icon={ScrollText} label="Rules & Terms" target="rules" active={view === 'rules'} />
         </div>
@@ -281,7 +307,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Navigation Pills */}
               <div className="flex gap-3 overflow-x-auto pb-4 mb-4 custom-scrollbar">
                 <CategoryPill icon={LayoutDashboard} label="Lobby" />
                 <CategoryPill icon={Swords} label="Spartan Originals" />
@@ -305,41 +330,42 @@ export default function App() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   <ArenaCard 
                     title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="PvP"
-                    bgBase="bg-[#1a0000]" accentColor="text-orange-400"
+                    bgBase="bg-[#1a0500]" accentColor="text-orange-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(234,88,12,0.5),transparent_70%)]" />
-                        <div className="absolute top-1/4 left-0 w-[200%] h-32 bg-red-600/20 -rotate-45 blur-2xl" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(234,88,12,0.6),transparent_70%)]" />
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(234,88,12,0.1)_50%,transparent_75%)] bg-[length:20px_20px]" />
+                        <div className="absolute top-1/4 left-0 w-[200%] h-32 bg-red-600/30 -rotate-45 blur-2xl" />
                       </div>
                     )}
                   />
                   <ArenaCard 
                     title="Chariot Crash" icon={TrendingUp} target="crash" players="89"
-                    bgBase="bg-[#000514]" accentColor="text-cyan-400"
+                    bgBase="bg-[#00081a]" accentColor="text-cyan-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" />
-                        <div className="absolute bottom-0 left-0 w-full h-full bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-cyan-500/40 via-blue-900/10 to-transparent blur-xl" />
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.1)_1px,transparent_1px)] bg-[size:20px_20px] [transform:perspective(500px)_rotateX(60deg)] origin-bottom" />
+                        <div className="absolute bottom-0 left-0 w-full h-full bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-cyan-500/50 via-blue-900/20 to-transparent blur-xl" />
                       </div>
                     )}
                   />
                   <ArenaCard 
                     title="Shield Wall" icon={Shield} target="plinko" players="312"
-                    bgBase="bg-[#011409]" accentColor="text-green-400"
+                    bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
-                        <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.3)_2px,transparent_2px)] bg-[size:16px_16px]" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#011409] via-transparent to-emerald-900/30" />
+                        <div className="absolute inset-0 bg-[radial-gradient(rgba(74,222,128,0.4)_2px,transparent_2px)] bg-[size:24px_24px]" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#001a0a] via-[#001a0a]/50 to-emerald-900/50" />
                       </div>
                     )}
                   />
                   <ArenaCard 
                     title="Leonidas' Dice" icon={Dices} target="dice" players="56"
-                    bgBase="bg-[#140024]" accentColor="text-fuchsia-400"
+                    bgBase="bg-[#1a0024]" accentColor="text-fuchsia-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
-                        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.03)_10px,rgba(255,255,255,0.03)_20px)]" />
-                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(217,70,239,0.3),transparent_70%)] blur-lg" />
+                        <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_15px,rgba(217,70,239,0.1)_15px,rgba(217,70,239,0.1)_30px)]" />
+                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(217,70,239,0.5),transparent_70%)] blur-2xl" />
                       </div>
                     )}
                   />
@@ -348,8 +374,8 @@ export default function App() {
                     bgBase="bg-[#240a00]" accentColor="text-yellow-500"
                     renderArt={() => (
                       <div className="absolute inset-0">
-                        <div className="absolute bottom-0 left-0 w-full h-[150%] bg-[radial-gradient(ellipse_at_bottom,rgba(234,88,12,0.4),transparent_60%)]" />
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
+                        <div className="absolute bottom-0 left-0 w-full h-[150%] bg-[radial-gradient(ellipse_at_bottom,rgba(245,158,11,0.5),transparent_70%)]" />
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] mix-blend-overlay" />
                       </div>
                     )}
                   />
@@ -414,6 +440,34 @@ export default function App() {
             />
           )}
 
+          {/* SUGGEST A GAME */}
+          {view === 'suggest' && (
+            <div className="max-w-2xl mx-auto mt-20 relative z-20">
+              <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg">
+                    <Lightbulb className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="font-spartan text-3xl font-black text-white uppercase tracking-widest">Suggest a Game</h1>
+                    <p className="text-amber-400 text-sm font-bold uppercase tracking-widest">Bounty: Earn $SPARTAN if selected</p>
+                  </div>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6 text-sm text-neutral-300">
+                  Have an idea for a Web3 PVP or Casino game? Describe the mechanics below. If the developers build your game, you'll receive a massive $SPARTAN bounty dropped directly to your connected wallet.
+                </div>
+                <textarea 
+                  rows={6}
+                  placeholder="Describe your game mechanics, theme, and how it utilizes $SPARTAN..."
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white placeholder-neutral-600 focus:outline-none focus:border-orange-500 resize-none mb-4 shadow-inner"
+                />
+                <button onClick={() => {alert("Idea submitted to the Oracle!"); setView('home');}} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_20px_rgba(234,88,12,0.4)] transition-all text-white">
+                  Submit to the Oracle
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* GAME ROUTE STUBS */}
           {['crash', 'dice', 'plinko', 'stand', 'jackpot'].includes(view) && (
             <div className="flex flex-col items-center justify-center h-full text-center pb-20 mt-20 relative z-20">
@@ -438,7 +492,6 @@ export default function App() {
               <h1 className="font-spartan text-3xl font-black text-amber-500 mb-8 border-b border-white/10 pb-6 flex items-center gap-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                 <ScrollText className="w-8 h-8 text-orange-500" /> Protocol Rules & Conditions
               </h1>
-              
               <div className="space-y-8 text-neutral-300 leading-relaxed text-sm">
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
@@ -448,7 +501,6 @@ export default function App() {
                     Every wallet connected to The Spartan Arena is fully secured, encrypted, and protected. We do not have access to your private keys. All transactions are authorized strictly by you through your Web3 wallet provider on the Solana blockchain.
                   </p>
                 </div>
-
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
                     <Coins className="w-6 h-6 text-orange-500 drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]" /> Match Fee & Payout Breakdown
@@ -460,7 +512,6 @@ export default function App() {
                     <strong className="text-orange-400 text-lg drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]">2%</strong> goes to the Spartan Onchain Treasury for continuous ecosystem development.
                   </p>
                 </div>
-
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
                     <Lock className="w-6 h-6 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Welcome Allowance Play-Through
@@ -515,45 +566,18 @@ export default function App() {
 
         </div>
       </div>
-
-      {/* SIGN UP MODAL */}
-      {showSignup && (
-        <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-black/60 border border-white/10 rounded-[2rem] p-10 max-w-md w-full shadow-[0_0_80px_rgba(234,88,12,0.3)] text-center relative overflow-hidden backdrop-blur-2xl">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-600 via-red-600 to-amber-500" />
-            <div className="absolute -top-20 -left-20 w-48 h-48 bg-orange-600/20 blur-[60px] rounded-full pointer-events-none" />
-            <Skull className="w-20 h-20 text-amber-500 mx-auto mb-6 drop-shadow-[0_0_20px_#f59e0b] relative z-10" />
-            <h2 className="font-spartan text-3xl font-black text-white uppercase tracking-widest mb-3 relative z-10">Claim Your Spoils</h2>
-            <p className="text-sm text-neutral-300 mb-8 font-medium leading-relaxed relative z-10">
-              Create a warrior alias to instantly credit <strong className="text-amber-400 font-bold drop-shadow-md">1,000 Locked $SPARTAN</strong> to your session.
-            </p>
-            <form onSubmit={handleSignup} className="relative z-10">
-              <input 
-                type="text" 
-                maxLength={12}
-                required
-                placeholder="ENTER USERNAME"
-                value={tempName}
-                onChange={e => setTempName(e.target.value)}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-4 text-center text-white font-black uppercase tracking-widest mb-5 focus:outline-none focus:border-orange-500 focus:bg-black/80 transition-all shadow-inner"
-              />
-              <button 
-                type="submit"
-                className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:brightness-110 text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-[0_0_30px_rgba(234,88,12,0.5)] transition-all border border-orange-400/50"
-              >
-                Enter the Arena
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
+// --- UPDATED MATCHMAKING ARENA COMPONENT ---
 function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby'); 
-  const [wager, setWager] = useState(100);
+  const [wager, setWager] = useState('100');
+  const [league, setLeague] = useState('little'); // 'little' | 'big'
+  const [roomCode, setRoomCode] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState(10.0);
   const [myTaps, setMyTaps] = useState(0);
@@ -561,7 +585,17 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const [winner, setWinner] = useState(null);
   const [tapsEffect, setTapsEffect] = useState([]);
 
-  const startPractice = () => setView('countdown');
+  const littleLeague = ['100', '500', '1K', '5K', '10K'];
+  const bigLeague = ['50K', '100K', '500K', '1M'];
+
+  const startMatch = () => {
+    setIsSearching(true);
+    // Simulate matchmaking delay
+    setTimeout(() => {
+      setIsSearching(false);
+      setView('countdown');
+    }, 2000);
+  };
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -609,10 +643,13 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const settleMatch = () => {
     setView('result');
     addWager(wager);
+    
     if (myTaps > oppTaps) {
       setWinner('you');
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
-      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${wager * 2}`, 'win');
+      // Simulate payout doubling (e.g. 100 -> 200, 1M -> 2M)
+      const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${payoutStr}`, 'win');
     } else if (oppTaps > myTaps) {
       setWinner('opp');
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
@@ -626,30 +663,71 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   if (view === 'lobby') {
     return (
-      <div className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative text-center mt-10 z-20">
+      <div className="w-full max-w-2xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative mt-10 z-20">
         <button onClick={onBack} className="absolute left-6 top-6 text-neutral-500 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/5"><ChevronRight className="w-5 h-5 rotate-180" /></button>
-        <div className="flex justify-center mb-6 mt-4">
-          <div className="w-24 h-24 bg-gradient-to-br from-red-600 to-orange-700 rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_rgba(234,88,12,0.4)] border border-orange-400/30">
-            <Swords className="w-12 h-12 text-white drop-shadow-md" />
-          </div>
-        </div>
-        <h2 className="font-spartan text-3xl font-black text-white tracking-widest mb-2 drop-shadow-lg">THE COLOSSEUM</h2>
-        <p className="text-sm text-neutral-400 mb-8 font-medium">10-Second PvP Tap Battles</p>
         
-        <div className="bg-black/50 border border-white/5 rounded-2xl p-5 mb-8 shadow-inner">
-          <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest block mb-4 text-left">Select Wager ($Spartan)</label>
-          <div className="flex items-center justify-between gap-3">
-            {[50, 100, 250, 500].map(amt => (
-              <button key={amt} onClick={() => setWager(amt)} className={`flex-1 py-3 rounded-xl text-sm font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}>
-                {amt}
-              </button>
-            ))}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-700 rounded-2xl flex items-center justify-center shadow-[0_0_40px_rgba(234,88,12,0.4)] border border-orange-400/30 mb-4 mt-2">
+            <Swords className="w-10 h-10 text-white drop-shadow-md" />
           </div>
+          <h2 className="font-spartan text-3xl font-black text-white tracking-widest drop-shadow-lg uppercase">Colosseum Tap</h2>
+          <p className="text-sm text-neutral-400 font-medium">10-Second PvP Combat</p>
         </div>
-        <div className="flex flex-col gap-4">
-          <button onClick={startPractice} className="w-full py-4.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-3 text-white border border-orange-400/50">
-            <Bot className="w-5 h-5" /> Start Match vs Bot
-          </button>
+        
+        {/* LOBBY CONTROLS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Matchmaking Side */}
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
+            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked Matchmaking</h3>
+            
+            {/* League Toggle */}
+            <div className="flex bg-black/80 rounded-xl p-1 mb-4 border border-white/5">
+              <button onClick={() => {setLeague('little'); setWager('100');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'little' ? 'bg-white/10 text-white' : 'text-neutral-500'}`}>Little League</button>
+              <button onClick={() => {setLeague('big'); setWager('50K');}} className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${league === 'big' ? 'bg-orange-600/20 text-orange-400' : 'text-neutral-500'}`}>Big League</button>
+            </div>
+
+            {/* Wager Grid */}
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {(league === 'little' ? littleLeague : bigLeague).map(amt => (
+                <button 
+                  key={amt} 
+                  onClick={() => setWager(amt)} 
+                  className={`py-2 rounded-lg text-xs font-black border transition-all ${wager === amt ? 'border-orange-500 bg-orange-600/20 text-orange-400 shadow-[0_0_15px_rgba(234,88,12,0.3)]' : 'border-white/10 bg-white/5 text-neutral-400 hover:border-white/30 hover:text-white'}`}
+                >
+                  {amt}
+                </button>
+              ))}
+            </div>
+
+            <button onClick={startMatch} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
+              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
+            </button>
+          </div>
+
+          {/* Private Room Side */}
+          <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
+              
+              <input 
+                type="text" 
+                placeholder="ENTER 6-DIGIT CODE"
+                value={roomCode}
+                onChange={e => setRoomCode(e.target.value.toUpperCase())}
+                maxLength={6}
+                className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4"
+              />
+            </div>
+            
+            <button onClick={startMatch} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              Join Private Match
+            </button>
+          </div>
+          
         </div>
       </div>
     );
@@ -659,7 +737,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
     return (
       <div className="h-[60vh] flex items-center justify-center text-center animate-pulse relative z-20">
         <div>
-          <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Prepare Your Blade</h3>
+          <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Match Found. Prepare Your Blade.</h3>
           <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 drop-shadow-[0_0_50px_rgba(234,88,12,0.8)]">{countdown}</span>
         </div>
       </div>
@@ -678,7 +756,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         <div className="w-full max-w-2xl mb-12 bg-black/40 p-6 rounded-3xl border border-white/5 backdrop-blur-md shadow-2xl">
           <div className="flex justify-between text-xs font-black uppercase tracking-widest mb-4">
             <span className="text-orange-400 flex items-center gap-2 drop-shadow-md"><User className="w-4 h-4"/> You: {myTaps}</span>
-            <span className="text-red-500 flex items-center gap-2 drop-shadow-md">Undead Bot: {oppTaps} <Bot className="w-4 h-4"/></span>
+            <span className="text-red-500 flex items-center gap-2 drop-shadow-md">Enemy: {oppTaps} <Bot className="w-4 h-4"/></span>
           </div>
           <div className="w-full h-6 bg-black/80 rounded-full overflow-hidden border border-white/10 flex shadow-inner relative">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-50 z-10 mix-blend-overlay pointer-events-none" />
@@ -712,7 +790,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
             <h2 className="font-spartan text-5xl font-black text-amber-400 tracking-wider mb-2 relative z-10 drop-shadow-lg">VICTORY</h2>
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8 relative z-10 shadow-inner">
               <span className="text-xs font-black text-amber-500/80 uppercase tracking-widest block mb-2">Spoils Claimed</span>
-              <span className="text-4xl font-black text-amber-400 drop-shadow-md">+{wager * 2} <span className="text-xl">$SPRT</span></span>
+              <span className="text-4xl font-black text-amber-400 drop-shadow-md">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} <span className="text-xl">$SPRT</span></span>
             </div>
           </>
         ) : winner === 'opp' ? (
@@ -729,7 +807,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
           <h2 className="font-spartan text-4xl font-black text-neutral-300 tracking-wider mb-10 mt-8">DRAW</h2>
         )}
         <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-black text-sm tracking-widest uppercase transition-all shadow-lg relative z-10">
-          Return to Arena
+          Return to Matchmaking
         </button>
       </div>
     );
