@@ -27,41 +27,58 @@ export default function App() {
     SOL: { price: 0, change: 0 },
     BTC: { price: 0, change: 0 },
     ETH: { price: 0, change: 0 },
-    SPARTAN: { price: 0.0000046, change: 12.4 } // Default fallback matching ~4.6k MC
+    SPARTAN: { price: 0.0000046, change: 12.4 }
   });
 
-  // Live API Fetcher (Binance + DexScreener)
+  // Live API Fetcher (CoinGecko for Majors + DexScreener for SPARTAN)
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const binanceRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
-        const binanceData = await binanceRes.json();
-        
-        const btc = binanceData.find(d => d.symbol === 'BTCUSDT');
-        const eth = binanceData.find(d => d.symbol === 'ETHUSDT');
-        const sol = binanceData.find(d => d.symbol === 'SOLUSDT');
+        // CoinGecko is 100% US-friendly and bypasses CORS blocks
+        const cgRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true');
+        const cgData = await cgRes.json();
 
+        // DexScreener for $SPARTAN
         const dsRes = await fetch('https://api.dexscreener.com/latest/dex/tokens/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi');
         const dsData = await dsRes.json();
         const spartanPair = dsData?.pairs?.[0];
 
-        setCryptoPrices({
-          BTC: { price: parseFloat(btc?.lastPrice || 0), change: parseFloat(btc?.priceChangePercent || 0) },
-          ETH: { price: parseFloat(eth?.lastPrice || 0), change: parseFloat(eth?.priceChangePercent || 0) },
-          SOL: { price: parseFloat(sol?.lastPrice || 0), change: parseFloat(sol?.priceChangePercent || 0) },
-          SPARTAN: { 
-            price: spartanPair ? parseFloat(spartanPair.priceUsd) : 0.0000046, 
-            change: spartanPair ? parseFloat(spartanPair.priceChange?.h24 || 0) : 12.4 
-          }
-        });
+        if (cgData.bitcoin) {
+          setCryptoPrices({
+            BTC: { price: parseFloat(cgData.bitcoin.usd || 0), change: parseFloat(cgData.bitcoin.usd_24h_change || 0) },
+            ETH: { price: parseFloat(cgData.ethereum.usd || 0), change: parseFloat(cgData.ethereum.usd_24h_change || 0) },
+            SOL: { price: parseFloat(cgData.solana.usd || 0), change: parseFloat(cgData.solana.usd_24h_change || 0) },
+            SPARTAN: { 
+              price: spartanPair ? parseFloat(spartanPair.priceUsd) : 0.0000046, 
+              change: spartanPair ? parseFloat(spartanPair.priceChange?.h24 || 0) : 12.4 
+            }
+          });
+        }
       } catch (err) {
         console.error("Failed to fetch live prices", err);
       }
     };
 
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 15000); 
-    return () => clearInterval(interval);
+    fetchPrices(); // Fetch real prices on load
+    const realPriceInterval = setInterval(fetchPrices, 30000); // Fetch real prices every 30s to avoid rate limits
+
+    // Visual flutter effect to look like live institutional websockets
+    const flutterInterval = setInterval(() => {
+      setCryptoPrices(prev => {
+        if (prev.SOL.price === 0) return prev; // Wait for initial API load
+        return {
+          SOL: { ...prev.SOL, price: +(prev.SOL.price + (Math.random() * 0.4 - 0.2)).toFixed(2) },
+          BTC: { ...prev.BTC, price: +(prev.BTC.price + (Math.random() * 20 - 10)).toFixed(2) },
+          ETH: { ...prev.ETH, price: +(prev.ETH.price + (Math.random() * 2 - 1)).toFixed(2) },
+          SPARTAN: { ...prev.SPARTAN, price: +(prev.SPARTAN.price + (Math.random() * 0.0000002 - 0.0000001)).toFixed(7) }
+        };
+      });
+    }, 3500);
+
+    return () => {
+      clearInterval(realPriceInterval);
+      clearInterval(flutterInterval);
+    };
   }, []);
   
   const [liveFeed, setLiveFeed] = useState([
@@ -222,7 +239,7 @@ export default function App() {
           <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
           
           <div className="my-3 border-t border-white/5" />
-          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Multiplayer</p>
+          <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Events</p>
           <SidebarItem icon={Skull} label="The 300 Stand" target="stand" active={view === 'stand'} />
           <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" active={view === 'jackpot'} />
           
@@ -245,6 +262,7 @@ export default function App() {
         {/* TOP NAV WITH LIVE CRYPTO TICKERS */}
         <header className="h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
           
+          {/* Left: Search Bar */}
           <div className="w-64 hidden xl:block shrink-0">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -256,7 +274,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* LIVE TICKERS CENTER NAV */}
+          {/* Center: Live SOL, BTC, ETH, $SPARTAN Tickers */}
           <div className="flex items-center gap-4 mx-auto overflow-x-auto py-1 px-4 custom-scrollbar flex-1 justify-center">
             {/* SOL */}
             <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
@@ -295,6 +313,7 @@ export default function App() {
             </div>
           </div>
 
+          {/* Right: Wallet & Auth */}
           <div className="flex items-center gap-3 shrink-0">
             {wallet && (
               <div className="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-inner backdrop-blur-md">
@@ -341,7 +360,6 @@ export default function App() {
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-90 flex items-center gap-2">
@@ -361,7 +379,6 @@ export default function App() {
                 </div>
 
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
@@ -421,7 +438,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Phalanx Stance" icon={Shield} target="phalanx" players="312" tag="1v1 PvP"
+                    title="Phalanx Stance" icon={Shield} target="plinko" players="312" tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -431,7 +448,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Bones of Sparta" icon={Dices} target="bones" players="56" tag="1v1 PvP"
+                    title="Bones of Sparta" icon={Dices} target="dice" players="56" tag="1v1 PvP"
                     bgBase="bg-[#1a0024]" accentColor="text-fuchsia-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -651,6 +668,7 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+          {/* Ranked Matchmaking Side */}
           <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600" />
             <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500"/> Ranked PvP Matchmaking</h3>
@@ -670,6 +688,7 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
             </button>
           </div>
 
+          {/* Private Room Side */}
           <div className="bg-black/50 border border-white/5 rounded-2xl p-6 shadow-inner relative overflow-hidden flex flex-col justify-between">
              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-600" />
             <div>
@@ -769,14 +788,14 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       onBack={onBack} 
       onStart={(w) => { setWager(w); setView('countdown'); }}
     >
-      {/* HOW TO PLAY: COLOSSEUM TAP */}
+      {/* Individual Details for Colosseum Tap */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Info className="w-6 h-6 text-orange-500" />
           <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Colosseum Tap</h3>
         </div>
 
-        {/* Visual Diagram */}
+        {/* Example Visual Diagram */}
         <div className="w-full bg-black/60 border border-orange-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-2xl rounded-full pointer-events-none" />
           <h4 className="text-xs font-black uppercase tracking-widest text-orange-400 mb-4 flex items-center gap-2">
@@ -807,6 +826,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
           </div>
         </div>
 
+        {/* Step-by-Step Instructions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
           <div>
             <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -832,7 +852,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
               Instant Spoils
             </h5>
             <p className="text-neutral-400 leading-relaxed text-xs">
-              The warrior with the highest strike count when the timer hits zero is awarded 95% of the total duel pot.
+              The warrior with the highest strike count when the timer hits zero is awarded 95% of the total duel pot. 3% fuels the Oracle and 2% aids the Treasury.
             </p>
           </div>
         </div>
@@ -1528,7 +1548,6 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
             <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play The 300 Stand</h3>
           </div>
 
-          {/* Visual Diagram */}
           <div className="w-full bg-black/60 border border-yellow-500/20 rounded-2xl p-6 mb-6 text-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center justify-center gap-2">
               <Crosshair className="w-4 h-4" /> Survival Wave Progression
@@ -1638,7 +1657,6 @@ function OracleJackpot({ username, onBack }) {
             <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Oracle's Jackpot</h3>
           </div>
 
-          {/* Visual Diagram */}
           <div className="w-full bg-black/60 border border-purple-500/20 rounded-2xl p-6 mb-6 text-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-purple-400 mb-3 flex items-center justify-center gap-2">
               <Zap className="w-4 h-4" /> 3% Global Protocol Inflow
