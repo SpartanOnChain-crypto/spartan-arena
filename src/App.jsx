@@ -1,3 +1,4 @@
+import { createRoot } from 'react-dom/client';
 import React, { useState, useEffect } from 'react';
 import { Shield, Trophy, Wallet, Skull, Bot } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -275,3 +276,5 @@ export default function App() {
     </div>
   );
 }
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
