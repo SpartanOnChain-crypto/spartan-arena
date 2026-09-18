@@ -16,7 +16,7 @@ import {
 } from "./vault.js";
 
 const TOKEN_PROGRAM = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const SPARTAN_DECIMALS = 6;
+const SPARTAN_DECIMALS = 9;
 
 export const connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
 export const programId = new PublicKey(PROGRAM_ID);

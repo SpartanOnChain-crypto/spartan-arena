@@ -1018,7 +1018,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       icon={TrendingUp} 
       iconColor="from-cyan-600 to-blue-800" 
       onBack={onBack} 
-      onStart={(w) => { setWager(w); setView('countdown'); }}
+      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
     >
       {/* HOW TO PLAY: CHARIOT DEATHRACE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1205,7 +1205,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       icon={Shield} 
       iconColor="from-green-600 to-teal-800" 
       onBack={onBack} 
-      onStart={(w) => { setWager(w); setView('countdown'); }}
+      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
     >
       {/* HOW TO PLAY: PHALANX STANCE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1413,7 +1413,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       icon={Dices} 
       iconColor="from-fuchsia-600 to-purple-800" 
       onBack={onBack} 
-      onStart={(w) => { setWager(w); setView('countdown'); }}
+      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
     >
       {/* HOW TO PLAY: BONES OF SPARTA */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
