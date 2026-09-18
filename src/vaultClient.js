@@ -203,7 +203,14 @@ export async function lockStakeOnChain(amountUi) {
     if (v instanceof Uint8Array) return v;
     if (v instanceof ArrayBuffer) return new Uint8Array(v);
     if (ArrayBuffer.isView(v)) return new Uint8Array(v.buffer);
-    if (Array.isArray(v) && typeof v[0] === "number") return Uint8Array.from(v);
+    if (Array.isArray(v)) {
+      if (typeof v[0] === "number") return Uint8Array.from(v);
+      return asBytes(v[0]);
+    }
+    if (v && typeof v === "object" && "0" in v && !v.signedTransaction && typeof v.serialize !== "function") {
+      if (typeof v[0] === "number") return Uint8Array.from(Object.values(v).filter((n) => typeof n === "number"));
+      return asBytes(v[0]);
+    }
     if (v.signedTransaction) return asBytes(v.signedTransaction);
     if (v.transaction) return asBytes(v.transaction);
     if (typeof v.serialize === "function") return v.serialize();
