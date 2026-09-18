@@ -41,9 +41,12 @@ const startTapOnChain = async (w, afterLock, game) => {
       return;
     }
     const wagerNum = parseWager(w);
-    await lockStakeOnChain(wagerNum);
-    setBalanceReal((prev) => Math.max(0, Number(prev) - Number(wagerNum)));
-    setBalanceLocked((prev) => Number(prev) + Number(wagerNum));
+    const sig = await lockStakeOnChain(wagerNum);
+    if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
+    try {
+      setBalanceReal((prev) => Math.max(0, Number(prev) - Number(wagerNum)));
+      setBalanceLocked((prev) => Number(prev) + Number(wagerNum));
+    } catch (_) {}
     await queueForMatch({ game: game || "tap", wager: parseWager(w) });
     afterLock();
   } catch (err) {
