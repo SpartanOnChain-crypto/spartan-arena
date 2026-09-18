@@ -1,3 +1,5 @@
+import WalletModal from './WalletModal.jsx';
+import { listWallets, connectProvider } from './wallets.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -43,6 +45,8 @@ const startTapOnChain = async (w, afterLock, game) => {
 
 export default function App() {
   const [wallet, setWallet] = useState(null);
+  const [showWallets, setShowWallets] = useState(false);
+  const [walletList, setWalletList] = useState([]);
   const [username, setUsername] = useState('');
   const [showSignup, setShowSignup] = useState(false);
   const [tempName, setTempName] = useState('');
@@ -122,24 +126,25 @@ export default function App() {
   ]);
 
   const connectWallet = async () => {
-    if (window?.solana?.isPhantom) {
+    setWalletList(listWallets());
+    setShowWallets(true);
+  };
+
+  const pickWallet = async (w) => {
+    if (!w.provider) { alert(w.note || (w.name + " is not installed")); return; }
+    try {
+      const pk = await connectProvider(w.provider);
+      setWallet(pk.toString().slice(0,4) + "..." + pk.toString().slice(-4));
+      setShowWallets(false);
       try {
-        const resp = await window.solana.connect();
-        setWallet(resp.publicKey.toString().slice(0,4) + '...' + resp.publicKey.toString().slice(-4));
-        try {
-          const b = await getWalletBalances(resp.publicKey);
-          setBalanceReal(Number(b.spartan) || 0);
-          setBalanceLocked(1000);
-        } catch (e) {
-          setBalanceLocked(1000);
-        }
-      } catch {
-        setWallet("SPRT...9xK2");
-      }
-    } else {
-      setWallet("7xK9...3bF2");
+        const b = await getWalletBalances(pk);
+        setBalanceReal(Number(b.spartan) || 0);
+      } catch (e) {}
+      setBalanceLocked(1000);
+      if (!username) setShowSignup(true);
+    } catch (e) {
+      alert(String(e.message || e));
     }
-    if (!username) setShowSignup(true);
   };
 
   const handleSignup = (e) => {
@@ -248,6 +253,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-[#0a0200] text-neutral-100 font-sans overflow-hidden select-none relative">
+      <WalletModal open={showWallets} wallets={walletList} onPick={pickWallet} onClose={() => setShowWallets(false)} />
       
       {/* SMOLDERING FIRE BACKGROUND */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#050100]">
