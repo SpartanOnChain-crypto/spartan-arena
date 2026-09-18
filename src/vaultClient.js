@@ -126,29 +126,37 @@ export async function lockStakeOnChain(amountUi) {
 }
 
 
-export async function getWalletBalances() {
+export async function getWalletBalances(ownerPk) {
   const empty = { sol: 0, spartan: 0 };
-  try {
-    const owner = window?.solana?.publicKey;
-    if (!owner) return empty;
-    let sol = 0;
-    try { sol = (await connection.getBalance(owner)) / 1e9; } catch {}
-    let spartan = 0;
+  const owner = ownerPk || window?.solana?.publicKey;
+  if (!owner) return empty;
+  const urls = [
+    "https://solana-rpc.publicnode.com",
+    "https://rpc.ankr.com/solana",
+    "https://api.mainnet-beta.solana.com",
+  ];
+  for (const url of urls) {
     try {
-      const list = await connection.getParsedTokenAccountsByOwner(owner, { mint });
-      for (const a of list.value) {
-        spartan += Number(a.account.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
-      }
-    } catch {}
-    if (!spartan) {
+      const c = new Connection(url, "confirmed");
+      let sol = 0;
+      try { sol = (await c.getBalance(owner)) / 1e9; } catch {}
+      let spartan = 0;
       try {
-        const ata = await getAssociatedTokenAddress(mint, owner);
-        const acc = await connection.getTokenAccountBalance(ata);
-        spartan = Number(acc.value.uiAmount || 0);
+        const list = await c.getParsedTokenAccountsByOwner(owner, { mint });
+        for (const a of list.value) {
+          spartan += Number(a.account.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
+        }
       } catch {}
-    }
-    return { sol, spartan };
-  } catch {
-    return empty;
+      if (!spartan) {
+        try {
+          const ata = await getAssociatedTokenAddress(mint, owner);
+          const acc = await c.getTokenAccountBalance(ata);
+          spartan = Number(acc.value.uiAmount || 0);
+        } catch {}
+      }
+      if (spartan > 0 || sol > 0) return { sol, spartan };
+    } catch {}
   }
+  return empty;
 }
+
