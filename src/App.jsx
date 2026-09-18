@@ -24,7 +24,10 @@ const startTapOnChain = async (w, afterLock, game) => {
       alert("Open Phantom, unlock it, and connect on Solana mainnet");
       return;
     }
-    await lockStakeOnChain(parseWager(w));
+    const wagerNum = parseWager(w);
+    await lockStakeOnChain(wagerNum);
+    setBalanceReal((prev) => Math.max(0, Number(prev) - Number(wagerNum)));
+    setBalanceLocked((prev) => Number(prev) + Number(wagerNum));
     await queueForMatch({ game: game || "tap", wager: parseWager(w) });
     afterLock();
   } catch (err) {
@@ -125,10 +128,10 @@ export default function App() {
         setWallet(resp.publicKey.toString().slice(0,4) + '...' + resp.publicKey.toString().slice(-4));
         try {
           const b = await getWalletBalances();
-          setBalanceReal(b.spartan);
-          setBalanceLocked(0);
+          setBalanceReal(Number(b.spartan) || 0);
+          setBalanceLocked(1000);
         } catch (e) {
-          console.warn(e);
+          setBalanceLocked(1000);
         }
       } catch {
         setWallet("SPRT...9xK2");
@@ -1550,7 +1553,7 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
   const [blocked, setBlocked] = useState(false);
   const [status, setStatus] = useState('');
 
-  const startStand = () => { setWave(1); setTimeToBlock(3); setBlocked(false); setStatus(''); setView('stand'); };
+  const startStand = () => { setWave(1); setTimeToBlock(3); setBlocked(false); setStatus(''); () => { alert('The 300 Stand and Oracle Jackpot are locked until live pots are ready.'); }; };
 
   useEffect(() => {
     if (view !== 'stand' || status !== '') return;

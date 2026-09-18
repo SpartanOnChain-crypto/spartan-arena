@@ -127,17 +127,28 @@ export async function lockStakeOnChain(amountUi) {
 
 
 export async function getWalletBalances() {
-  const owner = window?.solana?.publicKey;
-  if (!owner) return { sol: 0, spartan: 0 };
-  const solLamports = await connection.getBalance(owner);
-  let spartan = 0;
+  const empty = { sol: 0, spartan: 0 };
   try {
-    const list = await connection.getParsedTokenAccountsByOwner(owner, { mint });
-    for (const a of list.value) {
-      spartan += Number(a.account.data.parsed.info.tokenAmount.uiAmount || 0);
+    const owner = window?.solana?.publicKey;
+    if (!owner) return empty;
+    let sol = 0;
+    try { sol = (await connection.getBalance(owner)) / 1e9; } catch {}
+    let spartan = 0;
+    try {
+      const list = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+      for (const a of list.value) {
+        spartan += Number(a.account.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
+      }
+    } catch {}
+    if (!spartan) {
+      try {
+        const ata = await getAssociatedTokenAddress(mint, owner);
+        const acc = await connection.getTokenAccountBalance(ata);
+        spartan = Number(acc.value.uiAmount || 0);
+      } catch {}
     }
-  } catch (e) {
-    console.warn("spartan balance", e);
+    return { sol, spartan };
+  } catch {
+    return empty;
   }
-  return { sol: solLamports / 1e9, spartan };
 }
