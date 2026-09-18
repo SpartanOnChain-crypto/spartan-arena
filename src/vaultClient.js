@@ -128,16 +128,39 @@ export async function settleMatch({
 }
 
 export async function lockStakeOnChain(amountUi) {
+  const { Transaction, TransactionInstruction } = await import("@solana/web3.js");
+  const crypto = await import("crypto");
   const provider = await getPhantom();
   const owner = mustPk(provider.publicKey, "owner");
-  const playerTokenAccount = await getAssociatedTokenAddress(mint, owner);
+  const TOKEN_2022 = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+  const TOKEN_LEGACY = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  const info = await connection.getAccountInfo(mint);
+  const tokenProgram = info && info.owner.equals(TOKEN_2022) ? TOKEN_2022 : TOKEN_LEGACY;
+  const playerTokenAccount = await getAssociatedTokenAddress(mint, owner, false, tokenProgram);
   const raw = BigInt(Math.floor(Number(amountUi) * 10 ** SPARTAN_DECIMALS));
   if (raw <= 0n) throw new Error("Wager is zero");
-  return depositStake({
-    amount: raw.toString(),
-    playerTokenAccount: playerTokenAccount.toBase58(),
-    escrowTokenAccount: ESCROW_TOKEN_ACCOUNT,
+  const [escrowAuthority] = getEscrowPda();
+  const data = Buffer.alloc(16);
+  crypto.createHash("sha256").update("global:deposit_stake").digest().subarray(0, 8).copy(data, 0);
+  data.writeBigUInt64LE(raw, 8);
+  const ix = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: true },
+      { pubkey: playerTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: mustPk(ESCROW_TOKEN_ACCOUNT, "escrowTokenAccount"), isSigner: false, isWritable: true },
+      { pubkey: escrowAuthority, isSigner: false, isWritable: false },
+      { pubkey: tokenProgram, isSigner: false, isWritable: false },
+    ],
+    data,
   });
+  const tx = new Transaction().add(ix);
+  tx.feePayer = owner;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: true });
+  await connection.confirmTransaction(sig, "confirmed");
+  return sig;
 }
 
 
