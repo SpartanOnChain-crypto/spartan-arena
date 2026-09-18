@@ -128,7 +128,11 @@ export async function settleMatch({
 }
 
 export async function lockStakeOnChain(amountUi) {
-  const { Transaction, TransactionInstruction } = await import("@solana/web3.js");
+  const {
+    TransactionInstruction,
+    TransactionMessage,
+    VersionedTransaction,
+  } = await import("@solana/web3.js");
   const provider = await getPhantom();
   const owner = mustPk(provider.publicKey, "owner");
   const TOKEN_2022 = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
@@ -155,49 +159,36 @@ export async function lockStakeOnChain(amountUi) {
     data,
   });
   const latest = await connection.getLatestBlockhash("confirmed");
-  const tx = new Transaction({
-    feePayer: owner,
+  const msg = new TransactionMessage({
+    payerKey: owner,
     recentBlockhash: latest.blockhash,
-  }).add(ix);
+    instructions: [ix],
+  }).compileToV0Message();
+  const vtx = new VersionedTransaction(msg);
 
-  async function asSignature(value) {
-    if (!value) return null;
+  const pickSig = (value) => {
     if (typeof value === "string" && value.length > 20) return value;
-    if (typeof value.signature === "string") return value.signature;
-    if (typeof value.txid === "string") return value.txid;
+    if (value && typeof value.signature === "string") return value.signature;
     return null;
-  }
+  };
 
   let signature = null;
-  try {
-    if (typeof provider.signAndSendTransaction === "function") {
-      signature = await asSignature(await provider.signAndSendTransaction(tx));
+  if (typeof provider.signAndSendTransaction === "function") {
+    try {
+      signature = pickSig(await provider.signAndSendTransaction(vtx));
+    } catch (e) {
+      if (!String(e?.message || e).includes("end of buffer")) throw e;
     }
-  } catch (e) {
-    const m = String(e?.message || e);
-    if (!m.includes("end of buffer")) throw e;
   }
-  if (!signature) {
-    const signed = await provider.signTransaction(tx);
-    let raw = null;
-    if (signed instanceof Uint8Array) raw = signed;
-    else if (signed && signed.serialize) raw = signed.serialize();
-    else if (signed && signed.signedTransaction) raw = signed.signedTransaction;
+  if (!signature && typeof provider.signTransaction === "function") {
+    const signed = await provider.signTransaction(vtx);
+    const raw = signed instanceof Uint8Array
+      ? signed
+      : (signed.serialize ? signed.serialize() : null);
     if (!raw) throw new Error("Wallet signed but returned no bytes");
     signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
   }
-  if (!signature || typeof signature !== "string") {
-    throw new Error("Wallet did not return a signature");
-  }
-  try {
-    await connection.confirmTransaction({
-      signature,
-      blockhash: latest.blockhash,
-      lastValidBlockHeight: latest.lastValidBlockHeight,
-    }, "confirmed");
-  } catch (e) {
-    if (!String(e?.message || e).includes("end of buffer")) throw e;
-  }
+  if (!signature) throw new Error("Wallet did not return a signature");
   return signature;
 }
 

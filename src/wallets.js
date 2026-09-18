@@ -68,8 +68,9 @@ function fromStandard() {
 export function listWallets() {
   const standard = fromStandard();
   const list = CATALOG.map((item) => {
+    const native = detect(item.id);
     const std = standard.find((s) => s.name.toLowerCase().includes(item.id) || s.name.toLowerCase() === item.name.toLowerCase());
-    const provider = std?.provider || detect(item.id);
+    const provider = (native && (native.signTransaction || native.signAndSendTransaction)) ? native : (std?.provider || native);
     return {
       ...item,
       provider,
