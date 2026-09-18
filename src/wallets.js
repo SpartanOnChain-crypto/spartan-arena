@@ -39,11 +39,19 @@ function fromStandard() {
                   const { accounts } = await feat.connect();
                   const acc = accounts?.[0];
                   if (!acc) throw new Error(wallet.name + " gave no account");
-                  const { PublicKey } = await import("@solana/web3.js");
+                  const { PublicKey, VersionedTransaction, Transaction } = await import("@solana/web3.js");
                   const publicKey = new PublicKey(acc.address);
                   this.publicKey = publicKey;
                   this._account = acc;
                   this._wallet = wallet;
+                  this.signTransaction = async (tx) => {
+                    const feat = wallet.features["solana:signTransaction"];
+                    if (!feat) throw new Error(wallet.name + " cannot sign");
+                    const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+                    const out = await feat.signTransaction({ transaction: serialized, account: acc });
+                    const raw = out.signedTransaction || out;
+                    try { return VersionedTransaction.deserialize(raw); } catch (_) { return Transaction.from(raw); }
+                  };
                   return { publicKey };
                 },
                 publicKey: null,

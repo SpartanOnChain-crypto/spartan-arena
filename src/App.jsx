@@ -20,6 +20,19 @@ const parseWager = (amount) => {
   return parseFloat(amount);
 };
 
+;
+
+export default function App() {
+  const [wallet, setWallet] = useState(null);
+  const [showWallets, setShowWallets] = useState(false);
+  const [walletList, setWalletList] = useState([]);
+  const [username, setUsername] = useState('');
+  const [showSignup, setShowSignup] = useState(false);
+  const [tempName, setTempName] = useState('');
+  
+  const [balanceLocked, setBalanceLocked] = useState(0);
+  const [balanceReal, setBalanceReal] = useState(0);
+
 const startTapOnChain = async (w, afterLock, game) => {
   try {
     const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
@@ -42,18 +55,7 @@ const startTapOnChain = async (w, afterLock, game) => {
     }
     alert(msg);
   }
-};
-
-export default function App() {
-  const [wallet, setWallet] = useState(null);
-  const [showWallets, setShowWallets] = useState(false);
-  const [walletList, setWalletList] = useState([]);
-  const [username, setUsername] = useState('');
-  const [showSignup, setShowSignup] = useState(false);
-  const [tempName, setTempName] = useState('');
-  
-  const [balanceLocked, setBalanceLocked] = useState(0);
-  const [balanceReal, setBalanceReal] = useState(0);
+}
   const [wageredTotal, setWageredTotal] = useState(0);
   
   const [view, setView] = useState('home');

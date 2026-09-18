@@ -55,7 +55,7 @@ async function getPhantom() {
 
 async function getProgram() {
   const provider = await getPhantom();
-  const signer = [provider, window.__spartanWallet, window.phantom?.solana, window.solana]
+  const signer = [provider, window.__spartanWallet]
     .find((w) => w && typeof w.signTransaction === "function") || provider;
   const wallet = {
     publicKey: provider.publicKey || signer.publicKey,
