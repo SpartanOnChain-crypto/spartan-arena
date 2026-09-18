@@ -1,3 +1,4 @@
+import { listWallets, connectProvider } from './wallets.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -43,6 +44,8 @@ const startTapOnChain = async (w, afterLock, game) => {
 
 export default function App() {
   const [wallet, setWallet] = useState(null);
+  const [showWallets, setShowWallets] = useState(false);
+  const [walletList, setWalletList] = useState([]);
   const [username, setUsername] = useState('');
   const [showSignup, setShowSignup] = useState(false);
   const [tempName, setTempName] = useState('');
@@ -122,25 +125,27 @@ export default function App() {
   ]);
 
   const connectWallet = async () => {
-    if (window?.solana?.isPhantom) {
-      try {
-        const resp = await window.solana.connect();
-        setWallet(resp.publicKey.toString().slice(0,4) + '...' + resp.publicKey.toString().slice(-4));
-        try {
-          const b = await getWalletBalances(resp.publicKey);
-          setBalanceReal(Number(b.spartan) || 0);
-          setBalanceLocked(1000);
-        } catch (e) {
-          setBalanceLocked(1000);
-        }
-      } catch {
-        setWallet("SPRT...9xK2");
-      }
-    } else {
-      setWallet("7xK9...3bF2");
-    }
-    if (!username) setShowSignup(true);
+    setWalletList(listWallets());
+    setShowWallets(true);
   };
+
+  const pickWallet = async (w) => {
+    if (!w.provider) { alert(w.note || (w.name + " is not installed")); return; }
+    try {
+      const pk = await connectProvider(w.provider);
+      setWallet(pk.toString().slice(0,4) + "..." + pk.toString().slice(-4));
+      setShowWallets(false);
+      try {
+        const b = await getWalletBalances(pk);
+        setBalanceReal(Number(b.spartan) || 0);
+      } catch (e) {}
+      setBalanceLocked(1000);
+      if (!username) setShowSignup(true);
+    } catch (e) {
+      alert(String(e.message || e));
+    }
+  };
+
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -247,6 +252,22 @@ export default function App() {
   );
 
   return (
+      {showWallets && (
+        <div className="fixed inset-0 z-[80] bg-black/70 flex items-center justify-center p-4" onClick={() => setShowWallets(false)}>
+          <div className="bg-neutral-900 border border-white/10 rounded-2xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-white font-black mb-1">Connect wallet</h3>
+            <p className="text-xs text-white/50 mb-4">$Spartan is on Solana. Pick a wallet.</p>
+            <div className="space-y-2">
+              {walletList.map((w) => (
+                <button key={w.id} onClick={() => pickWallet(w)} className="w-full text-left px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold">
+                  {w.name}
+                  {w.note && <span className="block text-[10px] text-red-300 font-medium">{w.note}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     <div className="flex h-screen bg-[#0a0200] text-neutral-100 font-sans overflow-hidden select-none relative">
       
       {/* SMOLDERING FIRE BACKGROUND */}
