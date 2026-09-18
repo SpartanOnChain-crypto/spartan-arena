@@ -8,6 +8,7 @@ import {
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { lockStakeOnChain } from './vaultClient.js';
 
 export default function App() {
   const [wallet, setWallet] = useState(null);
@@ -116,6 +117,23 @@ export default function App() {
 
   const addFeed = (user, game, wager, multiplier, payout, type) => {
     setLiveFeed(prev => [{ id: Date.now(), user, game, wager, multiplier, payout, type }, ...prev].slice(0, 8));
+  };
+
+
+  const parseWager = (amount) => {
+    if (typeof amount !== 'string') return Number(amount);
+    if (amount.includes('M')) return parseFloat(amount) * 1000000;
+    if (amount.includes('K')) return parseFloat(amount) * 1000;
+    return parseFloat(amount);
+  };
+
+  const startTapOnChain = async (w, afterLock) => {
+    try {
+      await lockStakeOnChain(parseWager(w));
+      afterLock();
+    } catch (err) {
+      alert("On-chain deposit failed: " + (err?.message || err));
+    }
   };
 
   const addWager = (amount) => {
@@ -786,7 +804,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       icon={Swords} 
       iconColor="from-red-600 to-orange-700" 
       onBack={onBack} 
-      onStart={(w) => { setWager(w); setView('countdown'); }}
+      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
     >
       {/* Individual Details for Colosseum Tap */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
