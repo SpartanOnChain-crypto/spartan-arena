@@ -55,10 +55,22 @@ async function getPhantom() {
 
 async function getProgram() {
   const provider = await getPhantom();
+  const signer = [provider, window.__spartanWallet, window.phantom?.solana, window.solana]
+    .find((w) => w && typeof w.signTransaction === "function") || provider;
   const wallet = {
-    publicKey: provider.publicKey,
-    signTransaction: (tx) => provider.signTransaction(tx),
-    signAllTransactions: (txs) => provider.signAllTransactions(txs),
+    publicKey: provider.publicKey || signer.publicKey,
+    signTransaction: async (tx) => {
+      if (typeof signer.signTransaction !== "function") {
+        throw new Error("Reconnect a wallet from the list");
+      }
+      return signer.signTransaction(tx);
+    },
+    signAllTransactions: async (txs) => {
+      if (typeof signer.signAllTransactions === "function") return signer.signAllTransactions(txs);
+      const out = [];
+      for (const tx of txs) out.push(await signer.signTransaction(tx));
+      return out;
+    },
   };
   const anchorProvider = new anchor.AnchorProvider(connection, wallet, {
     commitment: "confirmed",
