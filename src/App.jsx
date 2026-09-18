@@ -9,7 +9,7 @@ import {
   TrendingUp, Activity, History, MessageCircle, 
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { lockStakeOnChain, getWalletBalances } from './vaultClient.js';
+import { lockStakeOnChain, getWalletBalances, settleMatch as settleMatchOnChain } from './vaultClient.js';
 import { queueForMatch } from './matchClient.js';
 
 
@@ -825,6 +825,12 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
     addWager(wager);
     if (myTaps > oppTaps) {
       setWinner('you');
+        const pot = (parseWager(wager) || 0) * 2;
+        const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+        if (pot > 0 && winPk) {
+          settleMatchOnChain({ amountUi: pot, winnerTokenAccount: winPk }).catch((e) => console.warn("settle", e));
+        }
+
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
     } else if (oppTaps > myTaps) {
@@ -1036,6 +1042,12 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     if (myStatus === 'bailed' && myBail >= (opp1Status==='bailed'?opp1Target:0) && myBail >= (opp2Status==='bailed'?opp2Target:0)) winner = 'you';
     
     if (winner === 'you') {
+        const pot = (parseWager(wager) || 0) * 2;
+        const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+        if (pot > 0 && winPk) {
+          settleMatchOnChain({ amountUi: pot, winnerTokenAccount: winPk }).catch((e) => console.warn("settle", e));
+        }
+
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       const payoutStr = wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : (parseFloat(wager)*3).toString();
       addFeed(username || 'Hoplite', "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${payoutStr}`, 'win');
