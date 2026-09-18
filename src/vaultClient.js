@@ -198,10 +198,22 @@ export async function lockStakeOnChain(amountUi) {
   const serialized = vtx.serialize();
   let signature = null;
   const signed = await provider.signTransaction(vtx);
-  const raw = signed instanceof Uint8Array
-    ? signed
-    : (signed?.signedTransaction || (signed?.serialize ? signed.serialize() : null));
-  if (!raw) throw new Error("Wallet signed but returned no bytes");
+  const asBytes = (v) => {
+    if (!v) return null;
+    if (v instanceof Uint8Array) return v;
+    if (v instanceof ArrayBuffer) return new Uint8Array(v);
+    if (ArrayBuffer.isView(v)) return new Uint8Array(v.buffer);
+    if (Array.isArray(v) && typeof v[0] === "number") return Uint8Array.from(v);
+    if (v.signedTransaction) return asBytes(v.signedTransaction);
+    if (v.transaction) return asBytes(v.transaction);
+    if (typeof v.serialize === "function") return v.serialize();
+    return null;
+  };
+  const raw = asBytes(signed);
+  if (!raw) {
+    const keys = signed && typeof signed === "object" ? Object.keys(signed).join(",") : String(typeof signed);
+    throw new Error("Wallet signed but returned no bytes (" + keys + ")");
+  }
   signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
 
   if (!signature) {
