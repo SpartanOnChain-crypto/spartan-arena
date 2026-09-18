@@ -720,11 +720,11 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
             Finding players...
           </span>
         ) : "Find Random Warrior"}
-        <p className="mt-3 text-center text-xs text-white/50">
-          Wager is $Spartan. You also need a tiny SOL network fee (~0.00008 SOL) in Phantom. Keep a little extra SOL so rent does not block the wallet.
-        </p>
 
             </button>
+                <p className="mt-3 text-center text-xs text-white/50">
+                  You need 0.00008 SOL to find match
+                </p>
           </div>
 
           {/* Private Room Side */}
@@ -825,7 +825,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       icon={Swords} 
       iconColor="from-red-600 to-orange-700" 
       onBack={onBack} 
-      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
     >
       {/* Individual Details for Colosseum Tap */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1031,7 +1031,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       icon={TrendingUp} 
       iconColor="from-cyan-600 to-blue-800" 
       onBack={onBack} 
-      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
     >
       {/* HOW TO PLAY: CHARIOT DEATHRACE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1218,7 +1218,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       icon={Shield} 
       iconColor="from-green-600 to-teal-800" 
       onBack={onBack} 
-      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
     >
       {/* HOW TO PLAY: PHALANX STANCE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1426,7 +1426,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       icon={Dices} 
       iconColor="from-fuchsia-600 to-purple-800" 
       onBack={onBack} 
-      onStart={(w) => { startTapOnChain(w, () => { setWager(w); setView('countdown'); }); }}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
     >
       {/* HOW TO PLAY: BONES OF SPARTA */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
