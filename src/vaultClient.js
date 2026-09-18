@@ -14,10 +14,16 @@ export function getEscrowPda() {
   return PublicKey.findProgramAddressSync([Buffer.from(ESCROW_SEED)], programId);
 }
 
-function getProgram() {
+async function getProgram() {
   const provider = window?.solana;
   if (!provider?.isPhantom) {
     throw new Error("Open Phantom and connect first");
+  }
+  if (!provider.publicKey) {
+    await provider.connect();
+  }
+  if (!provider.publicKey) {
+    throw new Error("Phantom did not return a public key. Unlock Phantom and connect again.");
   }
   const wallet = {
     publicKey: provider.publicKey,
@@ -31,7 +37,7 @@ function getProgram() {
 }
 
 export async function depositStake({ amount, playerTokenAccount, escrowTokenAccount }) {
-  const program = getProgram();
+  const program = await getProgram();
   const [escrowAuthority] = getEscrowPda();
   return program.methods
     .depositStake(new anchor.BN(amount))
@@ -50,7 +56,7 @@ export async function settleMatch({
   winnerTokenAccount,
   jackpotTokenAccount,
 }) {
-  const program = getProgram();
+  const program = await getProgram();
   if (program.provider.publicKey.toBase58() !== OPERATOR) {
     throw new Error("Only the operator wallet can settle");
   }
@@ -71,7 +77,7 @@ export async function settleMatch({
 
 
 export async function lockStakeOnChain(amountUi) {
-  const program = getProgram();
+  const program = await getProgram();
   const owner = program.provider.publicKey;
   if (!owner) throw new Error("Phantom connected but no public key");
   const playerTokenAccount = await getAssociatedTokenAddress(mint, owner);
