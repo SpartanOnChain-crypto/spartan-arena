@@ -22,6 +22,25 @@ const parseWager = (amount) => {
 
 ;
 
+
+const startTapOnChain = async (w, afterLock, game) => {
+  try {
+    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+    if (!ready) {
+      if (window.__openWallets) window.__openWallets();
+      else alert("Click Connect and pick a wallet first");
+      return;
+    }
+    const wagerNum = parseWager(w);
+    const sig = await lockStakeOnChain(wagerNum);
+    if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
+    await queueForMatch({ game: game || "tap", wager: wagerNum });
+    afterLock();
+  } catch (err) {
+    alert(String(err?.message || err));
+  }
+};
+
 export default function App() {
   const [wallet, setWallet] = useState(null);
   const [showWallets, setShowWallets] = useState(false);
@@ -33,32 +52,7 @@ export default function App() {
   const [balanceLocked, setBalanceLocked] = useState(0);
   const [balanceReal, setBalanceReal] = useState(0);
 
-const startTapOnChain = async (w, afterLock, game) => {
-  try {
-    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
-    if (!ready) {
-      setShowWallets(true);
-      return;
-    }
-    const wagerNum = parseWager(w);
-    const sig = await lockStakeOnChain(wagerNum);
-    if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
-    try {
-      setBalanceReal((prev) => Math.max(0, Number(prev) - Number(wagerNum)));
-      setBalanceLocked((prev) => Number(prev) + Number(wagerNum));
-    } catch (_) {}
-    await queueForMatch({ game: game || "tap", wager: parseWager(w) });
-    afterLock();
-  } catch (err) {
-    const msg = String(err?.message || err);
-    if (msg.includes("not confirmed") && msg.includes("signature")) {
-      try { await queueForMatch({ game: game || "tap", wager: parseWager(w) }); } catch {}
-      afterLock();
-      return;
-    }
-    alert(msg);
-  }
-}
+
   const [wageredTotal, setWageredTotal] = useState(0);
   
   const [view, setView] = useState('home');
