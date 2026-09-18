@@ -5,8 +5,7 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info
-} from 'lucide-react';
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain } from './vaultClient.js';
 
@@ -715,7 +714,16 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
               ))}
             </div>
             <button onClick={handleStart} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
-              {isSearching ? <span className="animate-pulse">Searching...</span> : "Find Random Warrior"}
+              {isSearching ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Finding players...
+          </span>
+        ) : "Find Random Warrior"}
+        <p className="mt-3 text-center text-xs text-white/50">
+          Wager is $Spartan. You also need a tiny SOL network fee (~0.00008 SOL) in Phantom. Keep a little extra SOL so rent does not block the wallet.
+        </p>
+
             </button>
           </div>
 
