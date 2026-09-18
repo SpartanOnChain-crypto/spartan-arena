@@ -88,24 +88,27 @@ export async function depositStake({ amount, playerTokenAccount, escrowTokenAcco
 }
 
 export async function settleMatch({
-  escrowTokenAccount,
+  amountUi,
   winnerTokenAccount,
   jackpotTokenAccount,
 }) {
   const program = await getProgram();
-  const admin = mustPk(window.solana.publicKey, "admin");
+  const adminPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+  const admin = mustPk(adminPk, "admin");
   if (admin.toBase58() !== OPERATOR) {
     throw new Error("Only the operator wallet can settle");
   }
+  const raw = BigInt(Math.round(Number(amountUi) * 1e9));
+  if (raw <= 0n) throw new Error("settle amount must be > 0");
   const [escrowAuthority] = getEscrowPda();
   return program.methods
-    .settleMatch()
+    .settleMatch(new anchor.BN(raw.toString()))
     .accounts({
       admin,
       escrowAuthority,
-      escrowTokenAccount: mustPk(escrowTokenAccount, "escrowTokenAccount"),
+      escrowTokenAccount: mustPk(ESCROW_TOKEN_ACCOUNT, "escrowTokenAccount"),
       winnerTokenAccount: mustPk(winnerTokenAccount, "winnerTokenAccount"),
-      jackpotTokenAccount: mustPk(jackpotTokenAccount, "jackpotTokenAccount"),
+      jackpotTokenAccount: mustPk(jackpotTokenAccount || TREASURY_ATA, "jackpotTokenAccount"),
       spartanMint: mint,
       tokenProgram: TOKEN_PROGRAM,
     })
