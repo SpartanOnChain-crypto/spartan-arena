@@ -157,8 +157,18 @@ export async function lockStakeOnChain(amountUi) {
   const tx = new Transaction().add(ix);
   tx.feePayer = owner;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-  const signed = await provider.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: true });
+  let sig;
+  if (typeof provider.signAndSendTransaction === "function") {
+    const r = await provider.signAndSendTransaction(tx);
+    sig = typeof r === "string" ? r : (r.signature || r);
+  } else {
+    const signed = await provider.signTransaction(tx);
+    const raw = signed instanceof Uint8Array
+      ? signed
+      : (signed.serialize ? signed.serialize() : signed.signedTransaction);
+    if (!raw) throw new Error("Wallet signed but returned no bytes");
+    sig = await connection.sendRawTransaction(raw, { skipPreflight: true });
+  }
   await connection.confirmTransaction(sig, "confirmed");
   return sig;
 }
