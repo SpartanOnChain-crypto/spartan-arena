@@ -40,7 +40,7 @@ export function getEscrowPda() {
 }
 
 async function getPhantom() {
-  const provider = window?.solana;
+  const provider = window.__spartanWallet || window?.phantom?.solana || window?.solana;
   if (!provider?.isPhantom) {
     throw new Error("Open the Phantom extension and unlock it");
   }
@@ -128,7 +128,7 @@ export async function lockStakeOnChain(amountUi) {
 
 export async function getWalletBalances(ownerPk) {
   const empty = { sol: 0, spartan: 0 };
-  const owner = ownerPk || window?.solana?.publicKey;
+  const owner = ownerPk || window.__spartanWallet?.publicKey || window?.solana?.publicKey;
   if (!owner) return empty;
   const urls = [
     "https://solana-rpc.publicnode.com",
