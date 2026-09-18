@@ -41,14 +41,14 @@ export function getEscrowPda() {
 
 async function getPhantom() {
   const provider = window.__spartanWallet || window?.phantom?.solana || window?.solana;
-  if (!provider?.isPhantom) {
-    throw new Error("Open the Phantom extension and unlock it");
+  if (!provider) {
+    throw new Error("Connect a wallet first");
   }
-  if (!provider.publicKey) {
+  if (!provider.publicKey && provider.connect) {
     await provider.connect();
   }
   if (!provider.publicKey) {
-    throw new Error("Phantom did not give a public key. Click the Phantom icon and Connect.");
+    throw new Error("Wallet did not give a public key. Click Connect again.");
   }
   return provider;
 }
@@ -73,7 +73,7 @@ async function getProgram() {
 
 export async function depositStake({ amount, playerTokenAccount, escrowTokenAccount }) {
   const program = await getProgram();
-  const player = mustPk(window.solana.publicKey, "player");
+  const player = mustPk((window.__spartanWallet||window.solana).publicKey, "player");
   const [escrowAuthority] = getEscrowPda();
   return program.methods
     .depositStake(new anchor.BN(String(amount)))
