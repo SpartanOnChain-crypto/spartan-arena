@@ -1,3 +1,5 @@
+import { Buffer } from "buffer";
+if (!globalThis.Buffer) globalThis.Buffer = Buffer;
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getMint } from "@solana/spl-token";
