@@ -167,19 +167,31 @@ export async function lockStakeOnChain(amountUi) {
   const vtx = new VersionedTransaction(msg);
 
   const pickSig = (value) => {
-    if (!value && value !== 0) return null;
+    if (value == null) return null;
     if (typeof value === "string" && value.length >= 32) return value;
+    const bytes = value instanceof Uint8Array ? value
+      : value?.signature instanceof Uint8Array ? value.signature
+      : value?.result?.signature instanceof Uint8Array ? value.result.signature
+      : null;
+    if (bytes && bytes.length === 64) {
+      const ALPHA = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+      let n = 0n;
+      for (const b of bytes) n = (n << 8n) + BigInt(b);
+      let out = "";
+      while (n > 0n) {
+        const i = Number(n % 58n);
+        n = n / 58n;
+        out = ALPHA[i] + out;
+      }
+      for (const b of bytes) {
+        if (b === 0) out = "1" + out;
+        else break;
+      }
+      return out;
+    }
     if (typeof value?.signature === "string") return value.signature;
     if (typeof value?.txid === "string") return value.txid;
-    if (typeof value?.txId === "string") return value.txId;
-    if (typeof value?.hash === "string") return value.hash;
     if (typeof value?.result === "string") return value.result;
-    if (typeof value?.result?.signature === "string") return value.result.signature;
-    if (Array.isArray(value?.signatures) && typeof value.signatures[0] === "string") return value.signatures[0];
-    try {
-      const s = value?.signature?.toString?.();
-      if (s && s.length >= 32 && s !== "[object Object]") return s;
-    } catch (_) {}
     return null;
   };
 
