@@ -35,7 +35,8 @@ async function getProgram() {
   const anchorProvider = new anchor.AnchorProvider(connection, wallet, {
     commitment: "confirmed",
   });
-  return new anchor.Program(idl, programId, anchorProvider);
+  const idlFixed = { ...idl, address: PROGRAM_ID };
+  return new anchor.Program(idlFixed, anchorProvider);
 }
 
 export async function depositStake({ amount, playerTokenAccount, escrowTokenAccount }) {
