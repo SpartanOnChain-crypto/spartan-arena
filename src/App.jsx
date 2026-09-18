@@ -193,6 +193,7 @@ export default function App() {
       <span className="font-bold text-sm tracking-wide">{label}</span>
       {locked && <Lock className="w-3.5 h-3.5 ml-auto text-red-400" />}
     </button>
+    </>
   );
 
   const SidebarLink = ({ icon: Icon, label, href }) => (
@@ -252,7 +253,10 @@ export default function App() {
   );
 
   return (
-      >
+    <>
+      {showWallets && (
+        <div className="fixed inset-0 z-[80] bg-black/70 flex items-center justify-center p-4" onClick={() => setShowWallets(false)}>
+          <div className="bg-neutral-900 border border-white/10 rounded-2xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
           <div className="bg-neutral-900 border border-white/10 rounded-2xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white font-black mb-1">Connect wallet</h3>
             <p className="text-xs text-white/50 mb-4">$Spartan is on Solana. Pick a wallet.</p>
