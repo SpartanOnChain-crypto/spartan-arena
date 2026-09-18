@@ -84,7 +84,7 @@ export async function depositStake({ amount, playerTokenAccount, escrowTokenAcco
       escrowAuthority,
       tokenProgram: TOKEN_PROGRAM,
     })
-    .rpc();
+    .rpc({ skipPreflight: true });
 }
 
 export async function settleMatch({
@@ -109,7 +109,7 @@ export async function settleMatch({
       spartanMint: mint,
       tokenProgram: TOKEN_PROGRAM,
     })
-    .rpc();
+    .rpc({ skipPreflight: true });
 }
 
 export async function lockStakeOnChain(amountUi) {
