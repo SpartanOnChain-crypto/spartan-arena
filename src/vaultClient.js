@@ -128,35 +128,47 @@ export async function lockStakeOnChain(amountUi) {
 
 export async function getWalletBalances(ownerPk) {
   const empty = { sol: 0, spartan: 0 };
-  const owner = ownerPk || window.__spartanWallet?.publicKey || window?.solana?.publicKey;
-  if (!owner) return empty;
+  const raw = ownerPk || window.__spartanWallet?.publicKey || window?.phantom?.solana?.publicKey || window?.solana?.publicKey;
+  if (!raw) return empty;
+  const ownerStr = typeof raw.toBase58 === "function" ? raw.toBase58() : String(raw);
   const urls = [
     "https://solana-rpc.publicnode.com",
     "https://rpc.ankr.com/solana",
-    "https://api.mainnet-beta.solana.com",
+    "https://solana.llamarpc.com",
+    "https://1rpc.io/solana",
   ];
+  async function byMint(url) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTokenAccountsByOwner",
+        params: [ownerStr, { mint: SPARTAN_MINT }, { encoding: "jsonParsed" }],
+      }),
+    });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message || "rpc error");
+    let sum = 0;
+    for (const a of json?.result?.value || []) {
+      sum += Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
+    }
+    return sum;
+  }
   for (const url of urls) {
     try {
-      const c = new Connection(url, "confirmed");
+      const spartan = await byMint(url);
       let sol = 0;
-      try { sol = (await c.getBalance(owner)) / 1e9; } catch {}
-      let spartan = 0;
       try {
-        const list = await c.getParsedTokenAccountsByOwner(owner, { mint });
-        for (const a of list.value) {
-          spartan += Number(a.account.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
-        }
+        sol = (await new Connection(url, "confirmed").getBalance(new PublicKey(ownerStr))) / 1e9;
       } catch {}
-      if (!spartan) {
-        try {
-          const ata = await getAssociatedTokenAddress(mint, owner);
-          const acc = await c.getTokenAccountBalance(ata);
-          spartan = Number(acc.value.uiAmount || 0);
-        } catch {}
-      }
-      if (spartan > 0 || sol > 0) return { sol, spartan };
-    } catch {}
+      return { sol, spartan };
+    } catch (e) {
+      console.warn("READY rpc fail", url, e);
+    }
   }
   return empty;
 }
+
 
