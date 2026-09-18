@@ -4,7 +4,7 @@ export const SPARTAN_MINT = "8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi";
 export const TREASURY = "8sYXvt5WSk1SVJ8UmWPLSTAYapZ1BBf2VbQECSPF2H34";
 export const OPERATOR = "2fzt95p1oznswzeAFNcpv86qjN4bVSoeJ7dMQXurN59y";
 export const ESCROW_SEED = "escrow";
-export const ESCROW_TOKEN_ACCOUNT = "AX5CTvHHK7NATgmUb9LYn8eEr1lQeQn1HhvDMgkNkuhv";
+export const ESCROW_TOKEN_ACCOUNT = "AX5CTvHHK7NATgmUb9LYn8eEr11QeQniHhvDMgkNkuhv";
 export const ESCROW_AUTHORITY = "FqLiuZsE4wGeeknfAz9YVdmjC6EdMZL1aYNwUF4qQGfp";
 
 export const SPLIT = {
