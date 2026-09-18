@@ -130,13 +130,14 @@ export async function getWalletBalances() {
   const owner = window?.solana?.publicKey;
   if (!owner) return { sol: 0, spartan: 0 };
   const solLamports = await connection.getBalance(owner);
-  const ata = await getAssociatedTokenAddress(mint, owner);
   let spartan = 0;
   try {
-    const acc = await connection.getTokenAccountBalance(ata);
-    spartan = Number(acc.value.uiAmount || 0);
+    const list = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+    for (const a of list.value) {
+      spartan += Number(a.account.data.parsed.info.tokenAmount.uiAmount || 0);
+    }
   } catch (e) {
-    spartan = 0;
+    console.warn("spartan balance", e);
   }
   return { sol: solLamports / 1e9, spartan };
 }
