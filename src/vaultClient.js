@@ -131,44 +131,15 @@ export async function getWalletBalances(ownerPk) {
   const raw = ownerPk || window.__spartanWallet?.publicKey || window?.phantom?.solana?.publicKey || window?.solana?.publicKey;
   if (!raw) return empty;
   const ownerStr = typeof raw.toBase58 === "function" ? raw.toBase58() : String(raw);
-  const urls = [
-    "https://solana-rpc.publicnode.com",
-    "https://rpc.ankr.com/solana",
-    "https://solana.llamarpc.com",
-    "https://1rpc.io/solana",
-  ];
-  async function byMint(url) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "getTokenAccountsByOwner",
-        params: [ownerStr, { mint: SPARTAN_MINT }, { encoding: "jsonParsed" }],
-      }),
-    });
-    const json = await res.json();
-    if (json.error) throw new Error(json.error.message || "rpc error");
-    let sum = 0;
-    for (const a of json?.result?.value || []) {
-      sum += Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
-    }
-    return sum;
+  try {
+    const r = await fetch("/api/balance?owner=" + encodeURIComponent(ownerStr));
+    const j = await r.json();
+    return { sol: Number(j.sol) || 0, spartan: Number(j.spartan) || 0 };
+  } catch (e) {
+    console.warn("READY api", e);
+    return empty;
   }
-  for (const url of urls) {
-    try {
-      const spartan = await byMint(url);
-      let sol = 0;
-      try {
-        sol = (await new Connection(url, "confirmed").getBalance(new PublicKey(ownerStr))) / 1e9;
-      } catch {}
-      return { sol, spartan };
-    } catch (e) {
-      console.warn("READY rpc fail", url, e);
-    }
-  }
-  return empty;
 }
+
 
 
