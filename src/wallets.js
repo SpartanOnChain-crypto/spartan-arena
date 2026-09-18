@@ -47,10 +47,27 @@ function fromStandard() {
                   this.signTransaction = async (tx) => {
                     const feat = wallet.features["solana:signTransaction"];
                     if (!feat) throw new Error(wallet.name + " cannot sign");
-                    const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
-                    const out = await feat.signTransaction({ transaction: serialized, account: acc });
-                    const raw = out.signedTransaction || out;
-                    try { return VersionedTransaction.deserialize(raw); } catch (_) { return Transaction.from(raw); }
+                    const bytes = typeof tx.serialize === "function" ? tx.serialize() : tx;
+                    const out = await feat.signTransaction({
+                      transaction: bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes),
+                      account: acc,
+                    });
+                    return out.signedTransaction || out;
+                  };
+                  this.signAndSendTransaction = async (tx) => {
+                    const send = wallet.features["solana:signAndSendTransaction"];
+                    const bytes = typeof tx.serialize === "function" ? tx.serialize() : tx;
+                    if (send) {
+                      const out = await send.signAndSendTransaction({
+                        transaction: bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes),
+                        account: acc,
+                        chain: "solana:mainnet",
+                      });
+                      return out;
+                    }
+                    const signed = await this.signTransaction(tx);
+                    const { Connection } = await import("@solana/web3.js");
+                    return { signature: signed };
                   };
                   return { publicKey };
                 },
