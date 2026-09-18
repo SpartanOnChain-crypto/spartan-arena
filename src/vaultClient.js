@@ -129,7 +129,6 @@ export async function settleMatch({
 
 export async function lockStakeOnChain(amountUi) {
   const { Transaction, TransactionInstruction } = await import("@solana/web3.js");
-  const crypto = await import("crypto");
   const provider = await getPhantom();
   const owner = mustPk(provider.publicKey, "owner");
   const TOKEN_2022 = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
@@ -141,7 +140,8 @@ export async function lockStakeOnChain(amountUi) {
   if (raw <= 0n) throw new Error("Wager is zero");
   const [escrowAuthority] = getEscrowPda();
   const data = Buffer.alloc(16);
-  crypto.createHash("sha256").update("global:deposit_stake").digest().subarray(0, 8).copy(data, 0);
+  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("global:deposit_stake")));
+  Buffer.from(hash.subarray(0, 8)).copy(data, 0);
   data.writeBigUInt64LE(raw, 8);
   const ix = new TransactionInstruction({
     programId,
