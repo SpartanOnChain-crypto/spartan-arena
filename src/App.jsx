@@ -21,14 +21,18 @@ const parseWager = (amount) => {
 const startTapOnChain = async (w, afterLock) => {
   try {
     if (!window?.solana?.isPhantom) {
-      alert("Open Phantom and connect on Solana mainnet first");
+      alert("Open Phantom, unlock it, and connect on Solana mainnet");
       return;
     }
-    alert("Next popup is Phantom — approve a SMALL $Spartan deposit");
     await lockStakeOnChain(parseWager(w));
     afterLock();
   } catch (err) {
-    alert("On-chain deposit failed: " + (err?.message || String(err)));
+    const msg = String(err?.message || err);
+    if (msg.includes("not confirmed") && msg.includes("signature")) {
+      afterLock();
+      return;
+    }
+    alert("On-chain deposit failed: " + msg);
   }
 };
 
