@@ -42,10 +42,12 @@ async function getProgram() {
 export async function depositStake({ amount, playerTokenAccount, escrowTokenAccount }) {
   const program = await getProgram();
   const [escrowAuthority] = getEscrowPda();
+  const player = window.solana.publicKey;
+  if (!player) throw new Error("Phantom public key missing at send time");
   return program.methods
     .depositStake(new anchor.BN(amount))
     .accounts({
-      player: program.provider.publicKey,
+      player,
       playerTokenAccount: new PublicKey(playerTokenAccount),
       escrowTokenAccount: new PublicKey(escrowTokenAccount),
       escrowAuthority,
