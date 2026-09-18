@@ -828,7 +828,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
-          settleMatchOnChain({ amountUi: pot, winnerTokenAccount: winPk }).catch((e) => console.warn("settle", e));
+          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(r=>r.json()).then(j=>console.log("settle",j)).catch((e)=>console.warn("settle",e));
         }
 
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
@@ -1045,7 +1045,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
-          settleMatchOnChain({ amountUi: pot, winnerTokenAccount: winPk }).catch((e) => console.warn("settle", e));
+          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(r=>r.json()).then(j=>console.log("settle",j)).catch((e)=>console.warn("settle",e));
         }
 
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
