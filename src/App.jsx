@@ -193,7 +193,6 @@ export default function App() {
       <span className="font-bold text-sm tracking-wide">{label}</span>
       {locked && <Lock className="w-3.5 h-3.5 ml-auto text-red-400" />}
     </button>
-    </>
   );
 
   const SidebarLink = ({ icon: Icon, label, href }) => (
