@@ -78,8 +78,8 @@ export async function settleMatch({
 
 export async function lockStakeOnChain(amountUi) {
   const program = await getProgram();
-  const owner = program.provider.publicKey;
-  if (!owner) throw new Error("Phantom connected but no public key");
+  const owner = window.solana.publicKey;
+  if (!owner) throw new Error("Phantom did not return a public key. Unlock Phantom and click Connect in the Phantom popup.");
   const playerTokenAccount = await getAssociatedTokenAddress(mint, owner);
   const raw = BigInt(Math.floor(Number(amountUi) * (10 ** 6)));
   return depositStake({
