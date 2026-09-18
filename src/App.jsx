@@ -10,6 +10,28 @@ import {
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain } from './vaultClient.js';
 
+
+const parseWager = (amount) => {
+  if (typeof amount !== 'string') return Number(amount);
+  if (amount.includes('M')) return parseFloat(amount) * 1000000;
+  if (amount.includes('K')) return parseFloat(amount) * 1000;
+  return parseFloat(amount);
+};
+
+const startTapOnChain = async (w, afterLock) => {
+  try {
+    if (!window?.solana?.isPhantom) {
+      alert("Open Phantom and connect on Solana mainnet first");
+      return;
+    }
+    alert("Next popup is Phantom — approve a SMALL $Spartan deposit");
+    await lockStakeOnChain(parseWager(w));
+    afterLock();
+  } catch (err) {
+    alert("On-chain deposit failed: " + (err?.message || String(err)));
+  }
+};
+
 export default function App() {
   const [wallet, setWallet] = useState(null);
   const [username, setUsername] = useState('');
@@ -120,26 +142,7 @@ export default function App() {
   };
 
 
-  const parseWager = (amount) => {
-    if (typeof amount !== 'string') return Number(amount);
-    if (amount.includes('M')) return parseFloat(amount) * 1000000;
-    if (amount.includes('K')) return parseFloat(amount) * 1000;
-    return parseFloat(amount);
-  };
 
-  const startTapOnChain = async (w, afterLock) => {
-    try {
-      if (!window?.solana?.isPhantom) {
-        alert("Open Phantom and connect on Solana mainnet first");
-        return;
-      }
-      alert("Next popup is Phantom — approve a SMALL $Spartan deposit");
-      await lockStakeOnChain(parseWager(w));
-      afterLock();
-    } catch (err) {
-      alert("On-chain deposit failed: " + (err?.message || String(err)));
-    }
-  };
 
   const addWager = (amount) => {
     const numericAmount = typeof amount === 'string' ? 
