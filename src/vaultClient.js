@@ -196,47 +196,21 @@ export async function lockStakeOnChain(amountUi) {
   };
 
   const serialized = vtx.serialize();
-  const attempts = [];
-  if (typeof provider.signAndSendTransaction === "function") {
-    attempts.push(() => provider.signAndSendTransaction(vtx));
-    attempts.push(() => provider.signAndSendTransaction({ transaction: serialized }));
-    attempts.push(() => provider.signAndSendTransaction({ serializedTransaction: serialized }));
-  }
-  if (typeof provider.signTransaction === "function") {
-    attempts.push(async () => {
-      const signed = await provider.signTransaction(vtx);
-      const raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize() : signed);
-      return connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
-    });
-    attempts.push(async () => {
-      const signed = await provider.signTransaction(serialized);
-      const raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize() : signed);
-      return connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
-    });
-  }
-  let lastErr = null;
   let signature = null;
-  for (const run of attempts) {
-    try {
-      signature = pickSig(await run());
-      if (signature) break;
-    } catch (e) {
-      lastErr = e;
-    }
-  }
+  const signed = await provider.signTransaction(vtx);
+  const raw = signed instanceof Uint8Array
+    ? signed
+    : (signed?.signedTransaction || (signed?.serialize ? signed.serialize() : null));
+  if (!raw) throw new Error("Wallet signed but returned no bytes");
+  signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+
   if (!signature) {
     const stdWallet = provider._wallet || window.__spartanWallet?._wallet;
-    const featSend = stdWallet?.features?.["solana:signAndSendTransaction"];
     const featSign = stdWallet?.features?.["solana:signTransaction"];
     const account = provider._account || stdWallet?.accounts?.[0];
     try {
-      if (featSend && account) {
-        const out = await featSend.signAndSendTransaction({
-          transaction: serialized,
-          account,
-          chain: "solana:mainnet",
-        });
-        signature = pickSig(out);
+      if (false) {
+        signature = null;
       } else if (featSign && account) {
         const out = await featSign.signTransaction({
           transaction: serialized,

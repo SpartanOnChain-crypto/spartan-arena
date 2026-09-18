@@ -55,19 +55,8 @@ function fromStandard() {
                     return out.signedTransaction || out;
                   };
                   this.signAndSendTransaction = async (tx) => {
-                    const send = wallet.features["solana:signAndSendTransaction"];
-                    const bytes = typeof tx.serialize === "function" ? tx.serialize() : tx;
-                    if (send) {
-                      const out = await send.signAndSendTransaction({
-                        transaction: bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes),
-                        account: acc,
-                        chain: "solana:mainnet",
-                      });
-                      return out;
-                    }
                     const signed = await this.signTransaction(tx);
-                    const { Connection } = await import("@solana/web3.js");
-                    return { signature: signed };
+                    return { signedTransaction: signed };
                   };
                   return { publicKey };
                 },
