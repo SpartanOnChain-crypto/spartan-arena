@@ -127,7 +127,7 @@ export default function App() {
         const resp = await window.solana.connect();
         setWallet(resp.publicKey.toString().slice(0,4) + '...' + resp.publicKey.toString().slice(-4));
         try {
-          const b = await getWalletBalances();
+          const b = await getWalletBalances(resp.publicKey);
           setBalanceReal(Number(b.spartan) || 0);
           setBalanceLocked(1000);
         } catch (e) {
@@ -175,9 +175,9 @@ export default function App() {
     }
   };
 
-  const SidebarItem = ({ icon: Icon, label, target, active }) => (
+  const SidebarItem = ({ icon: Icon, label, target, active, locked }) => (
     <button 
-      onClick={() => setView(target)}
+      onClick={() => locked ? alert("The 300 Stand and Oracle Jackpot are locked until live pots are ready.") : target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : setView(target)}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
         active 
         ? 'bg-neutral-800/80 text-white shadow-[0_0_15px_rgba(234,88,12,0.15)] border border-orange-500/20' 
@@ -186,6 +186,7 @@ export default function App() {
     >
       <Icon className={`w-5 h-5 ${active ? 'text-amber-500' : ''}`} />
       <span className="font-bold text-sm tracking-wide">{label}</span>
+      {locked && <Lock className="w-3.5 h-3.5 ml-auto text-red-400" />}
     </button>
   );
 
@@ -217,7 +218,7 @@ export default function App() {
 
   const ArenaCard = ({ title, icon: Icon, target, bgBase, accentColor, renderArt, tag, players }) => (
     <div 
-      onClick={() => setView(target)}
+      onClick={() => target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : setView(target)}
       className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-white/20 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
@@ -282,8 +283,8 @@ export default function App() {
           
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Live Events</p>
-          <SidebarItem icon={Skull} label="The 300 Stand" target="stand" active={view === 'stand'} />
-          <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" active={view === 'jackpot'} />
+          <SidebarItem icon={Skull} label="The 300 Stand" target="stand" locked active={view === 'stand'} />
+          <SidebarItem icon={Zap} label="Oracle Jackpot" target="jackpot" locked active={view === 'jackpot'} />
           
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Community</p>
@@ -500,7 +501,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="The 300 Stand" icon={Skull} target="stand" players="1,204" tag="Royale"
+                    title="The 300 Stand" icon={Skull} target="stand-locked" players="1,204" tag="Royale"
                     bgBase="bg-[#240a00]" accentColor="text-yellow-500"
                     renderArt={() => (
                       <div className="absolute inset-0">
