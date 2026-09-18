@@ -172,21 +172,34 @@ export async function lockStakeOnChain(amountUi) {
     return null;
   };
 
-  let signature = null;
+  const serialized = vtx.serialize();
+  const attempts = [];
   if (typeof provider.signAndSendTransaction === "function") {
-    try {
-      signature = pickSig(await provider.signAndSendTransaction(vtx));
-    } catch (e) {
-      if (!String(e?.message || e).includes("end of buffer")) throw e;
-    }
+    attempts.push(() => provider.signAndSendTransaction(vtx));
+    attempts.push(() => provider.signAndSendTransaction({ transaction: serialized }));
+    attempts.push(() => provider.signAndSendTransaction({ serializedTransaction: serialized }));
   }
-  if (!signature && typeof provider.signTransaction === "function") {
-    const signed = await provider.signTransaction(vtx);
-    const raw = signed instanceof Uint8Array
-      ? signed
-      : (signed.serialize ? signed.serialize() : null);
-    if (!raw) throw new Error("Wallet signed but returned no bytes");
-    signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+  if (typeof provider.signTransaction === "function") {
+    attempts.push(async () => {
+      const signed = await provider.signTransaction(vtx);
+      const raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize() : signed);
+      return connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    });
+    attempts.push(async () => {
+      const signed = await provider.signTransaction(serialized);
+      const raw = signed instanceof Uint8Array ? signed : (signed.serialize ? signed.serialize() : signed);
+      return connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+    });
+  }
+  let lastErr = null;
+  let signature = null;
+  for (const run of attempts) {
+    try {
+      signature = pickSig(await run());
+      if (signature) break;
+    } catch (e) {
+      lastErr = e;
+    }
   }
   if (!signature) throw new Error("Wallet did not return a signature");
   return signature;
