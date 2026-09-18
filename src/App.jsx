@@ -8,6 +8,7 @@ import {
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain } from './vaultClient.js';
+import { queueForMatch } from './matchClient.js';
 
 
 const parseWager = (amount) => {
@@ -17,21 +18,23 @@ const parseWager = (amount) => {
   return parseFloat(amount);
 };
 
-const startTapOnChain = async (w, afterLock) => {
+const startTapOnChain = async (w, afterLock, game) => {
   try {
     if (!window?.solana?.isPhantom) {
       alert("Open Phantom, unlock it, and connect on Solana mainnet");
       return;
     }
     await lockStakeOnChain(parseWager(w));
+    await queueForMatch({ game: game || "tap", wager: parseWager(w) });
     afterLock();
   } catch (err) {
     const msg = String(err?.message || err);
     if (msg.includes("not confirmed") && msg.includes("signature")) {
+      try { await queueForMatch({ game: game || "tap", wager: parseWager(w) }); } catch {}
       afterLock();
       return;
     }
-    alert("On-chain deposit failed: " + msg);
+    alert(msg);
   }
 };
 
@@ -825,7 +828,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       icon={Swords} 
       iconColor="from-red-600 to-orange-700" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'tap')}
     >
       {/* Individual Details for Colosseum Tap */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1031,7 +1034,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       icon={TrendingUp} 
       iconColor="from-cyan-600 to-blue-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'chariot')}
     >
       {/* HOW TO PLAY: CHARIOT DEATHRACE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1218,7 +1221,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       icon={Shield} 
       iconColor="from-green-600 to-teal-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx')}
     >
       {/* HOW TO PLAY: PHALANX STANCE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1426,7 +1429,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       icon={Dices} 
       iconColor="from-fuchsia-600 to-purple-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); })}
+      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'bones')}
     >
       {/* HOW TO PLAY: BONES OF SPARTA */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
