@@ -133,16 +133,16 @@ export async function lockStakeOnChain(amountUi) {
   const owner = mustPk(provider.publicKey, "owner");
   const TOKEN_2022 = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
   const TOKEN_LEGACY = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-  const info = await connection.getAccountInfo(mint);
-  const tokenProgram = info && info.owner.equals(TOKEN_2022) ? TOKEN_2022 : TOKEN_LEGACY;
+  const mintInfo = await connection.getAccountInfo(mint);
+  const tokenProgram = mintInfo && mintInfo.owner.equals(TOKEN_2022) ? TOKEN_2022 : TOKEN_LEGACY;
   const playerTokenAccount = await getAssociatedTokenAddress(mint, owner, false, tokenProgram);
-  const raw = BigInt(Math.floor(Number(amountUi) * 10 ** SPARTAN_DECIMALS));
-  if (raw <= 0n) throw new Error("Wager is zero");
+  const rawAmt = BigInt(Math.floor(Number(amountUi) * 10 ** SPARTAN_DECIMALS));
+  if (rawAmt <= 0n) throw new Error("Wager is zero");
   const [escrowAuthority] = getEscrowPda();
-  const data = Buffer.alloc(16);
   const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("global:deposit_stake")));
+  const data = Buffer.alloc(16);
   Buffer.from(hash.subarray(0, 8)).copy(data, 0);
-  data.writeBigUInt64LE(raw, 8);
+  data.writeBigUInt64LE(rawAmt, 8);
   const ix = new TransactionInstruction({
     programId,
     keys: [
@@ -154,25 +154,52 @@ export async function lockStakeOnChain(amountUi) {
     ],
     data,
   });
-  const tx = new Transaction().add(ix);
-  tx.feePayer = owner;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-  let sig;
-  if (typeof provider.signAndSendTransaction === "function") {
-    const r = await provider.signAndSendTransaction(tx);
-    sig = typeof r === "string" ? r : (r.signature || r);
-  } else {
-    const signed = await provider.signTransaction(tx);
-    const raw = signed instanceof Uint8Array
-      ? signed
-      : (signed.serialize ? signed.serialize() : signed.signedTransaction);
-    if (!raw) throw new Error("Wallet signed but returned no bytes");
-    sig = await connection.sendRawTransaction(raw, { skipPreflight: true });
-  }
-  await connection.confirmTransaction(sig, "confirmed");
-  return sig;
-}
+  const latest = await connection.getLatestBlockhash("confirmed");
+  const tx = new Transaction({
+    feePayer: owner,
+    recentBlockhash: latest.blockhash,
+  }).add(ix);
 
+  async function asSignature(value) {
+    if (!value) return null;
+    if (typeof value === "string" && value.length > 20) return value;
+    if (typeof value.signature === "string") return value.signature;
+    if (typeof value.txid === "string") return value.txid;
+    return null;
+  }
+
+  let signature = null;
+  try {
+    if (typeof provider.signAndSendTransaction === "function") {
+      signature = await asSignature(await provider.signAndSendTransaction(tx));
+    }
+  } catch (e) {
+    const m = String(e?.message || e);
+    if (!m.includes("end of buffer")) throw e;
+  }
+  if (!signature) {
+    const signed = await provider.signTransaction(tx);
+    let raw = null;
+    if (signed instanceof Uint8Array) raw = signed;
+    else if (signed && signed.serialize) raw = signed.serialize();
+    else if (signed && signed.signedTransaction) raw = signed.signedTransaction;
+    if (!raw) throw new Error("Wallet signed but returned no bytes");
+    signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+  }
+  if (!signature || typeof signature !== "string") {
+    throw new Error("Wallet did not return a signature");
+  }
+  try {
+    await connection.confirmTransaction({
+      signature,
+      blockhash: latest.blockhash,
+      lastValidBlockHeight: latest.lastValidBlockHeight,
+    }, "confirmed");
+  } catch (e) {
+    if (!String(e?.message || e).includes("end of buffer")) throw e;
+  }
+  return signature;
+}
 
 export async function getWalletBalances(ownerPk) {
   const empty = { sol: 0, spartan: 0 };
