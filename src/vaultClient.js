@@ -18,7 +18,7 @@ import {
 const TOKEN_PROGRAM = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const SPARTAN_DECIMALS = 6;
 
-export const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+export const connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
 export const programId = new PublicKey(PROGRAM_ID);
 export const mint = new PublicKey(SPARTAN_MINT);
 export const treasury = new PublicKey(TREASURY);
