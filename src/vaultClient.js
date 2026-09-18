@@ -73,9 +73,9 @@ export async function settleMatch({
 export async function lockStakeOnChain(amountUi) {
   const program = getProgram();
   const owner = program.provider.publicKey;
+  if (!owner) throw new Error("Phantom connected but no public key");
   const playerTokenAccount = await getAssociatedTokenAddress(mint, owner);
-  const mintInfo = await getMint(connection, mint);
-  const raw = BigInt(Math.floor(Number(amountUi) * (10 ** mintInfo.decimals)));
+  const raw = BigInt(Math.floor(Number(amountUi) * (10 ** 6)));
   return depositStake({
     amount: raw.toString(),
     playerTokenAccount: playerTokenAccount.toBase58(),

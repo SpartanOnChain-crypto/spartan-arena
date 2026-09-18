@@ -129,10 +129,15 @@ export default function App() {
 
   const startTapOnChain = async (w, afterLock) => {
     try {
+      if (!window?.solana?.isPhantom) {
+        alert("Open Phantom and connect on Solana mainnet first");
+        return;
+      }
+      alert("Next popup is Phantom — approve a SMALL $Spartan deposit");
       await lockStakeOnChain(parseWager(w));
       afterLock();
     } catch (err) {
-      alert("On-chain deposit failed: " + (err?.message || err));
+      alert("On-chain deposit failed: " + (err?.message || String(err)));
     }
   };
 
