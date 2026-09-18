@@ -1,8 +1,11 @@
 const MINT = "8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi";
 const URLS = [
+  "https://api.mainnet-beta.solana.com",
   "https://solana-rpc.publicnode.com",
+  "https://solana.leorpc.com/?api_key=FREE",
   "https://rpc.ankr.com/solana",
-  "https://solana.llamarpc.com",
+  "https://solana.drpc.org",
+  "https://solana-mainnet.gateway.tatum.io",
 ];
 
 async function byMint(url, owner) {
@@ -16,8 +19,12 @@ async function byMint(url, owner) {
       params: [owner, { mint: MINT }, { encoding: "jsonParsed" }],
     }),
   });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); } catch {
+    throw new Error(url + " not json " + res.status);
+  }
+  if (json.error) throw new Error(url + " " + (json.error.message || JSON.stringify(json.error)));
   let sum = 0;
   for (const a of json?.result?.value || []) {
     sum += Number(a.account?.data?.parsed?.info?.tokenAmount?.uiAmount || 0);
@@ -32,12 +39,15 @@ export default async function handler(req, res) {
     res.status(400).json({ error: "owner required", spartan: 0 });
     return;
   }
+  const errors = [];
   for (const url of URLS) {
     try {
       const spartan = await byMint(url, owner);
-      res.status(200).json({ spartan, sol: 0 });
+      res.status(200).json({ spartan, sol: 0, rpc: url });
       return;
-    } catch (e) {}
+    } catch (e) {
+      errors.push(String(e.message || e));
+    }
   }
-  res.status(200).json({ spartan: 0, sol: 0, error: "rpc" });
+  res.status(200).json({ spartan: 0, sol: 0, error: "rpc", errors });
 }
