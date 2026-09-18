@@ -574,8 +574,8 @@ export default function App() {
                   <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
                     When you emerge victorious in a multiplayer arena, the total pot is distributed automatically via smart contract: <br/><br/>
                     <strong className="text-green-400 text-lg drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">95%</strong> goes directly to the Winner's connected wallet.<br/><br/>
-                    <strong className="text-purple-400 text-lg drop-shadow-[0_0_5px_rgba(192,132,252,0.5)]">3%</strong> is automatically routed to fuel the Oracle's Jackpot.<br/><br/>
-                    <strong className="text-orange-400 text-lg drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]">2%</strong> goes to the Spartan Onchain Treasury for continuous ecosystem development.
+                    <strong className="text-purple-400 text-lg drop-shadow-[0_0_5px_rgba(192,132,252,0.5)]">3%</strong> goes to the treasury and for the jackpot.<br/><br/>
+                    <strong className="text-orange-400 text-lg drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]">2%</strong> is forever burned.
                   </p>
                 </div>
                 <div>
