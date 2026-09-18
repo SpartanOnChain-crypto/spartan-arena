@@ -22,8 +22,9 @@ const parseWager = (amount) => {
 
 const startTapOnChain = async (w, afterLock, game) => {
   try {
-    if (!window?.solana?.isPhantom) {
-      alert("Open Phantom, unlock it, and connect on Solana mainnet");
+    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+    if (!ready) {
+      setShowWallets(true);
       return;
     }
     const wagerNum = parseWager(w);
