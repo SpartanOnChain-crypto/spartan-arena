@@ -224,7 +224,35 @@ export async function lockStakeOnChain(amountUi) {
       lastErr = e;
     }
   }
-  if (!signature) throw new Error("Wallet did not return a signature");
+  if (!signature) {
+    const stdWallet = provider._wallet || window.__spartanWallet?._wallet;
+    const featSend = stdWallet?.features?.["solana:signAndSendTransaction"];
+    const featSign = stdWallet?.features?.["solana:signTransaction"];
+    const account = provider._account || stdWallet?.accounts?.[0];
+    try {
+      if (featSend && account) {
+        const out = await featSend.signAndSendTransaction({
+          transaction: serialized,
+          account,
+          chain: "solana:mainnet",
+        });
+        signature = pickSig(out);
+      } else if (featSign && account) {
+        const out = await featSign.signTransaction({
+          transaction: serialized,
+          account,
+        });
+        const raw = out?.signedTransaction || out;
+        signature = await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 3 });
+      }
+    } catch (e) {
+      throw new Error("Jupiter/standard send failed: " + String(e?.message || e));
+    }
+  }
+  if (!signature) {
+    const names = Object.keys(provider || {}).join(",");
+    throw new Error("Wallet did not return a signature. Methods: " + names);
+  }
   return signature;
 }
 
