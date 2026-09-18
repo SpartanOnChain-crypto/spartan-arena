@@ -1,8 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getMint } from "@solana/spl-token";
 import idl from "./idl/spartan_arena.json";
-import { PROGRAM_ID, SPARTAN_MINT, TREASURY, OPERATOR, ESCROW_SEED } from "./vault.js";
+import { PROGRAM_ID, SPARTAN_MINT, TREASURY, OPERATOR, ESCROW_SEED, ESCROW_TOKEN_ACCOUNT } from "./vault.js";
 
 export const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
 export const programId = new PublicKey(PROGRAM_ID);
@@ -67,4 +67,18 @@ export async function settleMatch({
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
+}
+
+
+export async function lockStakeOnChain(amountUi) {
+  const program = getProgram();
+  const owner = program.provider.publicKey;
+  const playerTokenAccount = await getAssociatedTokenAddress(mint, owner);
+  const mintInfo = await getMint(connection, mint);
+  const raw = BigInt(Math.floor(Number(amountUi) * (10 ** mintInfo.decimals)));
+  return depositStake({
+    amount: raw.toString(),
+    playerTokenAccount: playerTokenAccount.toBase58(),
+    escrowTokenAccount: ESCROW_TOKEN_ACCOUNT,
+  });
 }
