@@ -124,3 +124,19 @@ export async function lockStakeOnChain(amountUi) {
     escrowTokenAccount: ESCROW_TOKEN_ACCOUNT,
   });
 }
+
+
+export async function getWalletBalances() {
+  const owner = window?.solana?.publicKey;
+  if (!owner) return { sol: 0, spartan: 0 };
+  const solLamports = await connection.getBalance(owner);
+  const ata = await getAssociatedTokenAddress(mint, owner);
+  let spartan = 0;
+  try {
+    const acc = await connection.getTokenAccountBalance(ata);
+    spartan = Number(acc.value.uiAmount || 0);
+  } catch (e) {
+    spartan = 0;
+  }
+  return { sol: solLamports / 1e9, spartan };
+}

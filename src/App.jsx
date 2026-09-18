@@ -7,7 +7,7 @@ import {
   TrendingUp, Activity, History, MessageCircle, 
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { lockStakeOnChain } from './vaultClient.js';
+import { lockStakeOnChain, getWalletBalances } from './vaultClient.js';
 import { queueForMatch } from './matchClient.js';
 
 
@@ -123,6 +123,13 @@ export default function App() {
       try {
         const resp = await window.solana.connect();
         setWallet(resp.publicKey.toString().slice(0,4) + '...' + resp.publicKey.toString().slice(-4));
+        try {
+          const b = await getWalletBalances();
+          setBalanceReal(b.spartan);
+          setBalanceLocked(0);
+        } catch (e) {
+          console.warn(e);
+        }
       } catch {
         setWallet("SPRT...9xK2");
       }
