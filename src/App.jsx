@@ -679,8 +679,9 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
   const bigLeague = ['50K', '100K', '500K', '1M'];
 
   const handleStart = () => {
+    if (isSearching) return;
     setIsSearching(true);
-    setTimeout(() => { setIsSearching(false); onStart(wager); }, 2000);
+    Promise.resolve(onStart(wager)).finally(() => setIsSearching(false));
   };
 
   return (
