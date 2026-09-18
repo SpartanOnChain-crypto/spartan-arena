@@ -1,0 +1,70 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import idl from "./idl/spartan_arena.json";
+import { PROGRAM_ID, SPARTAN_MINT, TREASURY, OPERATOR, ESCROW_SEED } from "./vault.js";
+
+export const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+export const programId = new PublicKey(PROGRAM_ID);
+export const mint = new PublicKey(SPARTAN_MINT);
+export const treasury = new PublicKey(TREASURY);
+export const operator = new PublicKey(OPERATOR);
+
+export function getEscrowPda() {
+  return PublicKey.findProgramAddressSync([Buffer.from(ESCROW_SEED)], programId);
+}
+
+function getProgram() {
+  const provider = window?.solana;
+  if (!provider?.isPhantom) {
+    throw new Error("Open Phantom and connect first");
+  }
+  const wallet = {
+    publicKey: provider.publicKey,
+    signTransaction: (tx) => provider.signTransaction(tx),
+    signAllTransactions: (txs) => provider.signAllTransactions(txs),
+  };
+  const anchorProvider = new anchor.AnchorProvider(connection, wallet, {
+    commitment: "confirmed",
+  });
+  return new anchor.Program(idl, programId, anchorProvider);
+}
+
+export async function depositStake({ amount, playerTokenAccount, escrowTokenAccount }) {
+  const program = getProgram();
+  const [escrowAuthority] = getEscrowPda();
+  return program.methods
+    .depositStake(new anchor.BN(amount))
+    .accounts({
+      player: program.provider.publicKey,
+      playerTokenAccount: new PublicKey(playerTokenAccount),
+      escrowTokenAccount: new PublicKey(escrowTokenAccount),
+      escrowAuthority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .rpc();
+}
+
+export async function settleMatch({
+  escrowTokenAccount,
+  winnerTokenAccount,
+  jackpotTokenAccount,
+}) {
+  const program = getProgram();
+  if (program.provider.publicKey.toBase58() !== OPERATOR) {
+    throw new Error("Only the operator wallet can settle");
+  }
+  const [escrowAuthority] = getEscrowPda();
+  return program.methods
+    .settleMatch()
+    .accounts({
+      admin: program.provider.publicKey,
+      escrowAuthority,
+      escrowTokenAccount: new PublicKey(escrowTokenAccount),
+      winnerTokenAccount: new PublicKey(winnerTokenAccount),
+      jackpotTokenAccount: new PublicKey(jackpotTokenAccount),
+      spartanMint: mint,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .rpc();
+}
