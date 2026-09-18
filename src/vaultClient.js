@@ -167,8 +167,19 @@ export async function lockStakeOnChain(amountUi) {
   const vtx = new VersionedTransaction(msg);
 
   const pickSig = (value) => {
-    if (typeof value === "string" && value.length > 20) return value;
-    if (value && typeof value.signature === "string") return value.signature;
+    if (!value && value !== 0) return null;
+    if (typeof value === "string" && value.length >= 32) return value;
+    if (typeof value?.signature === "string") return value.signature;
+    if (typeof value?.txid === "string") return value.txid;
+    if (typeof value?.txId === "string") return value.txId;
+    if (typeof value?.hash === "string") return value.hash;
+    if (typeof value?.result === "string") return value.result;
+    if (typeof value?.result?.signature === "string") return value.result.signature;
+    if (Array.isArray(value?.signatures) && typeof value.signatures[0] === "string") return value.signatures[0];
+    try {
+      const s = value?.signature?.toString?.();
+      if (s && s.length >= 32 && s !== "[object Object]") return s;
+    } catch (_) {}
     return null;
   };
 
