@@ -1,0 +1,5 @@
+{
+  "name": "spartan-match",
+  "private": true,
+  "scripts": { "start": "node server.js" }
+}
