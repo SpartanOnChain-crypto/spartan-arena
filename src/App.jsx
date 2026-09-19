@@ -54,6 +54,8 @@ export default function App() {
   
   const [balanceLocked, setBalanceLocked] = useState(0);
   const [balanceReal, setBalanceReal] = useState(0);
+  window.__spartanSetReady = setBalanceReal;
+
 
 
   const [wageredTotal, setWageredTotal] = useState(0);
@@ -379,7 +381,7 @@ export default function App() {
                 <div className="px-3 py-1.5 flex items-center gap-2 bg-orange-900/20">
                   <Coins className="w-3.5 h-3.5 text-amber-400" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Ready</span>
+                    <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Ready Wallet</span>
                     <span className="text-white font-black text-xs leading-none mt-1">{balanceReal.toLocaleString()}</span>
                   </div>
                 </div>
@@ -863,7 +865,12 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         if (pot > 0 && winPk) {
           fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
             if (j && j.sig) {
-              window.__spartanPayoutNote = "Winnings paid on-chain. READY is updating.";
+              window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
+              if (typeof window.__spartanSetReady === "function") {
+                const stake = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
+                window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
+              }
+
               const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
               if (pk && typeof getWalletBalances === "function") {
                 getWalletBalances(pk).then((b) => {
@@ -880,6 +887,11 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
     } else if (finalOpp > finalMine) {
       setWinner('opp');
+      window.__spartanPayoutNote = "Match over. Check your READY wallet.";
+      if (typeof window.__spartanSetReady === "function") {
+        const stakeL = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
+        window.__spartanSetReady((prev) => Math.max(0, Number(prev) - stakeL));
+      }
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
     } else {
       setWinner('tie');
