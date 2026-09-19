@@ -1,5 +1,4 @@
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 function myWallet() {
   return (
     window.__spartanWallet?.publicKey?.toBase58?.() ||
@@ -9,63 +8,46 @@ function myWallet() {
     ""
   );
 }
-
-function topic(game, wager) {
-  return ("spartan-arena-" + String(game) + "-" + String(wager)).replace(/[^a-z0-9-]/gi, "").toLowerCase();
+async function board(game, wager) {
+  const text = await fetch("/api/match?game=" + encodeURIComponent(game) + "&wager=" + encodeURIComponent(wager)).then((r) => r.text());
+  return text.trim().split("\n").map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
-
-async function readBoard(t) {
-  const res = await fetch("https://ntfy.sh/" + t + "/json?poll=1&since=all");
-  const text = (await res.text()).trim();
-  if (!text) return [];
-  return text.split("\n").map((line) => {
-    try { return JSON.parse(line); } catch { return null; }
-  }).filter(Boolean);
-}
-
 export async function queueForMatch({ game, wager }) {
   const wallet = myWallet();
   if (!wallet) throw new Error("Connect a wallet first");
-  const t = topic(game, wager);
   const now = Date.now();
-  const rows = await readBoard(t);
-  const other = rows.reverse().find((r) => {
+  const rows = await board(game, wager);
+  const other = [...rows].reverse().find((r) => {
     if (r.event !== "message") return false;
-    let msg = r.message;
-    try { msg = JSON.parse(r.message); } catch { return false; }
+    let msg = r.message; try { msg = JSON.parse(r.message); } catch { return false; }
     if (!msg?.wallet || msg.wallet === wallet) return false;
-    const age = now - Number(msg.t || (r.time * 1000));
-    return age >= 0 && age < 60000;
+    const age = now - Number(msg.t || r.time * 1000);
+    return age >= 0 && age < 90000;
   });
   if (other) {
-    let msg = {};
-    try { msg = JSON.parse(other.message); } catch {}
-    await fetch("https://ntfy.sh/" + t, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wallet, t: Date.now(), paired: msg.wallet }),
+    let msg = {}; try { msg = JSON.parse(other.message); } catch {}
+    await fetch("/api/match?game=" + encodeURIComponent(game) + "&wager=" + encodeURIComponent(wager), {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ wallet, paired: msg.wallet, game, wager }),
     });
-    return { status: "matched", practice: false, opponent: msg.wallet, matchId: [wallet, msg.wallet].sort().join("_") };
+    return { status: "matched", practice: false, opponent: msg.wallet };
   }
-  await fetch("https://ntfy.sh/" + t, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ wallet, t: Date.now() }),
+  await fetch("/api/match?game=" + encodeURIComponent(game) + "&wager=" + encodeURIComponent(wager), {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ wallet, game, wager }),
   });
   for (let i = 0; i < 40; i++) {
     await sleep(1000);
-    const later = await readBoard(t);
-    const hit = later.reverse().find((r) => {
+    const later = await board(game, wager);
+    const hit = [...later].reverse().find((r) => {
       if (r.event !== "message") return false;
-      let msg = r.message;
-      try { msg = JSON.parse(r.message); } catch { return false; }
-      return msg?.wallet && msg.wallet !== wallet && (msg.paired === wallet || !msg.paired);
+      let msg = r.message; try { msg = JSON.parse(r.message); } catch { return false; }
+      return msg?.wallet && msg.wallet !== wallet;
     });
     if (hit) {
-      let msg = {};
-      try { msg = JSON.parse(hit.message); } catch {}
-      return { status: "matched", practice: false, opponent: msg.wallet, matchId: [wallet, msg.wallet].sort().join("_") };
+      let msg = {}; try { msg = JSON.parse(hit.message); } catch {}
+      return { status: "matched", practice: false, opponent: msg.wallet };
     }
   }
-  return { status: "matched", practice: true, opponent: "Practice Bot", matchId: "practice" };
+  return { status: "matched", practice: true, opponent: "Practice Bot" };
 }
