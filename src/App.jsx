@@ -34,7 +34,13 @@ const startTapOnChain = async (w, afterLock, game) => {
     const wagerNum = parseWager(w);
     const sig = await lockStakeOnChain(wagerNum);
     if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
-    await queueForMatch({ game: game || "tap", wager: wagerNum });
+    const match = await queueForMatch({ game: game || "tap", wager: wagerNum });
+    window.__spartanPractice = !!match?.practice;
+    window.__spartanOpponent = match?.opponent || "Practice Bot";
+    window.__spartanMatchId = match?.matchId || "";
+    if (!match?.practice && match?.opponent) {
+      alert("Matched vs " + String(match.opponent).slice(0,4) + "..." + String(match.opponent).slice(-4));
+    }
     afterLock();
   } catch (err) {
     alert(String(err?.message || err));
@@ -801,7 +807,20 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   useEffect(() => {
     if (view !== 'arena') return;
-    const aiInterval = setInterval(() => { if (Math.random() > 0.3) setOppTaps(o => o + 1); }, 140);
+    const MATCH = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+    const human = !window.__spartanPractice && window.__spartanOpponent && window.__spartanOpponent !== "Practice Bot";
+    const aiInterval = setInterval(() => {
+      if (!human) {
+        if (Math.random() > 0.3) setOppTaps(o => o + 1);
+        return;
+      }
+      const id = window.__spartanMatchId;
+      if (!id) return;
+      fetch(MATCH + "/score/" + id).then(r=>r.json()).then(row=>{
+        const n = row[window.__spartanOpponent];
+        if (typeof n === "number") setOppTaps(n);
+      }).catch(()=>{});
+    }, 200);
     const timer = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 0.1) { clearInterval(timer); clearInterval(aiInterval); settleMatch(); return 0; }
@@ -813,7 +832,19 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
   const handleStrike = (e) => {
     if (view !== 'arena' || timeLeft <= 0) return;
-    setMyTaps(t => t + 1);
+    setMyTaps(t => {
+      const n = t + 1;
+      const MATCH = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+      const me = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+      const wallet = me?.toBase58?.() || me?.toString?.() || "";
+      if (wallet && window.__spartanMatchId && !window.__spartanPractice) {
+        fetch(MATCH + "/score", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ matchId: window.__spartanMatchId, wallet, taps: n })
+        }).catch(()=>{});
+      }
+      return n;
+    });
     const rect = e.currentTarget.getBoundingClientRect();
     const id = Date.now() + Math.random();
     setTapsEffect(prev => [...prev, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
