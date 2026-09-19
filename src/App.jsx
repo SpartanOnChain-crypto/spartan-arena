@@ -191,6 +191,7 @@ export default function App() {
   const [liveFeed, setLiveFeed] = useState([]);
   const [liveBoard, setLiveBoard] = useState([]);
   const [ideaText, setIdeaText] = useState('');
+  const [ideaNote, setIdeaNote] = useState('');
   const [armoryPin, setArmoryPin] = useState('');
   const [armoryOk, setArmoryOk] = useState(false);
   const [armoryIdeas, setArmoryIdeas] = useState([]);
@@ -231,6 +232,17 @@ export default function App() {
     const id = setInterval(() => setDeskSlide((s) => (s + 1) % 2), 5000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    if (view !== "armory" || !armoryOk) return;
+    const host = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+    const load = async () => {
+      const rows = await fetch(host + "/ideas").then((r) => r.json()).catch(() => []);
+      if (Array.isArray(rows)) setArmoryIdeas(rows);
+    };
+    load();
+    const id = setInterval(load, 4000);
+    return () => clearInterval(id);
+  }, [view, armoryOk]);
   useEffect(() => {
     const tick = async () => {
       try {
@@ -732,16 +744,23 @@ export default function App() {
                   className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white placeholder-neutral-600 focus:outline-none focus:border-orange-500 resize-none mb-4 shadow-inner"
                 />
                 <button onClick={async () => {
-                  const pk = window.__spartanWallet?.publicKey;
-                  if (!pk) { alert("Sign in first so we can attach your wallet."); return; }
-                  if (!ideaText.trim()) return;
+                  const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+                  if (!pk) { setIdeaNote("Must sign in"); return; }
+                  if (!ideaText.trim()) { setIdeaNote("Write the idea first"); return; }
+                  const wallet = pk.toBase58 ? pk.toBase58() : String(pk);
                   const host = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
-                  await fetch(host + "/ideas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet: String(pk.toBase58 ? pk.toBase58() : pk), text: ideaText.trim() }) });
-                  setIdeaText("");
-                  setView("home");
+                  try {
+                    const r = await fetch(host + "/ideas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet, text: ideaText.trim() }) });
+                    if (!r.ok) throw new Error("bad");
+                    setIdeaText("");
+                    setIdeaNote("Submitted. It is in the Armory feed.");
+                  } catch (e) {
+                    setIdeaNote("Could not reach the idea board. Try again.");
+                  }
                 }} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 font-black text-sm tracking-widest uppercase text-white">
                   Submit to the Oracle
                 </button>
+                {ideaNote && <p className="mt-3 text-center text-sm font-black uppercase tracking-widest text-amber-300">{ideaNote}</p>}
               </div>
             </div>
           )}
