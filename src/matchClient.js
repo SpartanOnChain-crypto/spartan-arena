@@ -1,24 +1,31 @@
-const MATCH_URL = import.meta.env.VITE_MATCH_URL || "http://127.0.0.1:8787";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function myWallet() {
+  return (
+    window.__spartanWallet?.publicKey?.toBase58?.() ||
+    window.__spartanWallet?.publicKey?.toString?.() ||
+    window.solana?.publicKey?.toBase58?.() ||
+    window.solana?.publicKey?.toString?.() ||
+    ""
+  );
+}
+
 export async function queueForMatch({ game, wager }) {
-  const wallet = window?.solana?.publicKey?.toBase58?.();
-  if (!wallet) throw new Error("Connect Phantom first");
-  try {
-    const join = await fetch(`${MATCH_URL}/join`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ game, wager: String(wager), wallet }),
-    });
-    if (!join.ok) throw new Error("no server");
-    const { ticket } = await join.json();
-    for (let i = 0; i < 8; i++) {
-      const s = await fetch(`${MATCH_URL}/status/${ticket}`).then((r) => r.json());
-      if (s.status === "matched") return { ...s, practice: false };
-      await sleep(1000);
-    }
-  } catch (e) {
-    console.warn("match server", e);
+  const wallet = myWallet();
+  if (!wallet) throw new Error("Connect a wallet first");
+  const join = await fetch("/api/match", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ game, wager: String(wager), wallet }),
+  });
+  if (!join.ok) throw new Error("Match server failed");
+  const first = await join.json();
+  if (first.status === "matched") return first;
+  const ticket = first.ticket;
+  for (let i = 0; i < 45; i++) {
+    const s = await fetch("/api/match?ticket=" + encodeURIComponent(ticket)).then((r) => r.json());
+    if (s.status === "matched") return s;
+    await sleep(1000);
   }
   return { status: "matched", practice: true, opponent: "Practice Bot", matchId: "practice" };
 }
