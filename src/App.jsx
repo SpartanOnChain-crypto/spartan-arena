@@ -81,6 +81,21 @@ async function waitOppScore(okFn, tries) {
   }
   return null;
 }
+function warriorName() {
+  const p = myPk();
+  if (p && p.length > 8) return p.slice(0,4) + "..." + p.slice(-4);
+  return "Warrior";
+}
+async function patchState(patch) {
+  const matchId = window.__spartanMatchId;
+  if (!matchId) return {};
+  try { return await fetch(MATCH_HOST + "/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId, patch }) }).then((r) => r.json()); } catch (e) { return {}; }
+}
+async function readState() {
+  const matchId = window.__spartanMatchId;
+  if (!matchId) return {};
+  try { return await fetch(MATCH_HOST + "/state/" + matchId).then((r) => r.json()); } catch (e) { return {}; }
+}
 function payIfWin(wager) {
   const pot = (parseWager(wager) || 0) * 2;
   const winPk = myPk();
@@ -172,13 +187,7 @@ export default function App() {
   }, []);
   
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
-  const [liveFeed, setLiveFeed] = useState([
-    { id: 1, user: "XERXES_99", game: "Chariot Deathrace", wager: "250", multiplier: "2.0x", payout: "+750", type: 'win' },
-    { id: 2, user: "LEONIDAS", game: "Colosseum Tap", wager: "10K", multiplier: "0.0x", payout: "-10K", type: 'loss' },
-    { id: 3, user: "ARES_WRATH", game: "Bones of Sparta", wager: "500", multiplier: "2.0x", payout: "+1000", type: 'win' },
-    { id: 4, user: "BLOOD_GHOST", game: "Phalanx Stance", wager: "50K", multiplier: "0.0x", payout: "-50K", type: 'loss' },
-    { id: 5, user: "IMMORTAL", game: "The 300 Stand", wager: "1M", multiplier: "10.0x", payout: "+10M", type: 'win' },
-  ]);
+  const [liveFeed, setLiveFeed] = useState([]);
 
   const connectWallet = async () => {
     setWalletList(listWallets());
@@ -359,7 +368,7 @@ export default function App() {
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Spartan Originals (PvP)</p>
           <SidebarItem icon={Swords} label="Colosseum Tap" target="tap" active={view === 'tap'} />
           <SidebarItem icon={TrendingUp} label="Chariot Deathrace" target="crash" active={view === 'crash'} />
-          <SidebarItem icon={Shield} label="Phalanx Stance" target="plinko" active={view === 'plinko'} />
+          <SidebarItem icon={Shield} label="Poison Pick" target="plinko" active={view === 'plinko'} />
           <SidebarItem icon={Dices} label="Bones of Sparta" target="dice" active={view === 'dice'} />
           <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
           
@@ -563,7 +572,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Phalanx Stance" icon={Shield} target="plinko" players={String(liveHere.phalanx||0)} tag="1v1 PvP"
+                    title="Poison Pick" icon={Shield} target="plinko" players={String(liveHere.phalanx||0)} tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -956,7 +965,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         }
 
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
-      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
+      addFeed(warriorName(), "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
     } else if (finalOpp > finalMine) {
       setWinner('opp');
       window.__spartanPayoutNote = "Match over. Check your READY wallet.";
@@ -964,7 +973,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         const stakeL = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
         window.__spartanSetReady((prev) => Math.max(0, Number(prev) - stakeL));
       }
-      addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
+      addFeed(warriorName(), "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
     } else {
       setWinner('tie');
     }
@@ -1201,20 +1210,13 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     
     if (winner === 'you') {
         payIfWin(wager);
-        const pot = (parseWager(wager) || 0) * 2;
-        const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
-        if (pot > 0 && winPk) {
-          fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
-            if (j && j.sig) alert("Payout sent: " + j.sig.slice(0,8) + "...");
-            else alert("Payout failed: " + (j && j.error ? j.error : "no response"));
-          }).catch((e)=>alert("Payout failed: " + String(e)));
-        }
+
 
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
-      addFeed(username || 'Hoplite', "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${payoutStr}`, 'win');
+      addFeed(warriorName(), "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${payoutStr}`, 'win');
     } else {
-      addFeed(username || 'Hoplite', "Chariot Deathrace", wager, "0.0x", `-${wager}`, 'loss');
+      addFeed(warriorName(), "Chariot Deathrace", wager, "0.0x", `-${wager}`, 'loss');
     }
   };
 
@@ -1327,7 +1329,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     const iWon = myStatus === 'bailed' && myBail >= (opp1Status==='bailed'?opp1Target:0) && myBail >= (opp2Status==='bailed'?opp2Target:0);
     return (
       <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
-        <h2 className={`font-spartan text-4xl font-black tracking-wider mb-6 ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? 'LAST SURVIVOR' : 'DEFEATED'}</h2>
+        <h2 className={`font-spartan text-4xl font-black tracking-wider mb-6 ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? 'LAST SURVIVOR' : 'DEFEATED'}</h2>{window.__spartanPayoutNote && (<div className="mb-6 font-spartan text-xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{window.__spartanPayoutNote}</div>)}
         <div className="bg-white/5 border border-white/10 rounded-2xl py-6 px-8 mb-8">
            <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-2">{iWon ? 'Pot claimed' : 'Wager Lost'}</span>
            <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2) : wager} $SPARTAN</span>
@@ -1346,234 +1348,156 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
   const [wager, setWager] = useState('100');
   const [countdown, setCountdown] = useState(3);
-  
-  const [myScore, setMyScore] = useState(0);
-  const [oppScore, setOppScore] = useState(0);
-  const [roundState, setRoundState] = useState('choosing');
-  const [myChoice, setMyChoice] = useState('');
-  const [oppChoice, setOppChoice] = useState('');
-  const [roundResult, setRoundResult] = useState('');
-
+  const [timer, setTimer] = useState(10);
+  const [step, setStep] = useState('idle');
+  const [phase, setPhase] = useState(1);
+  const [round, setRound] = useState(1);
+  const [poison, setPoison] = useState([]);
+  const [guess, setGuess] = useState(null);
+  const [myHits, setMyHits] = useState(0);
+  const [oppHits, setOppHits] = useState(0);
+  const [picker, setPicker] = useState('');
+  const [spinOn, setSpinOn] = useState(false);
+  const [over, setOver] = useState(null);
+  const [note, setNote] = useState('');
+  const me = () => myPk();
+  const iPick = () => picker && picker === me();
   useEffect(() => {
     if (view !== 'countdown') return;
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setMyScore(0); setOppScore(0); setRoundState('choosing'); setView('arena');
+      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
     }
+    const a = me();
+    const b = String(window.__spartanOpponent || "opp");
+    const first = [a, b].sort()[0] || a;
+    setPicker(first); setPhase(1); setRound(1); setMyHits(0); setOppHits(0);
+    setPoison([]); setGuess(null); setOver(null);
+    setStep('pickPoison'); setTimer(10); setView('arena');
+    patchState({ picker: first, step: 'pickPoison', phase: 1, round: 1, poison: [], guess: null, hits: {} });
   }, [view, countdown]);
-
-  const playRound = async (choice) => {
-    if(roundState !== 'choosing') return;
-    const choices = ['Spear', 'Shield', 'Parry'];
-    const map = { Spear: 1, Shield: 2, Parry: 3 };
-    const rev = { 1: 'Spear', 2: 'Shield', 3: 'Parry' };
-    setMyChoice(choice);
-    setRoundState('waiting');
-    let oppC;
-    if (!isHumanMatch()) {
-      oppC = choices[Math.floor(Math.random() * 3)];
-    } else {
-      postScore(map[choice]);
-      const v = await waitOppScore(function(n){ return n === 1 || n === 2 || n === 3; });
-      if (!v) { setRoundState('choosing'); return; }
-      oppC = rev[v];
+  useEffect(() => {
+    if (view !== 'arena' || over) return;
+    const id = setInterval(async () => {
+      const st = await readState();
+      if (!st || !st.step) return;
+      if (st.picker) setPicker(st.picker);
+      if (st.phase) setPhase(st.phase);
+      if (st.round) setRound(st.round);
+      if (Array.isArray(st.poison)) setPoison(st.poison);
+      if (st.guess != null) setGuess(st.guess);
+      if (st.hits) {
+        setMyHits(Number(st.hits[me()] || 0));
+        const other = Object.keys(st.hits).find((k) => k && k !== me());
+        if (other) setOppHits(Number(st.hits[other] || 0));
+      }
+      if (st.step === 'spin' && step !== 'spin') {
+        setStep('spin'); setSpinOn(true);
+        setTimeout(() => { setSpinOn(false); setStep('guess'); setTimer(10); patchState({ step: 'guess' }); }, 2200);
+      } else if (st.step && st.step !== step && st.step !== 'spin') setStep(st.step);
+      if (st.over) { setOver(st.over); finish(st.over === me()); }
+    }, 350);
+    return () => clearInterval(id);
+  }, [view, step, over]);
+  useEffect(() => {
+    if (view !== 'arena' || over) return;
+    if (step !== 'pickPoison' && step !== 'guess') return;
+    if (timer <= 0) {
+      if (step === 'pickPoison' && iPick() && poison.length < (phase === 1 ? 1 : 2)) autoPoison();
+      return;
     }
-    setOppChoice(oppC);
-    
-    let res = 'draw';
-    if (choice === 'Spear' && oppC === 'Parry') res = 'win';
-    if (choice === 'Parry' && oppC === 'Shield') res = 'win';
-    if (choice === 'Shield' && oppC === 'Spear') res = 'win';
-    if (oppC === 'Spear' && choice === 'Parry') res = 'lose';
-    if (oppC === 'Parry' && choice === 'Shield') res = 'lose';
-    if (oppC === 'Shield' && choice === 'Spear') res = 'lose';
-
-    setRoundResult(res);
-    setRoundState('revealed');
-
-    setTimeout(() => {
-        let m = myScore; let o = oppScore;
-        if(res === 'win') { m++; setMyScore(m); }
-        if(res === 'lose') { o++; setOppScore(o); }
-
-        if (m === 3 || o === 3) {
-            addWager(wager);
-            if(m === 3) {
-              confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-              const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
-              payIfWin(wager);
-              addFeed(username || 'Hoplite', "Phalanx Stance", wager, "2.0x", `+${payoutStr}`, 'win');
-            } else {
-              addFeed(username || 'Hoplite', "Phalanx Stance", wager, "0.0x", `-${wager}`, 'loss');
-            }
-            setView('result');
-        } else {
-            setRoundState('choosing'); setMyChoice('');
-        }
-    }, 2500);
+    const t = setTimeout(() => setTimer((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [view, step, timer, over, poison, phase, picker]);
+  const need = () => (phase === 1 ? 1 : 2);
+  const autoPoison = () => {
+    const n = need(); const set = [];
+    while (set.length < n) { const c = 1 + Math.floor(Math.random() * 3); if (!set.includes(c)) set.push(c); }
+    lockPoison(set);
   };
-
+  const tapCup = (n) => {
+    if (over) return;
+    if (step === 'pickPoison' && iPick()) {
+      const max = need();
+      setPoison((prev) => { let next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]; if (next.length > max) next = next.slice(next.length - max); return next; });
+    }
+    if (step === 'guess' && !iPick()) { setGuess(n); resolveGuess(n); }
+  };
+  const lockPoison = (cups) => {
+    const p = cups && cups.length ? cups : poison;
+    if (p.length < need()) return;
+    setPoison(p); setStep('spin'); setSpinOn(true);
+    patchState({ poison: p, step: 'spin', guess: null });
+    setTimeout(() => { setSpinOn(false); setStep('guess'); setTimer(10); patchState({ step: 'guess' }); }, 2200);
+  };
+  const resolveGuess = async (g) => {
+    const st = await readState();
+    const pois = (st.poison && st.poison.length ? st.poison : poison);
+    const hit = pois.includes(g);
+    const hits = Object.assign({}, st.hits || {});
+    hits[me()] = Number(hits[me()] || 0) + (hit ? 1 : 0);
+    setGuess(g); setMyHits(hits[me()] || 0); setNote(hit ? "POISON" : "SAFE"); setStep('reveal');
+    if ((hits[me()] || 0) >= 3) { patchState({ step: 'reveal', guess: g, hits, over: picker }); setOver(picker); finish(picker === me()); return; }
+    const nextRound = (st.round || round) + 1;
+    const nextPhase = nextRound > 4 ? 2 : 1;
+    const nextPicker = me();
+    patchState({ step: 'reveal', guess: g, hits, round: nextRound, phase: nextPhase });
+    setTimeout(() => {
+      setRound(nextRound); setPhase(nextPhase); setPicker(nextPicker);
+      setPoison([]); setGuess(null); setNote(''); setStep('pickPoison'); setTimer(10);
+      patchState({ picker: nextPicker, step: 'pickPoison', poison: [], guess: null, round: nextRound, phase: nextPhase });
+    }, 2200);
+  };
+  const finish = (iWon) => {
+    if (view === 'result') return;
+    setView('result'); addWager(wager);
+    if (iWon) { payIfWin(wager); confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } }); addFeed(warriorName(), "Poison Pick", wager, "2.0x", "+" + (parseWager(wager) * 2), "win"); }
+    else {
+      if (typeof window.__spartanSetReady === "function") {
+        const stakeL = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
+        window.__spartanSetReady((prev) => Math.max(0, Number(prev) - stakeL));
+      }
+      addFeed(warriorName(), "Poison Pick", wager, "0.0x", "-" + wager, "loss");
+    }
+  };
   if (view === 'lobby') return (
-    <MatchmakingLobby 
-      title="Phalanx Stance" 
-      subtitle="1v1 Tactical PvP Duel. Best of 5. First to 3." 
-      icon={Shield} 
-      iconColor="from-green-600 to-teal-800" 
-      onBack={onBack} 
-      onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}
-    >
-      {/* HOW TO PLAY: PHALANX STANCE */}
-      <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-        <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-          <Info className="w-6 h-6 text-green-400" />
-          <h3 className="font-spartan text-xl font-black text-white uppercase tracking-wider">How to Play Phalanx Stance</h3>
-        </div>
-
-        {/* Visual Diagram */}
-        <div className="w-full bg-black/60 border border-green-500/20 rounded-2xl p-6 mb-6 relative overflow-hidden text-center">
-          <h4 className="text-xs font-black uppercase tracking-widest text-green-400 mb-4 flex items-center justify-center gap-2">
-            <Shield className="w-4 h-4" /> Tactical Combat Triangle
-          </h4>
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6 py-2">
-            <div className="border border-orange-500/50 bg-orange-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
-              <Crosshair className="w-6 h-6 text-orange-400" />
-              <div className="text-left">
-                <span className="font-black text-sm text-white block leading-none">SPEAR</span>
-                <span className="text-[10px] text-green-400 font-bold">Pierces Parry</span>
-              </div>
-            </div>
-            <span className="text-neutral-500 font-bold hidden md:block">➔</span>
-            <div className="border border-purple-500/50 bg-purple-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
-              <Target className="w-6 h-6 text-purple-400" />
-              <div className="text-left">
-                <span className="font-black text-sm text-white block leading-none">PARRY</span>
-                <span className="text-[10px] text-green-400 font-bold">Deflects Shield</span>
-              </div>
-            </div>
-            <span className="text-neutral-500 font-bold hidden md:block">➔</span>
-            <div className="border border-green-500/50 bg-green-950/20 px-4 py-3 rounded-xl flex items-center gap-3">
-              <Shield className="w-6 h-6 text-green-400" />
-              <div className="text-left">
-                <span className="font-black text-sm text-white block leading-none">SHIELD</span>
-                <span className="text-[10px] text-green-400 font-bold">Breaks Spear</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-          <div>
-            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">1</span>
-              1v1 Quick-Draw
-            </h5>
-            <p className="text-neutral-400 leading-relaxed text-xs">
-              Both warriors match stakes and enter the line of battle. Matches are rapid-fire and take under 20 seconds.
-            </p>
-          </div>
-          <div>
-            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">2</span>
-              Best of 3 Clashes
-            </h5>
-            <p className="text-neutral-400 leading-relaxed text-xs">
-              Secretly select your stance before the round timer expires. Stances are revealed simultaneously. First warrior to 3 strikes claims victory.
-            </p>
-          </div>
-          <div>
-            <h5 className="font-black text-white uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-green-600/30 border border-green-500 text-green-400 text-xs flex items-center justify-center font-bold">3</span>
-              Double Payout
-            </h5>
-            <p className="text-neutral-400 leading-relaxed text-xs">
-              Winner receives the 2x pot (minus standard 5% protocol tributes). Instant rematch available on settlement.
-            </p>
-          </div>
-        </div>
-      </div>
+    <MatchmakingLobby title="Poison Pick" subtitle="1v1 PvP. Hide the poison. First to 3 poison drinks loses." icon={Shield} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}>
+      <div className="mt-8 bg-black/50 border border-white/10 rounded-3xl p-8"><h3 className="font-spartan text-xl font-black text-white uppercase mb-4">How to Play Poison Pick</h3><div className="grid md:grid-cols-3 gap-4 text-xs text-neutral-400"><p><b className="text-white">1. Hide.</b> One warrior marks the poison cup. 10 seconds.</p><p><b className="text-white">2. Spin.</b> Cups shuffle. The other picks one cup.</p><p><b className="text-white">3. Drink.</b> Three poisons and you lose. After 4 rounds there are 2 poisons.</p></div></div>
     </MatchmakingLobby>
   );
-
-  if (view === 'countdown') return (
-    <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
-      <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Locked. Prepare Stance.</h3>
-      <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span>
-    </div>
-  );
-
+  if (view === 'countdown') return (<div className="h-[60vh] flex flex-col items-center justify-center text-center"><h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Poison Pick begins in</h3><span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span></div>);
   if (view === 'arena') return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-10 relative z-20">
-      <div className="w-full flex justify-between items-center mb-12 bg-black/50 border border-white/10 rounded-2xl p-6 shadow-inner">
-         <div className="text-center">
-            <span className="text-xs font-black uppercase tracking-widest text-green-400 block mb-2">You</span>
-            <span className="font-spartan text-5xl font-black text-white">{myScore}</span>
-         </div>
-         <div className="font-spartan text-3xl font-black text-neutral-600">VS</div>
-         <div className="text-center">
-            <span className="text-xs font-black uppercase tracking-widest text-red-500 block mb-2">Enemy</span>
-            <span className="font-spartan text-5xl font-black text-white">{oppScore}</span>
-         </div>
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-8">
+      <div className="w-full flex justify-between items-center mb-6 bg-black/50 border border-white/10 rounded-2xl p-5">
+        <div className="text-center"><span className="text-[10px] uppercase text-green-400 font-black block">You</span><span className="font-spartan text-4xl text-white">{myHits}/3</span></div>
+        <div className="text-center"><div className="font-spartan text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{timer}s</div><div className="text-[10px] uppercase text-neutral-500 font-black">Round {round} · {phase === 1 ? "1 poison" : "2 poisons"}</div></div>
+        <div className="text-center"><span className="text-[10px] uppercase text-red-400 font-black block">Enemy</span><span className="font-spartan text-4xl text-white">{oppHits}/3</span></div>
       </div>
-
-      {roundState === 'choosing' ? (
-        <div className="w-full">
-          <h3 className="text-center font-black uppercase tracking-widest text-neutral-400 mb-8 animate-pulse">Select Your Stance</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button onClick={()=>playRound('Spear')} className="bg-black/60 border border-white/10 hover:border-orange-500 rounded-2xl p-8 flex flex-col items-center group transition-all hover:scale-105 shadow-xl">
-               <Crosshair className="w-16 h-16 text-orange-500 mb-4 group-hover:scale-110 transition-transform" />
-               <span className="font-black text-xl uppercase tracking-widest text-white mb-2">Spear</span>
-               <span className="text-xs text-neutral-500 font-bold uppercase">Pierces Parry</span>
-            </button>
-            <button onClick={()=>playRound('Shield')} className="bg-black/60 border border-white/10 hover:border-green-500 rounded-2xl p-8 flex flex-col items-center group transition-all hover:scale-105 shadow-xl">
-               <Shield className="w-16 h-16 text-green-500 mb-4 group-hover:scale-110 transition-transform" />
-               <span className="font-black text-xl uppercase tracking-widest text-white mb-2">Shield Bash</span>
-               <span className="text-xs text-neutral-500 font-bold uppercase">Breaks Spear</span>
-            </button>
-            <button onClick={()=>playRound('Parry')} className="bg-black/60 border border-white/10 hover:border-purple-500 rounded-2xl p-8 flex flex-col items-center group transition-all hover:scale-105 shadow-xl">
-               <Target className="w-16 h-16 text-purple-500 mb-4 group-hover:scale-110 transition-transform" />
-               <span className="font-black text-xl uppercase tracking-widest text-white mb-2">Parry</span>
-               <span className="text-xs text-neutral-500 font-bold uppercase">Deflects Shield</span>
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="w-full bg-black/60 border border-white/10 rounded-3xl p-12 text-center animate-in fade-in zoom-in duration-300">
-           <div className="flex justify-center items-center gap-12 mb-8">
-              <div className="flex flex-col items-center">
-                 <span className="text-xs font-black text-neutral-500 uppercase mb-2">You</span>
-                 <span className={`text-2xl font-black uppercase tracking-widest ${roundResult === 'win' ? 'text-green-400' : 'text-neutral-400'}`}>{myChoice}</span>
-              </div>
-              <Swords className="w-8 h-8 text-neutral-600" />
-              <div className="flex flex-col items-center">
-                 <span className="text-xs font-black text-neutral-500 uppercase mb-2">Enemy</span>
-                 <span className={`text-2xl font-black uppercase tracking-widest ${roundResult === 'lose' ? 'text-green-400' : 'text-neutral-400'}`}>{oppChoice}</span>
-              </div>
-           </div>
-           <h2 className={`font-spartan text-4xl font-black uppercase tracking-widest ${roundResult==='win'?'text-green-400':roundResult==='lose'?'text-red-500':'text-neutral-400'}`}>
-              {roundResult === 'win' ? 'STRIKE LANDED' : roundResult === 'lose' ? 'YOU WERE STRUCK' : 'WEAPONS CLASHED'}
-           </h2>
-        </div>
-      )}
+      <p className="mb-6 font-black uppercase tracking-widest text-orange-300 text-sm text-center">
+        {step === 'pickPoison' && iPick() && ("You hide the poison. Tap " + (phase === 2 ? "two cups." : "one cup."))}
+        {step === 'pickPoison' && !iPick() && "Opponent is hiding the poison..."}
+        {step === 'spin' && "Cups are spinning..."}
+        {step === 'guess' && !iPick() && "Pick a cup. Do not drink the poison."}
+        {step === 'guess' && iPick() && "Opponent is choosing a cup..."}
+        {step === 'reveal' && note}
+      </p>
+      <div className={"grid grid-cols-3 gap-4 w-full max-w-xl " + (spinOn ? "animate-pulse" : "")}>
+        {[1,2,3].map((n) => {
+          const marked = step === 'pickPoison' && iPick() && poison.includes(n);
+          const picked = guess === n;
+          return (<button key={n} onClick={() => tapCup(n)} className={"h-40 rounded-3xl border-2 flex flex-col items-center justify-center " + (marked || picked ? "border-orange-500 bg-orange-600/30 scale-105" : "border-white/15 bg-black/50 hover:border-green-400")}><span className="font-spartan text-5xl text-amber-300">Cup</span><span className="mt-2 text-xs font-black uppercase tracking-widest text-white">{n}</span></button>);
+        })}
+      </div>
+      {step === 'pickPoison' && iPick() && (<button onClick={() => lockPoison(poison)} className="mt-8 w-full max-w-md py-4 rounded-2xl bg-orange-600 font-black uppercase tracking-widest text-white">Lock poison</button>)}
     </div>
   );
-
   if (view === 'result') return (
-    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
-      {myScore === 3 ? (
-        <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
-      ) : (
-        <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
-      )}
-      <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase">Return to Matchmaking</button>
+    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 border border-white/10 rounded-[2rem] p-12 text-center">
+      {over === me() ? (<><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 mb-6"><span className="text-4xl font-black text-green-400">+{parseWager(wager)*2} $SPARTAN</span></div>{window.__spartanPayoutNote && <div className="mb-6 font-spartan text-xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{window.__spartanPayoutNote}</div>}</>) : (<><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 mb-6"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>)}
+      <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4.5 rounded-xl bg-white/10 text-white font-black text-sm uppercase">Return to Matchmaking</button>
     </div>
   );
 }
-
-// -------------------------------------------------------------
-// GAME 4: BONES OF SPARTA (1v1 Dice)
-// -------------------------------------------------------------
 
 function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   const [view, setView] = useState('lobby');
@@ -1622,9 +1546,9 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
           payIfWin(wager);
-          addFeed(username || 'Hoplite', "Bones of Sparta", wager, "2.0x", `+${payoutStr}`, 'win');
+          addFeed(warriorName(), "Bones of Sparta", wager, "2.0x", `+${payoutStr}`, 'win');
         } else {
-          addFeed(username || 'Hoplite', "Bones of Sparta", wager, "0.0x", `-${wager}`, 'loss');
+          addFeed(warriorName(), "Bones of Sparta", wager, "0.0x", `-${wager}`, 'loss');
         }
         setView('result');
       }, 2000);
@@ -1732,7 +1656,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {myRoll > oppRoll ? (
-        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2><div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
+        <><Trophy className="w-24 h-24 text-fuchsia-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-fuchsia-400 mb-2">VICTORY</h2>{window.__spartanPayoutNote && (<div className="mb-6 font-spartan text-xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{window.__spartanPayoutNote}</div>)}<div className="bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-fuchsia-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
       ) : (
         <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
       )}
@@ -1762,7 +1686,7 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
     } else if (timeToBlock === 0 && !blocked) {
       setStatus('dead');
       addWager('10K');
-      addFeed(username || 'Hoplite', "The 300 Stand", "10K", "0.0x", "-10K", 'loss');
+      addFeed(warriorName(), "The 300 Stand", "10K", "0.0x", "-10K", 'loss');
     }
   }, [view, timeToBlock, blocked, status]);
 
@@ -1773,7 +1697,7 @@ function The300Stand({ addWager, addFeed, username, onBack }) {
       setStatus('won');
       confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
       addWager('10K');
-      addFeed(username || 'Hoplite', "The 300 Stand", "10K", "10.0x", "+100K", 'win');
+      addFeed(warriorName(), "The 300 Stand", "10K", "10.0x", "+100K", 'win');
     } else {
       setTimeout(() => { setWave(w => w + 1); setTimeToBlock(3); setBlocked(false); }, 1500);
     }

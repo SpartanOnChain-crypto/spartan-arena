@@ -4,6 +4,7 @@ const tickets = new Map();
 const scores = new Map();
 const here = new Map();
 const feed = [];
+const tables = new Map();
 const key = (g, w) => String(g) + ":" + String(w);
 function read(req) {
   return new Promise((resolve) => {
@@ -80,6 +81,19 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify(feed));
   }
 
+
+  if (req.method === "POST" && url.pathname === "/state") {
+    const { matchId, patch } = await read(req);
+    if (!matchId) return res.end(JSON.stringify({}));
+    const cur = tables.get(matchId) || {};
+    const next = Object.assign({}, cur, patch || {}, { t: Date.now() });
+    tables.set(matchId, next);
+    return res.end(JSON.stringify(next));
+  }
+  if (req.method === "GET" && url.pathname.startsWith("/state/")) {
+    const id = url.pathname.split("/state/")[1];
+    return res.end(JSON.stringify(tables.get(id) || {}));
+  }
   if (req.method === "POST" && url.pathname === "/payout") {
     try {
       const body = await read(req);
