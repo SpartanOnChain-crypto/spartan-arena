@@ -1433,7 +1433,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   const lockPoison = (cups) => {
     const p = cups && cups.length ? cups : poison;
     if (p.length < need()) return;
-    setPoison(p); setStep('spin'); setSpinOn(true);
+    setPoison(p); setGuess(null); setStep('spin'); setSpinOn(true);
     patchState({ poison: p, step: 'spin', guess: null });
     setTimeout(() => { setSpinOn(false); setStep('guess'); setTimer(10); patchState({ step: 'guess' }); }, 2200);
   };
@@ -1443,7 +1443,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     const hit = pois.includes(g);
     const hits = Object.assign({}, st.hits || {});
     hits[me()] = Number(hits[me()] || 0) + (hit ? 1 : 0);
-    setGuess(g); setMyHits(hits[me()] || 0); setNote(hit ? "POISON" : "SAFE"); setStep('reveal');
+    setGuess(null); setMyHits(hits[me()] || 0); setNote(hit ? "POISON" : "SAFE"); setStep('reveal');
     if ((hits[me()] || 0) >= 3) { patchState({ step: 'reveal', guess: g, hits, over: picker }); setOver(picker); finish(picker === me()); return; }
     const nextRound = (st.round || round) + 1;
     const nextPhase = nextRound > 4 ? 2 : 1;
@@ -1498,8 +1498,8 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       <div className={"grid grid-cols-3 gap-4 w-full max-w-xl " + (spinOn ? "animate-pulse" : "")}>
         {[1,2,3].map((n) => {
           const marked = step === 'pickPoison' && iPick() && poison.includes(n);
-          const picked = guess === n;
-          return (<button key={n} onClick={() => tapCup(n)} className={"h-40 rounded-3xl border-2 flex flex-col items-center justify-center " + (marked || picked ? "border-orange-500 bg-orange-600/30 scale-105" : "border-white/15 bg-black/50 hover:border-green-400")}><span className="font-spartan text-5xl text-amber-300">Cup</span><span className="mt-2 text-xs font-black uppercase tracking-widest text-white">{n}</span></button>);
+          const picked = step === 'guess' && !iPick() && guess === n;
+          return (<button key={n} onClick={() => tapCup(n)} className={"h-40 rounded-3xl border-2 flex flex-col items-center justify-center " + (marked || picked ? "border-orange-500 bg-orange-600/30 scale-105" : "border-white/15 bg-black/50 hover:border-white/30")}><span className="font-spartan text-5xl text-amber-300">Cup</span><span className="mt-2 text-xs font-black uppercase tracking-widest text-white">{n}</span></button>);
         })}
       </div>
       {step === 'pickPoison' && iPick() && (<button onClick={() => lockPoison(poison)} className="mt-8 w-full max-w-md py-4 rounded-2xl bg-orange-600 font-black uppercase tracking-widest text-white">Lock poison</button>)}
