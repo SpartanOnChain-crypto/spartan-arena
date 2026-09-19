@@ -2,6 +2,8 @@ const http = require("http");
 const waiting = new Map();
 const tickets = new Map();
 const scores = new Map();
+const here = new Map();
+const feed = [];
 const key = (g, w) => String(g) + ":" + String(w);
 function read(req) {
   return new Promise((resolve) => {
@@ -19,8 +21,8 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") { res.statusCode = 204; return res.end(); }
   const url = new URL(req.url, "http://local");
   if (req.method === "POST" && url.pathname === "/join") {
-    const { game, wager, wallet } = await read(req);
-    const k = key(game || "tap", wager || "100");
+    const { game, wager, wallet, room } = await read(req);
+    const k = room ? ("room:" + String(room).toUpperCase() + ":" + (game || "tap") + ":" + String(wager || "100")) : key(game || "tap", wager || "100");
     const ticket = "t" + Date.now() + Math.random().toString(36).slice(2, 8);
     const other = waiting.get(k);
     if (other && other.wallet !== wallet) {
@@ -50,6 +52,32 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname.startsWith("/score/")) {
     const matchId = url.pathname.split("/score/")[1];
     return res.end(JSON.stringify(scores.get(matchId) || {}));
+  }
+
+
+  if (req.method === "POST" && url.pathname === "/here") {
+    const { game, wallet } = await read(req);
+    if (wallet) here.set(String(wallet), { game: game || "tap", t: Date.now() });
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "GET" && url.pathname === "/here") {
+    const now = Date.now();
+    const counts = { tap: 0, chariot: 0, phalanx: 0, bones: 0 };
+    for (const [w, row] of here) {
+      if (now - row.t > 45000) { here.delete(w); continue; }
+      const g = row.game || "tap";
+      if (counts[g] != null) counts[g]++;
+    }
+    return res.end(JSON.stringify(counts));
+  }
+  if (req.method === "POST" && url.pathname === "/feed") {
+    const row = await read(req);
+    feed.unshift({ id: Date.now(), ...row });
+    if (feed.length > 20) feed.pop();
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "GET" && url.pathname === "/feed") {
+    return res.end(JSON.stringify(feed));
   }
 
   if (req.method === "POST" && url.pathname === "/payout") {

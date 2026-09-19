@@ -23,7 +23,7 @@ const parseWager = (amount) => {
 ;
 
 
-const startTapOnChain = async (w, afterLock, game) => {
+const startTapOnChain = async (w, afterLock, game, room) => {
   try {
     const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
     if (!ready) {
@@ -34,7 +34,8 @@ const startTapOnChain = async (w, afterLock, game) => {
     const wagerNum = parseWager(w);
     const sig = await lockStakeOnChain(wagerNum);
     if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
-    const match = await queueForMatch({ game: game || "tap", wager: wagerNum });
+    if (myPk()) fetch(MATCH_HOST + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: game || "tap", wallet: myPk() }) }).catch(() => {});
+    const match = await queueForMatch({ game: game || "tap", wager: wagerNum, room: room || "" });
     window.__spartanPractice = !!match?.practice;
     window.__spartanOpponent = match?.opponent || "Practice Bot";
     window.__spartanMatchId = match?.matchId || "";
@@ -170,6 +171,7 @@ export default function App() {
     };
   }, []);
   
+  const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([
     { id: 1, user: "XERXES_99", game: "Chariot Deathrace", wager: "250", multiplier: "2.0x", payout: "+750", type: 'win' },
     { id: 2, user: "LEONIDAS", game: "Colosseum Tap", wager: "10K", multiplier: "0.0x", payout: "-10K", type: 'loss' },
@@ -211,8 +213,29 @@ export default function App() {
     }
   };
 
+  
+  useEffect(() => {
+    const tick = async () => {
+      try {
+        const h = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here").then(r => r.json());
+        if (h) setLiveHere({ tap: h.tap||0, chariot: h.chariot||0, phalanx: h.phalanx||0, bones: h.bones||0 });
+      } catch (e) {}
+      try {
+        const f = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed").then(r => r.json());
+        if (Array.isArray(f) && f.length) setLiveFeed(f.slice(0, 8));
+      } catch (e) {}
+      const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+      if (pk) {
+        fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: view === "crash" ? "chariot" : view === "plinko" ? "phalanx" : view === "dice" ? "bones" : "tap", wallet: String(pk.toBase58 ? pk.toBase58() : pk) }) }).catch(() => {});
+      }
+    };
+    tick();
+    const id = setInterval(tick, 4000);
+    return () => clearInterval(id);
+  }, [view]);
   const addFeed = (user, game, wager, multiplier, payout, type) => {
     setLiveFeed(prev => [{ id: Date.now(), user, game, wager, multiplier, payout, type }, ...prev].slice(0, 8));
+    fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user, game, wager, multiplier, payout, type }) }).catch(() => {});
   };
 
 
@@ -520,7 +543,7 @@ export default function App() {
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   <ArenaCard 
-                    title="Colosseum Tap" icon={Swords} target="tap" players="142" tag="1v1 PvP"
+                    title="Colosseum Tap" icon={Swords} target="tap" players={String(liveHere.tap||0)} tag="1v1 PvP"
                     bgBase="bg-[#1a0500]" accentColor="text-orange-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -530,7 +553,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Chariot Deathrace" icon={TrendingUp} target="crash" players="89" tag="3-PvP"
+                    title="Chariot Deathrace" icon={TrendingUp} target="crash" players={String(liveHere.chariot||0)} tag="1v1 PvP"
                     bgBase="bg-[#00081a]" accentColor="text-cyan-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -540,7 +563,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Phalanx Stance" icon={Shield} target="plinko" players="312" tag="1v1 PvP"
+                    title="Phalanx Stance" icon={Shield} target="plinko" players={String(liveHere.phalanx||0)} tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -550,7 +573,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Bones of Sparta" icon={Dices} target="dice" players="56" tag="1v1 PvP"
+                    title="Bones of Sparta" icon={Dices} target="dice" players={String(liveHere.bones||0)} tag="1v1 PvP"
                     bgBase="bg-[#1a0024]" accentColor="text-fuchsia-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -560,7 +583,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="The 300 Stand" icon={Skull} target="stand-locked" players="1,204" tag="Royale"
+                    title="The 300 Stand" icon={Skull} target="stand-locked" players="0" tag="Royale"
                     bgBase="bg-[#240a00]" accentColor="text-yellow-500"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -577,7 +600,6 @@ export default function App() {
                   <button className="text-white font-black uppercase tracking-widest flex items-center gap-2 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg shadow-inner">
                     <History className="w-4 h-4 text-orange-500" /> Recent Battles
                   </button>
-                  <button className="text-neutral-500 font-bold uppercase tracking-widest hover:text-white transition-colors">High Rollers</button>
                 </div>
                 
                 <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
@@ -750,10 +772,10 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
   const littleLeague = ['100', '500', '1K', '5K', '10K'];
   const bigLeague = ['50K', '100K', '500K', '1M'];
 
-  const handleStart = () => {
+  const handleStart = (room) => {
     if (isSearching) return;
     setIsSearching(true);
-    Promise.resolve(onStart(wager)).finally(() => setIsSearching(false));
+    Promise.resolve(onStart(wager, room || "")).finally(() => setIsSearching(false));
   };
 
   return (
@@ -786,7 +808,7 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
                 </button>
               ))}
             </div>
-            <button onClick={handleStart} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
+            <button onClick={() => handleStart("")} disabled={isSearching} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_30px_rgba(234,88,12,0.4)] transition-all flex items-center justify-center gap-2 text-white border border-orange-400/50">
               {isSearching ? (
           <span className="inline-flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -806,9 +828,11 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
             <div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Key className="w-4 h-4 text-purple-500"/> Private Arena</h3>
               <p className="text-xs text-neutral-400 leading-relaxed mb-4">Enter a specific lobby code to challenge a rival directly. Wagers are set by the lobby creator.</p>
-              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.toUpperCase())} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-4" />
+              <input type="text" placeholder="ENTER 6-DIGIT CODE" value={roomCode} onChange={e => setRoomCode(e.target.value.replace(/[^0-9]/g,'').slice(0,6))} maxLength={6} className="w-full bg-black/80 border border-white/10 rounded-xl px-4 py-3 text-center text-white font-black uppercase tracking-widest focus:outline-none focus:border-purple-500 transition-all shadow-inner mb-3" />
+              <button type="button" onClick={() => setRoomCode(String(Math.floor(100000 + Math.random()*900000)))} className="w-full py-2.5 mb-4 rounded-xl bg-purple-600/20 border border-purple-400/40 text-purple-200 font-black text-xs tracking-widest uppercase">Generate 6-digit code</button>
+              <p className="text-[11px] text-neutral-500 mb-3">Same game. Same stake as the left side. Send the code to one rival.</p>
             </div>
-            <button onClick={handleStart} disabled={roomCode.length < 3} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={() => handleStart(roomCode)} disabled={roomCode.length !== 6} className="w-full py-3.5 rounded-xl bg-white/10 border border-white/20 font-black text-sm tracking-widest uppercase hover:bg-white/20 transition-all flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed">
               Join Private Match
             </button>
           </div>
@@ -956,7 +980,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       icon={Swords} 
       iconColor="from-red-600 to-orange-700" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'tap')}
+      onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'tap', room)}
     >
       {/* Individual Details for Colosseum Tap */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1187,7 +1211,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
         }
 
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-      const payoutStr = wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : (parseFloat(wager)*3).toString();
+      const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
       addFeed(username || 'Hoplite', "Chariot Deathrace", wager, `${myBail.toFixed(2)}x`, `+${payoutStr}`, 'win');
     } else {
       addFeed(username || 'Hoplite', "Chariot Deathrace", wager, "0.0x", `-${wager}`, 'loss');
@@ -1201,7 +1225,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       icon={TrendingUp} 
       iconColor="from-cyan-600 to-blue-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'chariot')}
+      onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'chariot', room)}
     >
       {/* HOW TO PLAY: CHARIOT DEATHRACE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1269,7 +1293,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
 
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
-      <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">2 Opponents Joined. The Race Begins In:</h3>
+      <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Race begins in:</h3>
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600 animate-pulse">{countdown}</span>
     </div>
   );
@@ -1285,10 +1309,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
           <span className="text-xs font-black uppercase tracking-widest text-white block mb-1">Enemy 1</span>
           <span className="text-sm font-bold text-neutral-400">{opp1Status === 'racing' ? 'Racing...' : opp1Status === 'crashed' ? 'CRASHED' : `Bailed @ ${opp1Target.toFixed(2)}x`}</span>
         </div>
-        <div className={`flex-1 p-4 rounded-xl text-center border ${opp2Status === 'racing' ? 'bg-white/5 border-white/10' : opp2Status === 'crashed' ? 'bg-red-900/50 border-red-500 opacity-50' : 'bg-green-900/50 border-green-500'}`}>
-          <span className="text-xs font-black uppercase tracking-widest text-white block mb-1">Enemy 2</span>
-          <span className="text-sm font-bold text-neutral-400">{opp2Status === 'racing' ? 'Racing...' : opp2Status === 'crashed' ? 'CRASHED' : `Bailed @ ${opp2Target.toFixed(2)}x`}</span>
-        </div>
+
       </div>
 
       <div className={`w-80 h-80 mx-auto rounded-full flex flex-col items-center justify-center mb-10 shadow-[0_0_80px_rgba(34,211,238,0.2)] transition-all border-8 ${multiplier >= crashPoint ? 'bg-red-900 border-red-600 scale-110' : 'bg-black/50 border-cyan-500'}`}>
@@ -1308,8 +1329,8 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
         <h2 className={`font-spartan text-4xl font-black tracking-wider mb-6 ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? 'LAST SURVIVOR' : 'DEFEATED'}</h2>
         <div className="bg-white/5 border border-white/10 rounded-2xl py-6 px-8 mb-8">
-           <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-2">{iWon ? '3-Player Pot Claimed' : 'Wager Lost'}</span>
-           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*3)+'M' : wager.includes('K') ? (parseFloat(wager)*3)+'K' : parseFloat(wager)*3) : wager} $SPARTAN</span>
+           <span className="text-xs font-black text-neutral-400 uppercase tracking-widest block mb-2">{iWon ? 'Pot claimed' : 'Wager Lost'}</span>
+           <span className={`text-4xl font-black ${iWon ? 'text-green-400' : 'text-red-500'}`}>{iWon ? '+' : '-'}{iWon ? (wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2) : wager} $SPARTAN</span>
         </div>
         <button onClick={() => { setView('lobby'); setCountdown(3); }} className="w-full py-4 bg-white/10 rounded-xl text-white font-black text-sm uppercase tracking-widest">Race Again</button>
       </div>
@@ -1356,7 +1377,8 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     } else {
       postScore(map[choice]);
       const v = await waitOppScore(function(n){ return n === 1 || n === 2 || n === 3; });
-      oppC = rev[v] || choices[Math.floor(Math.random() * 3)];
+      if (!v) { setRoundState('choosing'); return; }
+      oppC = rev[v];
     }
     setOppChoice(oppC);
     
@@ -1376,9 +1398,9 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
         if(res === 'win') { m++; setMyScore(m); }
         if(res === 'lose') { o++; setOppScore(o); }
 
-        if (m === 2 || o === 2) {
+        if (m === 3 || o === 3) {
             addWager(wager);
-            if(m === 2) {
+            if(m === 3) {
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
               const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
               payIfWin(wager);
@@ -1396,11 +1418,11 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
   if (view === 'lobby') return (
     <MatchmakingLobby 
       title="Phalanx Stance" 
-      subtitle="1v1 Tactical PvP Duel. Best of 3." 
+      subtitle="1v1 Tactical PvP Duel. Best of 5. First to 3." 
       icon={Shield} 
       iconColor="from-green-600 to-teal-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx')}
+      onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}
     >
       {/* HOW TO PLAY: PHALANX STANCE */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -1457,7 +1479,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
               Best of 3 Clashes
             </h5>
             <p className="text-neutral-400 leading-relaxed text-xs">
-              Secretly select your stance before the round timer expires. Stances are revealed simultaneously. First warrior to 2 strikes claims victory.
+              Secretly select your stance before the round timer expires. Stances are revealed simultaneously. First warrior to 3 strikes claims victory.
             </p>
           </div>
           <div>
@@ -1539,7 +1561,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
 
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
-      {myScore === 2 ? (
+      {myScore === 3 ? (
         <><Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2><div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-green-400">+{wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : parseFloat(wager)*2} $SPARTAN</span></div></>
       ) : (
         <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
@@ -1588,9 +1610,8 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
         if (m === o) m = Math.min(100, m + 1);
       } else {
         postScore(m);
-        o = await waitOppScore(function(n){ return n >= 1 && n <= 100; });
-        if (!o) o = Math.floor(Math.random() * 100) + 1;
-        if (m === o) m = Math.min(100, m + 1);
+        o = await waitOppScore(function(n){ return n >= 1 && n <= 100; }, 120);
+        if (!o) { setIsRolling(false); alert("Waiting for opponent toss. Tap Toss again."); return; }
       }
       setMyRoll(m); setOppRoll(o);
       setIsRolling(false);
@@ -1617,7 +1638,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       icon={Dices} 
       iconColor="from-fuchsia-600 to-purple-800" 
       onBack={onBack} 
-      onStart={(w) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'bones')}
+      onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'bones', room)}
     >
       {/* HOW TO PLAY: BONES OF SPARTA */}
       <div className="mt-8 bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">

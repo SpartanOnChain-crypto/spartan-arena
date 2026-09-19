@@ -9,13 +9,13 @@ function myWallet() {
     ""
   );
 }
-export async function queueForMatch({ game, wager }) {
+export async function queueForMatch({ game, wager, room }) {
   const wallet = myWallet();
   if (!wallet) throw new Error("Connect a wallet first");
   const join = await fetch(MATCH_URL + "/join", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ game, wager: String(wager), wallet }),
+    body: JSON.stringify({ game, wager: String(wager), wallet, room: room || "" }),
   });
   if (!join.ok) throw new Error("Match server failed");
   const first = await join.json();
