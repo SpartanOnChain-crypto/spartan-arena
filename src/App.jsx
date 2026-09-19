@@ -863,9 +863,16 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         if (pot > 0 && winPk) {
           fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
             if (j && j.sig) {
-              alert("Winnings paid. Tap OK, then the page will refresh so READY updates.");
-              window.location.reload();
-            } else alert("Payout failed: " + (j && j.error ? j.error : "no response"));
+              window.__spartanPayoutNote = "Winnings paid on-chain. READY is updating.";
+              const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+              if (pk && typeof getWalletBalances === "function") {
+                getWalletBalances(pk).then((b) => {
+                  window.dispatchEvent(new CustomEvent("spartan-ready", { detail: b }));
+                }).catch(() => {});
+              }
+            } else {
+              window.__spartanPayoutNote = "Payout failed: " + (j && j.error ? j.error : "no response");
+            }
           }).catch((e)=>alert("Payout failed: " + String(e)));
         }
 
@@ -1009,7 +1016,13 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   if (view === 'result') return (
     <div className="w-full max-w-md mx-auto mt-10 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-12 text-center relative z-20">
       {winner === 'you' ? (
-        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2><div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPARTAN</span></div></>
+        <><Trophy className="w-24 h-24 text-amber-400 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-amber-400 mb-2">VICTORY</h2>
+        {window.__spartanPayoutNote && (
+          <div className="mt-4 mb-2 text-center font-spartan text-xl md:text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse drop-shadow-[0_0_20px_rgba(234,88,12,0.9)]">
+            {window.__spartanPayoutNote}
+          </div>
+        )}
+<div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-amber-400">+{getPayoutStr(wager, 2)} $SPARTAN</span></div></>
       ) : winner === 'opp' ? (
         <><Skull className="w-24 h-24 text-red-600 mx-auto mb-6" /><h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2><div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 px-8 mb-10 mt-8"><span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span></div></>
       ) : (
