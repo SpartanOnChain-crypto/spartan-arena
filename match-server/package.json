@@ -1,5 +1,8 @@
 {
   "name": "spartan-match",
   "private": true,
-  "scripts": { "start": "node server.js" }
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0"
+  }
 }
