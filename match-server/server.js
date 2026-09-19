@@ -92,7 +92,26 @@ const server = http.createServer(async (req, res) => {
         ],
         data,
       });
-      const tx = new Transaction().add(ix);
+      const jackpotAta = ata(TREASURY);
+      const winnerAta = ata(winner);
+      const escrowAta = ata(escrowAuthority);
+      const SYSTEM = new PublicKey("11111111111111111111111111111111");
+      const makeAta = (dest, owner) => new TransactionInstruction({
+        programId: ATA_PROGRAM,
+        keys: [
+          { pubkey: kp.publicKey, isSigner: true, isWritable: true },
+          { pubkey: dest, isSigner: false, isWritable: true },
+          { pubkey: owner, isSigner: false, isWritable: false },
+          { pubkey: MINT, isSigner: false, isWritable: false },
+          { pubkey: SYSTEM, isSigner: false, isWritable: false },
+          { pubkey: tokenProgram, isSigner: false, isWritable: false },
+        ],
+        data: Buffer.alloc(0),
+      });
+      const tx = new Transaction();
+      if (!(await connection.getAccountInfo(jackpotAta))) tx.add(makeAta(jackpotAta, TREASURY));
+      if (!(await connection.getAccountInfo(winnerAta))) tx.add(makeAta(winnerAta, winner));
+      tx.add(ix);
       tx.feePayer = kp.publicKey;
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
       tx.sign(kp);
