@@ -1088,7 +1088,10 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
-          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(r=>r.json()).then(j=>console.log("settle",j)).catch((e)=>console.warn("settle",e));
+          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(r=>r.json()).then(j=>{
+            if (j && j.sig) alert("Payout sent: " + j.sig.slice(0,8) + "...");
+            else alert("Payout failed: " + (j && j.error ? j.error : "no response"));
+          }).catch((e)=>alert("Payout failed: " + String(e)));
         }
 
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
