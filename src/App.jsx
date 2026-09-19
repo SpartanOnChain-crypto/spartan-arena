@@ -38,9 +38,6 @@ const startTapOnChain = async (w, afterLock, game) => {
     window.__spartanPractice = !!match?.practice;
     window.__spartanOpponent = match?.opponent || "Practice Bot";
     window.__spartanMatchId = match?.matchId || "";
-    if (!match?.practice && match?.opponent) {
-      alert("Matched vs " + String(match.opponent).slice(0,4) + "..." + String(match.opponent).slice(-4));
-    }
     afterLock();
   } catch (err) {
     alert(String(err?.message || err));
@@ -794,6 +791,8 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const [oppTaps, setOppTaps] = useState(0);
   const [winner, setWinner] = useState(null);
   const [tapsEffect, setTapsEffect] = useState([]);
+  const myTapsRef = React.useRef(0);
+  const oppTapsRef = React.useRef(0);
 
   useEffect(() => {
     if (view !== 'countdown') return;
@@ -801,7 +800,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      setMyTaps(0); setOppTaps(0); setTimeLeft(10.0); setView('arena');
+      myTapsRef.current = 0; oppTapsRef.current = 0; setMyTaps(0); setOppTaps(0); setTimeLeft(10.0); setView('arena');
     }
   }, [view, countdown]);
 
@@ -818,7 +817,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
       if (!id) return;
       fetch(MATCH + "/score/" + id).then(r=>r.json()).then(row=>{
         const n = row[window.__spartanOpponent];
-        if (typeof n === "number") setOppTaps(n);
+        if (typeof n === "number") { oppTapsRef.current = n; setOppTaps(n); }
       }).catch(()=>{});
     }, 200);
     const timer = setInterval(() => {
@@ -834,6 +833,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
     if (view !== 'arena' || timeLeft <= 0) return;
     setMyTaps(t => {
       const n = t + 1;
+      myTapsRef.current = n;
       const MATCH = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
       const me = window.__spartanWallet?.publicKey || window.solana?.publicKey;
       const wallet = me?.toBase58?.() || me?.toString?.() || "";
@@ -854,7 +854,9 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   const settleMatch = () => {
     setView('result');
     addWager(wager);
-    if (myTaps > oppTaps) {
+    const finalMine = myTapsRef.current;
+    const finalOpp = oppTapsRef.current;
+    if (finalMine > finalOpp) {
       setWinner('you');
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
@@ -864,7 +866,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
 
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#EA580C', '#F59E0B'] });
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "2.0x", `+${getPayoutStr(wager, 2)}`, 'win');
-    } else if (oppTaps > myTaps) {
+    } else if (finalOpp > finalMine) {
       setWinner('opp');
       addFeed(username || 'Hoplite', "Colosseum Tap", wager, "0.0x", `-${wager}`, 'loss');
     } else {
@@ -959,7 +961,14 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Found. Prepare Your Blade.</h3>
-      <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 animate-pulse">{countdown}</span>
+            {window.__spartanOpponent && window.__spartanOpponent !== "Practice Bot" && (
+        <div className="text-center mb-4">
+          <div className="font-spartan text-3xl md:text-5xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse drop-shadow-[0_0_20px_rgba(234,88,12,0.9)]">
+            VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}
+          </div>
+        </div>
+      )}
+<span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-red-600 animate-pulse">{countdown}</span>
     </div>
   );
 
