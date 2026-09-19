@@ -10,7 +10,7 @@ import {
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2, Wine } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain, getWalletBalances, settleMatch as settleMatchOnChain } from './vaultClient.js';
-import { queueForMatch } from './matchClient.js';
+import { queueForMatch, leaveQueue, waitBothLocked, reportLock } from './matchClient.js';
 
 
 const parseWager = (amount) => {
@@ -30,18 +30,45 @@ const startTapOnChain = async (w, afterLock, game, room) => {
       throw new Error("MUST_SIGN_IN");
     }
     const wagerNum = parseWager(w);
+    window.__spartanSearching = true;
+    window.__spartanDidStart = false;
+    window.__spartanLocked = false;
+    window.__spartanLockedAmount = 0;
+    const match = await queueForMatch({ game: game || "tap", wager: wagerNum, room: room || "" });
+    if (!window.__spartanSearching) return;
+    window.__spartanPractice = false;
+    window.__spartanOpponent = match?.opponent || "";
+    window.__spartanMatchId = match?.matchId || "";
     const sig = await lockStakeOnChain(wagerNum);
     if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
+    window.__spartanLocked = true;
+    window.__spartanLockedAmount = wagerNum;
+    await reportLock({ matchId: match.matchId, wallet: myPk(), sig, amount: wagerNum });
+    await waitBothLocked(match.matchId);
+    if (!window.__spartanSearching) return;
+    window.__spartanDidStart = true;
     if (myPk()) fetch(MATCH_HOST + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: game || "tap", wallet: myPk() }) }).catch(() => {});
-    const match = await queueForMatch({ game: game || "tap", wager: wagerNum, room: room || "" });
-    window.__spartanPractice = !!match?.practice;
-    window.__spartanOpponent = match?.opponent || "Practice Bot";
-    window.__spartanMatchId = match?.matchId || "";
     afterLock();
   } catch (err) {
+    window.__spartanSearching = false;
     alert(String(err?.message || err));
   }
 };
+if (!window.__spartanLeaveBound) {
+  window.__spartanLeaveBound = true;
+  const bail = () => {
+    if (window.__spartanDidStart) return;
+    window.__spartanSearching = false;
+    const pk = (window.__spartanWallet?.publicKey || window.solana?.publicKey);
+    const wallet = pk ? String(pk.toBase58 ? pk.toBase58() : pk) : "";
+    leaveQueue({ ticket: window.__spartanTicket || "", wallet });
+    if (window.__spartanLocked && window.__spartanLockedAmount > 0 && wallet) {
+      fetch("/api/settle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner: wallet, amountUi: window.__spartanLockedAmount }) }).catch(() => {});
+    }
+  };
+  window.addEventListener("pagehide", bail);
+  window.addEventListener("beforeunload", bail);
+}
 
 
 const MATCH_HOST = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
@@ -125,7 +152,19 @@ export default function App() {
   
   const [balanceLocked, setBalanceLocked] = useState(0);
   const [balanceReal, setBalanceReal] = useState(0);
-  window.__spartanSetReady = setBalanceReal;
+  window.__spartanSetReady = (fn) => {
+    setBalanceReal((prev) => {
+      const next = typeof fn === "function" ? fn(prev) : fn;
+      setReadyFlash(next > prev ? "win" : next < prev ? "lose" : "");
+      setTimeout(() => setReadyFlash(""), 1200);
+      if (window.__spartanWallet?.publicKey && typeof getWalletBalances === "function") {
+        getWalletBalances(window.__spartanWallet.publicKey).then((b) => {
+          if (b && typeof b.spartan === "number") setBalanceReal(b.spartan);
+        }).catch(() => {});
+      }
+      return next;
+    });
+  };
 
 
 
@@ -198,6 +237,8 @@ export default function App() {
   const [searchQ, setSearchQ] = useState('');
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
+  const [txHistory, setTxHistory] = useState([]);
+  const [readyFlash, setReadyFlash] = useState('');
   const [liveBoard, setLiveBoard] = useState([]);
   const [ideaText, setIdeaText] = useState('');
   const [ideaNote, setIdeaNote] = useState('');
@@ -263,7 +304,9 @@ export default function App() {
         if (Array.isArray(f) && f.length) setLiveFeed(f.slice(0, 8));
       } catch (e) {}
       try {
-        const b = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/board").then(r => r.json());
+        const host = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+        const b = await fetch(host + "/board").then(r => r.json());
+        fetch(host + "/history").then(r => r.json()).then(h => { if (Array.isArray(h)) setTxHistory(h); }).catch(() => {});
         if (Array.isArray(b)) setLiveBoard(b);
       } catch (e) {}
       const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
@@ -280,6 +323,11 @@ export default function App() {
     fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user, game, wager, multiplier, payout, type }) }).catch(() => {});
     const amt = Number(String(payout).replace(/[^0-9.]/g, "")) || 0;
     fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/board", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet: user, type, amount: type === "win" ? amt : 0, game }) }).catch(() => {});
+    const me = myPk();
+    const opp = String(window.__spartanOpponent || "");
+    if (me && opp && opp.indexOf("Practice") < 0) {
+      fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, stake: wager, a: me, b: opp, winner: type === "win" ? me : opp, loser: type === "win" ? opp : me }) }).catch(() => {});
+    }
   };
 
 
@@ -411,13 +459,13 @@ export default function App() {
           
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Community</p>
+          <SidebarItem icon={Trophy} label="Leaderboard" target="leaderboard" active={view === 'leaderboard'} />
           <SidebarLink icon={Twitter} label="X (Twitter)" href="https://x.com/SpartansOnchain" />
           <SidebarLink icon={MessageCircle} label="Discord / Support" href="https://discord.gg/ME8PRr8YG" />
           <SidebarLink icon={BarChart3} label="Dexscreener" href="https://dexscreener.com/solana/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi" />
           
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Information</p>
-          <SidebarItem icon={Trophy} label="Leaderboard" target="leaderboard" active={view === 'leaderboard'} />
           <SidebarItem icon={ScrollText} label="Rules & Terms" target="rules" active={view === 'rules'} />
           <SidebarItem icon={Key} label="Armory" target="armory" active={view === 'armory'} />
         </div>
@@ -532,7 +580,7 @@ export default function App() {
                   <Coins className="w-3.5 h-3.5 text-amber-400" />
                   <div className="flex flex-col">
                     <span className="text-[9px] text-orange-200/50 uppercase font-bold leading-none">Ready Wallet</span>
-                    <span className="text-white font-black text-xs leading-none mt-1">{balanceReal.toLocaleString()}</span>
+                    <span className={"font-black text-xs leading-none mt-1 transition-all duration-500 " + (readyFlash === "win" ? "text-green-400 scale-110" : readyFlash === "lose" ? "text-red-400 scale-90" : "text-white")}>{balanceReal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -679,7 +727,7 @@ export default function App() {
               <div className="mt-12 mb-10">
                 <div className="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">
                   <button className="text-white font-black uppercase tracking-widest flex items-center gap-2 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg shadow-inner">
-                    <History className="w-4 h-4 text-orange-500" /> Recent Battles
+                    <History className="w-4 h-4 text-orange-500" /> Transaction History
                   </button>
                 </div>
                 
@@ -695,7 +743,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {liveFeed.map((feed) => (
+                      {(txHistory.length ? txHistory : liveFeed).map((feed) => (
                         <tr key={feed.id} className="hover:bg-white/5 transition-colors duration-200">
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
                             <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game}

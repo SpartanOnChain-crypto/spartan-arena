@@ -7,6 +7,9 @@ const feed = [];
 const tables = new Map();
 const ideas = [];
 const board = new Map();
+const locks = new Map();
+const history = [];
+const ticketsByWallet = new Map();
 const key = (g, w) => String(g) + ":" + String(w);
 function read(req) {
   return new Promise((resolve) => {
@@ -36,7 +39,8 @@ const server = http.createServer(async (req, res) => {
       scores.set(matchId, {});
       return res.end(JSON.stringify({ ticket, status: "matched", practice: false, opponent: other.wallet, matchId }));
     }
-    waiting.set(k, { wallet, ticket });
+    waiting.set(k, { wallet, ticket, k });
+    ticketsByWallet.set(wallet, { ticket, k });
     tickets.set(ticket, { status: "waiting" });
     return res.end(JSON.stringify({ ticket, status: "waiting" }));
   }
@@ -192,6 +196,38 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.method === "POST" && url.pathname === "/lock") {
+    const { matchId, wallet, sig, amount } = await read(req);
+    if (!matchId || !wallet) return res.end(JSON.stringify({ ok: false }));
+    const row = locks.get(matchId) || {};
+    row[wallet] = { sig: sig || "", amount: Number(amount) || 0 };
+    locks.set(matchId, row);
+    return res.end(JSON.stringify({ ok: true, count: Object.keys(row).length }));
+  }
+  if (req.method === "GET" && url.pathname.startsWith("/locks/")) {
+    const id = url.pathname.split("/locks/")[1];
+    const row = locks.get(id) || {};
+    return res.end(JSON.stringify({ ready: Object.keys(row).length >= 2, locks: row }));
+  }
+  if (req.method === "POST" && url.pathname === "/leave") {
+    const { wallet, ticket } = await read(req);
+    if (ticket) tickets.set(ticket, { status: "left" });
+    for (const [k, v] of [...waiting.entries()]) {
+      if (v.wallet === wallet || v.ticket === ticket) waiting.delete(k);
+    }
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "POST" && url.pathname === "/history") {
+    const b = await read(req);
+    if (b && b.game && b.winner && b.loser) {
+      history.unshift({ id: Date.now(), game: b.game, stake: b.stake, a: b.a, b: b.b, winner: b.winner, loser: b.loser, t: Date.now() });
+      if (history.length > 40) history.pop();
+    }
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "GET" && url.pathname === "/history") {
+    return res.end(JSON.stringify(history.slice(0, 20)));
+  }
   res.end(JSON.stringify({ ok: true, service: "spartan-match" }));
 });
 server.listen(process.env.PORT || 8787);

@@ -27,3 +27,19 @@ export async function queueForMatch({ game, wager, room }) {
     await sleep(1000);
   }
 }
+
+export async function leaveQueue({ ticket, wallet }) {
+  try {
+    await fetch(MATCH_URL + "/leave", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ticket, wallet }) });
+  } catch (e) {}
+}
+export async function waitBothLocked(matchId) {
+  for (;;) {
+    const s = await fetch(MATCH_URL + "/locks/" + matchId).then((r) => r.json()).catch(() => ({}));
+    if (s && s.ready) return s;
+    await sleep(800);
+  }
+}
+export async function reportLock({ matchId, wallet, sig, amount }) {
+  return fetch(MATCH_URL + "/lock", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ matchId, wallet, sig, amount }) }).then((r) => r.json()).catch(() => ({}));
+}
