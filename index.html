@@ -94,6 +94,11 @@
       [data-theme="raid"] .font-spartan {
         text-shadow: 0 0 22px rgba(255,140,40,.25);
       }
+
+      html, body, #root, [data-theme], button, a, [role="button"] {
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpolygon points='16,1 19,11 16,9 13,11' fill='%23e8c36a' stroke='%237a4a12' stroke-width='.6'/%3E%3Crect x='15.2' y='9' width='1.6' height='20' rx='.6' fill='%238b5a1a'/%3E%3Crect x='13.4' y='20' width='5.2' height='1.4' rx='.4' fill='%23c9a227'/%3E%3C/svg%3E") 16 2, auto;
+      }
+      input, textarea, input:focus, textarea:focus { cursor: text; }
       .look-dot { width:10px; height:10px; border-radius:99px; border:1px solid rgba(255,255,255,.35); }
       .look-dot.on { outline:2px solid #fff; outline-offset:2px; }
     </style>
