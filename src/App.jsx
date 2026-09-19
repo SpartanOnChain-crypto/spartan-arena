@@ -27,9 +27,7 @@ const startTapOnChain = async (w, afterLock, game, room) => {
   try {
     const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
     if (!ready) {
-      if (window.__openWallets) window.__openWallets();
-      else alert("Click Connect and pick a wallet first");
-      return;
+      throw new Error("MUST_SIGN_IN");
     }
     const wagerNum = parseWager(w);
     const sig = await lockStakeOnChain(wagerNum);
@@ -186,6 +184,7 @@ export default function App() {
     };
   }, []);
   
+  const [deskSlide, setDeskSlide] = useState(0);
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
 
@@ -204,7 +203,6 @@ export default function App() {
         const b = await getWalletBalances(pk);
         setBalanceReal(Number(b.spartan) || 0);
       } catch (e) {}
-      setBalanceLocked(1000);
       if (!username) setShowSignup(true);
     } catch (e) {
       alert(String(e.message || e));
@@ -215,7 +213,6 @@ export default function App() {
     e.preventDefault();
     if (tempName.trim().length > 0) {
       setUsername(tempName.toUpperCase());
-      setBalanceLocked(1000);
       setShowSignup(false);
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ['#EA580C', '#F59E0B', '#B91C1C'] });
       addFeed(tempName.toUpperCase(), "Arena Entry", 0, "-", "+1000 Bonus", "win");
@@ -223,6 +220,10 @@ export default function App() {
   };
 
   
+  useEffect(() => {
+    const id = setInterval(() => setDeskSlide((s) => (s + 1) % 2), 8000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => {
     const tick = async () => {
       try {
@@ -258,11 +259,7 @@ export default function App() {
       
     const newTotal = wageredTotal + numericAmount;
     setWageredTotal(newTotal);
-    if (newTotal >= 1000 && balanceLocked > 0) {
-      setBalanceReal(prev => prev + balanceLocked);
-      setBalanceLocked(0);
-      addFeed(username, "Bonus Unlock", 1000, "-", "+1000 Real", "win");
-    }
+
   };
 
   const SidebarItem = ({ icon: Icon, label, target, active, locked }) => (
@@ -380,7 +377,7 @@ export default function App() {
           <div className="my-3 border-t border-white/5" />
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Community</p>
           <SidebarLink icon={Twitter} label="X (Twitter)" href="https://x.com/SpartansOnchain" />
-          <SidebarLink icon={MessageCircle} label="Discord" href="https://discord.gg/ME8PRr8YG" />
+          <SidebarLink icon={MessageCircle} label="Discord / Support" href="https://discord.gg/ME8PRr8YG" />
           <SidebarLink icon={BarChart3} label="Dexscreener" href="https://dexscreener.com/solana/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi" />
           
           <div className="my-3 border-t border-white/5" />
@@ -451,13 +448,6 @@ export default function App() {
           <div className="flex items-center gap-3 shrink-0">
             {wallet && (
               <div className="flex bg-black/50 border border-white/10 rounded-xl overflow-hidden shadow-inner backdrop-blur-md">
-                <div className="px-3 py-1.5 border-r border-white/10 flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-red-400" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-neutral-400 uppercase font-bold leading-none">Locked</span>
-                    <span className="text-red-400 font-black text-xs leading-none mt-1">{balanceLocked.toLocaleString()}</span>
-                  </div>
-                </div>
                 <div className="px-3 py-1.5 flex items-center gap-2 bg-orange-900/20">
                   <Coins className="w-3.5 h-3.5 text-amber-400" />
                   <div className="flex flex-col">
@@ -493,23 +483,29 @@ export default function App() {
               
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 cursor-pointer group">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-colors duration-700" />
-                  <div className="relative z-10 p-8 md:p-10 flex flex-col justify-center h-full w-2/3">
-                    <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs md:text-sm mb-2 opacity-90 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-amber-400" /> Welcome Pack
-                    </h2>
-                    <h1 className="font-spartan text-3xl md:text-5xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2 leading-tight">
-                      First 1,000 Warriors
-                    </h1>
-                    <p className="text-orange-100/70 text-sm md:text-base font-medium mb-6">
-                      Register your blade to claim <strong className="text-amber-400">1,000 $SPARTAN</strong> locked bonus.
-                    </p>
-                    <button onClick={connectWallet} className="self-start bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:bg-neutral-200 transition-all">
-                      Claim Now
-                    </button>
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 group">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full" />
+                  <div className="relative z-10 p-7 md:p-9 flex flex-col justify-between h-full">
+                    {deskSlide === 0 ? (
+                      <div>
+                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs mb-2 flex items-center gap-2"><MessageCircle className="w-4 h-4" /> Community Hall</h2>
+                        <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">Join the Discord</h1>
+                        <p className="text-orange-100/80 text-sm md:text-base leading-relaxed max-w-md">Weekly prize drops. Monthly treasury giveaways. The Spartan OnChain NFT collection opens October 1st. Warriors who are in the hall get first look at raids, codes, and mint day.</p>
+                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block mt-5 bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Open Discord</a>
+                      </div>
+                    ) : (
+                      <div>
+                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs mb-2 flex items-center gap-2"><Coins className="w-4 h-4" /> Token Desk</h2>
+                        <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">List Your Coin Here</h1>
+                        <p className="text-orange-100/80 text-sm md:text-base leading-relaxed max-w-md">Submit a token to play on the Arena or to ride the live ticker next to BTC, ETH, SOL, and $SPARTAN. One-week or one-month placements. Same board the floor watches all day.</p>
+                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block mt-5 bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Submit in Discord</a>
+                      </div>
+                    )}
+                    <div className="flex gap-2 mt-4">
+                      <button type="button" onClick={() => setDeskSlide(0)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 0 ? "bg-white" : "bg-white/25")} />
+                      <button type="button" onClick={() => setDeskSlide(1)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 1 ? "bg-white" : "bg-white/25")} />
+                    </div>
                   </div>
-                  <Skull className="absolute -right-10 -bottom-10 w-64 h-64 text-orange-500/30 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(234,88,12,0.5)]" />
                 </div>
 
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
@@ -781,10 +777,16 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
   const littleLeague = ['100', '500', '1K', '5K', '10K'];
   const bigLeague = ['50K', '100K', '500K', '1M'];
 
+  const [needSign, setNeedSign] = useState(false);
   const handleStart = (room) => {
+    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+    if (!ready) { setNeedSign(true); return; }
+    setNeedSign(false);
     if (isSearching) return;
     setIsSearching(true);
-    Promise.resolve(onStart(wager, room || "")).finally(() => setIsSearching(false));
+    Promise.resolve(onStart(wager, room || "")).catch((e) => {
+      if (String(e && e.message) === "MUST_SIGN_IN") setNeedSign(true);
+    }).finally(() => setIsSearching(false));
   };
 
   return (
@@ -826,6 +828,7 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
         ) : "Find Random Warrior"}
 
             </button>
+                {needSign && <p className="mt-3 text-center text-sm font-black uppercase tracking-widest text-red-400">Must sign in</p>}
                 <p className="mt-3 text-center text-xs text-white/50">
                   You need 0.00008 SOL to find match
                 </p>
@@ -1296,6 +1299,14 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Race begins in:</h3>
+            {window.__spartanOpponent && window.__spartanOpponent !== "Practice Bot" && (
+        <div className="text-center mb-4">
+          <div className="font-spartan text-3xl md:text-5xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse drop-shadow-[0_0_20px_rgba(234,88,12,0.9)]">
+            VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}
+          </div>
+        </div>
+      )}
+
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600 animate-pulse">{countdown}</span>
     </div>
   );
@@ -1488,12 +1499,19 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       </div>
 </MatchmakingLobby>
   );
-  if (view === 'countdown') return (<div className="h-[60vh] flex flex-col items-center justify-center text-center"><h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Poison Pick begins in</h3><span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span></div>);
+  if (view === 'countdown') return (<div className="h-[60vh] flex flex-col items-center justify-center text-center"><h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Poison Pick begins in</h3>            {window.__spartanOpponent && window.__spartanOpponent !== "Practice Bot" && (
+        <div className="text-center mb-4">
+          <div className="font-spartan text-3xl md:text-5xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse drop-shadow-[0_0_20px_rgba(234,88,12,0.9)]">
+            VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}
+          </div>
+        </div>
+      )}
+<span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span></div>);
   if (view === 'arena') return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-8">
       <div className="w-full flex justify-between items-center mb-6 bg-black/50 border border-white/10 rounded-2xl p-5">
         <div className="text-center"><span className="text-[10px] uppercase text-green-400 font-black block">You</span><span className="font-spartan text-4xl text-white">{myHits}/3</span></div>
-        <div className="text-center"><div className="font-spartan text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{timer}s</div><div className="text-[10px] uppercase text-neutral-500 font-black">Round {round} · "1 poison · 2 cups"</div></div>
+        <div className="text-center"><div className="font-spartan text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{timer}s</div><div className="text-[10px] uppercase text-neutral-500 font-black">Round {round} · 1 poison · 2 cups</div></div>
         <div className="text-center"><span className="text-[10px] uppercase text-red-400 font-black block">Enemy</span><span className="font-spartan text-4xl text-white">{oppHits}/3</span></div>
       </div>
       <p className="mb-6 font-black uppercase tracking-widest text-orange-300 text-sm text-center">
@@ -1650,6 +1668,14 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
   if (view === 'countdown') return (
     <div className="h-[60vh] flex flex-col items-center justify-center text-center relative z-20">
       <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent Matched. Grab the Bones.</h3>
+            {window.__spartanOpponent && window.__spartanOpponent !== "Practice Bot" && (
+        <div className="text-center mb-4">
+          <div className="font-spartan text-3xl md:text-5xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse drop-shadow-[0_0_20px_rgba(234,88,12,0.9)]">
+            VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}
+          </div>
+        </div>
+      )}
+
       <span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-fuchsia-400 to-purple-600 animate-pulse">{countdown}</span>
     </div>
   );
