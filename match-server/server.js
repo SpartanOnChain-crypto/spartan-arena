@@ -220,7 +220,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/history") {
     const b = await read(req);
     if (b && b.game && b.winner && b.loser) {
-      history.unshift({ id: Date.now(), game: b.game, stake: b.stake, a: b.a, b: b.b, winner: b.winner, loser: b.loser, t: Date.now() });
+      history.unshift({ id: Date.now(), game: b.game, stake: b.stake, a: b.a, b: b.b, winner: b.winner, loser: b.loser, paid: !!b.paid, sig: b.sig || '', t: Date.now() });
       if (history.length > 40) history.pop();
     }
     return res.end(JSON.stringify({ ok: true }));

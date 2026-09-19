@@ -93,27 +93,53 @@ async function readState() {
   if (!matchId) return {};
   try { return await fetch(MATCH_HOST + "/state/" + matchId).then((r) => r.json()); } catch (e) { return {}; }
 }
+function shortPk(pk) {
+  const s = String(pk || "");
+  if (s.length < 8) return s || "----";
+  return s.slice(0, 4) + "..." + s.slice(-4);
+}
+function postHistory(row) {
+  fetch(MATCH_HOST + "/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(row) }).catch(() => {});
+}
 function payIfWin(wager) {
   const stake = parseWager(wager) || 0;
   const pot = stake * 2;
   const winPk = myPk();
   if (!(pot > 0) || !winPk) return;
   const winner = String(winPk.toBase58 ? winPk.toBase58() : winPk);
+  const loser = String(window.__spartanOpponent || "");
   fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
     .then((r) => r.json())
     .then((j) => {
-      if (j && j.sig) {
-        window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
-        if (typeof window.__spartanSetReady === "function") {
-          window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
-        }
-      } else {
-        window.__spartanPayoutNote = "Payout failed: " + (j && j.error ? j.error : "no response");
+      const paid = !!(j && j.sig);
+      window.__spartanPayoutNote = paid ? "Winnings paid. Check your READY wallet." : ("Payout failed: " + (j && j.error ? j.error : "no response"));
+      if (paid && typeof window.__spartanSetReady === "function") {
+        window.__spartanSetReady((prev) => Number(prev) + stake);
       }
+      postHistory({
+        game: window.__spartanGame || "Match",
+        stake,
+        a: winner,
+        b: loser,
+        winner,
+        loser,
+        paid,
+        sig: j && j.sig ? j.sig : "",
+      });
     })
-    .catch((e) => { window.__spartanPayoutNote = "Payout failed: " + String(e); });
+    .catch((e) => {
+      window.__spartanPayoutNote = "Payout failed: " + String(e);
+      postHistory({
+        game: window.__spartanGame || "Match",
+        stake,
+        a: myPk(),
+        b: String(window.__spartanOpponent || ""),
+        winner: myPk(),
+        loser: String(window.__spartanOpponent || ""),
+        paid: false,
+      });
+    });
 }
-
 export default function App() {
   const [wallet, setWallet] = useState(null);
   const [showWallets, setShowWallets] = useState(false);
@@ -128,12 +154,7 @@ export default function App() {
     setBalanceReal((prev) => {
       const next = typeof fn === "function" ? fn(prev) : fn;
       setReadyFlash(next > prev ? "win" : next < prev ? "lose" : "");
-      setTimeout(() => setReadyFlash(""), 1200);
-      if (window.__spartanWallet?.publicKey && typeof getWalletBalances === "function") {
-        getWalletBalances(window.__spartanWallet.publicKey).then((b) => {
-          if (b && typeof b.spartan === "number") setBalanceReal(b.spartan);
-        }).catch(() => {});
-      }
+      setTimeout(() => setReadyFlash(""), 1400);
       return next;
     });
   };
@@ -708,26 +729,24 @@ export default function App() {
                     <thead className="bg-black/80 text-neutral-400 text-xs uppercase tracking-widest font-black border-b border-white/10">
                       <tr>
                         <th className="px-6 py-5">Game</th>
-                        <th className="px-6 py-5">Warrior</th>
-                        <th className="px-6 py-5 text-right">Wager</th>
-                        <th className="px-6 py-5 text-right">Multiplier</th>
+                        <th className="px-6 py-5">Players</th>
+                        <th className="px-6 py-5 text-right">Stake</th>
+                        <th className="px-6 py-5">Winner</th>
+                        <th className="px-6 py-5">Loser</th>
                         <th className="px-6 py-5 text-right">Payout</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {(txHistory.length ? txHistory : liveFeed).map((feed) => (
-                        <tr key={feed.id} className="hover:bg-white/5 transition-colors duration-200">
+                        <tr key={feed.id || feed.t || Math.random()} className="hover:bg-white/5 transition-colors duration-200">
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
-                            <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game}
+                            <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game || "Match"}
                           </td>
-                          <td className="px-6 py-4 font-black text-neutral-300 tracking-wider">{feed.user}</td>
-                          <td className="px-6 py-4 text-right font-bold text-neutral-400 flex items-center justify-end gap-1.5">
-                            {feed.wager} <Coins className="w-3.5 h-3.5 text-amber-500 drop-shadow-md" />
-                          </td>
-                          <td className="px-6 py-4 text-right font-black text-neutral-200">{feed.multiplier}</td>
-                          <td className={`px-6 py-4 text-right font-black flex items-center justify-end gap-1.5 ${feed.type === 'win' ? 'text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]' : 'text-neutral-500'}`}>
-                            {feed.payout} {feed.type === 'win' && <Coins className="w-3.5 h-3.5 text-green-400" />}
-                          </td>
+                          <td className="px-6 py-4 font-black text-neutral-300 tracking-wider">{shortPk(feed.a || feed.user)} vs {shortPk(feed.b)}</td>
+                          <td className="px-6 py-4 text-right font-bold text-neutral-400">{feed.stake || feed.wager}</td>
+                          <td className="px-6 py-4 font-black text-green-400">{shortPk(feed.winner)}</td>
+                          <td className="px-6 py-4 font-black text-red-400">{shortPk(feed.loser)}</td>
+                          <td className={"px-6 py-4 text-right font-black " + (feed.paid ? "text-green-400" : "text-red-400")}>{feed.paid ? "PAID" : (feed.winner ? "FAILED" : (feed.payout || ""))}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1138,7 +1157,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
               window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
               if (typeof window.__spartanSetReady === "function") {
                 const stake = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
-                window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
+                window.__spartanSetReady((prev) => Number(prev) + stake);
               }
 
               const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
