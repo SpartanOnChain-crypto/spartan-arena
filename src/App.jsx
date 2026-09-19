@@ -1409,7 +1409,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     const t = setTimeout(() => setTimer((n) => n - 1), 1000);
     return () => clearTimeout(t);
   }, [view, step, timer, over]);
-  const need = () => (phase === 1 ? 1 : 2);
+  const need = () => 1;
   const autoPoison = () => {
     const n = need(); const set = [];
     while (set.length < n) { const c = 1 + Math.floor(Math.random() * 3); if (!set.includes(c)) set.push(c); }
@@ -1419,7 +1419,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     if (over) return;
     if (step === 'pickPoison' && iPick()) {
       const max = need();
-      if (max === 1) { setPoison([n]); lockPoison([n]); return; }
+      setPoison([n]); lockPoison([n]); return;
       setPoison((prev) => {
         let next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n];
         if (next.length > max) next = next.slice(next.length - max);
@@ -1446,7 +1446,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     setGuess(null); setMyHits(hits[me()] || 0); setNote(hit ? "POISON" : "SAFE"); setStep('reveal');
     if ((hits[me()] || 0) >= 3) { patchState({ step: 'reveal', guess: g, hits, over: picker }); setOver(picker); finish(picker === me()); return; }
     const nextRound = (st.round || round) + 1;
-    const nextPhase = nextRound > 4 ? 2 : 1;
+    const nextPhase = 1;
     const nextPicker = me();
     patchState({ step: 'reveal', guess: g, hits, round: nextRound, phase: nextPhase });
     setTimeout(() => {
@@ -1468,35 +1468,44 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     }
   };
   if (view === 'lobby') return (
-    <MatchmakingLobby title="Poison Pick" subtitle="1v1 PvP. Hide the poison. First to 3 poison drinks loses." icon={Wine} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}>
-      <div className="mt-8 bg-black/50 border border-white/10 rounded-3xl p-8">
+    <MatchmakingLobby title="Poison Pick" subtitle="Two cups. One poison. First to 3 poison drinks loses." icon={Wine} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}>
+            <div className="mt-8 bg-black/50 border border-white/10 rounded-3xl p-8">
         <h3 className="font-spartan text-xl font-black text-white uppercase mb-6">How to Play Poison Pick</h3>
         <div className="grid md:grid-cols-3 gap-6 text-sm text-neutral-300 leading-relaxed">
-          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">1. Hide the poison</h4><p>A 10-second clock starts. One warrior is chosen to hide the poison. Tap a cup to lock it. Early rounds have 1 poison cup. After both of you have hidden twice and guessed twice, it becomes 2 poison cups and 1 safe cup.</p></div>
-          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">2. Spin then choose</h4><p>Cups shuffle so the guesser cannot track which one you tapped. When they stop, the other warrior has 10 seconds to pick one cup. You see the same cups and the same clock on both screens.</p></div>
-          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">3. Drink or survive</h4><p>Safe cup = you live, roles swap, next round. Poison cup = one mark against you. First warrior to drink poison 3 times loses. The other takes the 95 / 3 / 2 pot. Rounds keep going until someone hits 3.</p></div>
+          <div>
+            <h4 className="text-white font-black uppercase tracking-widest mb-2">1. Two cups. One is death.</h4>
+            <p>A 10-second clock starts. One warrior is the hider. They tap exactly one cup. That cup is poison. The other cup is safe. You do not get a second poison later. Every round is the same: two cups, one kill.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-black uppercase tracking-widest mb-2">2. The cups forget.</h4>
+            <p>After the hide, the cups shuffle so the guesser cannot track your tap. When they stop, the guesser has 10 seconds to pick a cup. Same two cups on both screens. Same clock. No tells.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-black uppercase tracking-widest mb-2">3. Three sips and you fall.</h4>
+            <p>Safe cup: you live, roles swap, next round. Poison cup: you take a mark. First warrior to drink poison three times loses the match. The other takes the 95 / 3 / 2 pot. Rounds do not cap. You play until somebody hits 3.</p>
+          </div>
         </div>
       </div>
-    </MatchmakingLobby>
+</MatchmakingLobby>
   );
   if (view === 'countdown') return (<div className="h-[60vh] flex flex-col items-center justify-center text-center"><h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Poison Pick begins in</h3><span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span></div>);
   if (view === 'arena') return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center mt-8">
       <div className="w-full flex justify-between items-center mb-6 bg-black/50 border border-white/10 rounded-2xl p-5">
         <div className="text-center"><span className="text-[10px] uppercase text-green-400 font-black block">You</span><span className="font-spartan text-4xl text-white">{myHits}/3</span></div>
-        <div className="text-center"><div className="font-spartan text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{timer}s</div><div className="text-[10px] uppercase text-neutral-500 font-black">Round {round} · {phase === 1 ? "1 poison" : "2 poisons"}</div></div>
+        <div className="text-center"><div className="font-spartan text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">{timer}s</div><div className="text-[10px] uppercase text-neutral-500 font-black">Round {round} · "1 poison · 2 cups"</div></div>
         <div className="text-center"><span className="text-[10px] uppercase text-red-400 font-black block">Enemy</span><span className="font-spartan text-4xl text-white">{oppHits}/3</span></div>
       </div>
       <p className="mb-6 font-black uppercase tracking-widest text-orange-300 text-sm text-center">
-        {step === 'pickPoison' && iPick() && ("You hide the poison. Tap " + (phase === 2 ? "two cups." : "one cup."))}
+        {step === 'pickPoison' && iPick() && "You hide the poison. Tap one cup."}
         {step === 'pickPoison' && !iPick() && "Opponent is hiding the poison..."}
         {step === 'spin' && "Cups are spinning..."}
         {step === 'guess' && !iPick() && "Pick a cup. Do not drink the poison."}
         {step === 'guess' && iPick() && "Opponent is choosing a cup..."}
         {step === 'reveal' && note}
       </p>
-      <div className={"grid grid-cols-3 gap-4 w-full max-w-xl " + (spinOn ? "animate-pulse" : "")}>
-        {[1,2,3].map((n) => (
+      <div className={"grid grid-cols-2 gap-6 w-full max-w-lg " + (spinOn ? "animate-pulse" : "")}>
+        {[1,2].map((n) => (
           <button key={n} onClick={() => tapCup(n)} className="h-40 rounded-3xl border-2 border-white/15 bg-black/50 flex flex-col items-center justify-center hover:border-white/30">
             <span className="font-spartan text-5xl text-amber-300">Cup</span>
             <span className="mt-2 text-xs font-black uppercase tracking-widest text-white">{n}</span>
