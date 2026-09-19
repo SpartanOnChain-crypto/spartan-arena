@@ -204,7 +204,6 @@ export default function App() {
     if (!w.provider) { alert(w.note || (w.name + " is not installed")); return; }
     try {
       const pk = await connectProvider(w.provider);
-      window.__spartanWallet = { publicKey: pk };
       setWallet(pk.toString().slice(0,4) + "..." + pk.toString().slice(-4));
       setShowWallets(false);
       try {
@@ -539,13 +538,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto relative custom-scrollbar z-10">
           
           {view === 'home' && (
-            <div className="relative p-4 md:p-8 xl:px-40">
-              <SideReel side="left" slides={[
-                { ep: "EP 01", kicker: "NFT WALL", title: "Crest hits the gate.", line: "The floor saw the mint.", skin: "bg-gradient-to-b from-red-800 via-orange-950 to-black" },
-                { ep: "EP 02", kicker: "MINT LANE", title: "Helmets catch fire.", line: "Your art. This marble.", skin: "bg-gradient-to-b from-amber-700 via-red-950 to-black" },
-                { ep: "EP 03", kicker: "GALLERY", title: "Could be yours.", line: "Next loop, new legend.", skin: "bg-gradient-to-b from-orange-600 via-stone-950 to-black" },
-              ]} />
-              <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto p-4 md:p-8">
               
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
@@ -704,12 +697,6 @@ export default function App() {
               <footer className="pt-8 pb-4 text-center text-[10px] text-neutral-500 uppercase tracking-widest font-black border-t border-white/5">
                 The Spartan Arena • Solana Network • Play Responsibly
               </footer>
-              </div>
-              <SideReel side="right" slides={[
-                { ep: "EP 01", kicker: "TICKER", title: "Coin cuts the board.", line: "Parked next to $SPARTAN.", skin: "bg-gradient-to-b from-cyan-800 via-orange-950 to-black" },
-                { ep: "EP 02", kicker: "BOARD", title: "Lights stay on.", line: "One week. Then the next blade.", skin: "bg-gradient-to-b from-fuchsia-800 via-red-950 to-black" },
-                { ep: "EP 03", kicker: "SIGNAL", title: "Could be yours.", line: "Same slot. New ticker.", skin: "bg-gradient-to-b from-amber-600 via-stone-950 to-black" },
-              ]} />
             </div>
           )}
 
