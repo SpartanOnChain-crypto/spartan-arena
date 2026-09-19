@@ -510,18 +510,13 @@ export default function App() {
 
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 group hidden lg:block">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
-                  <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
-                    <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
-                    <h1 className="font-spartan text-4xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2">
-                      1,250,000 <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">$SPARTAN</span>
-                      <span className="ml-3 align-middle text-xs font-black uppercase tracking-widest text-purple-200/80 border border-purple-300/40 rounded-full px-3 py-1">Coming Soon</span>
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
+                    <h2 className="text-purple-200 font-black uppercase tracking-widest text-[11px] mb-3">Oracle's Jackpot</h2>
+                    <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">
+                      1,250,000 <span className="text-purple-300">$SPARTAN</span>
                     </h1>
-                    <p className="text-purple-100/70 font-medium mb-6">
-                      The treasury grows with every drop of blood.
-                    </p>
-                    <div className="self-start bg-purple-600/40 border border-purple-400/50 text-white/80 px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">
-                      Coming Soon
-                    </div>
+                    <p className="text-purple-100/80 text-sm leading-relaxed max-w-sm mb-5">The treasury grows with every drop of blood.</p>
+                    <div className="bg-white/10 border border-white/20 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Coming Soon</div>
                   </div>
                   <Trophy className="absolute -right-4 top-1/2 -translate-y-1/2 w-48 h-48 text-purple-400/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" />
                 </div>
