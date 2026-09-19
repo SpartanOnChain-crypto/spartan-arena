@@ -5,6 +5,8 @@ const scores = new Map();
 const here = new Map();
 const feed = [];
 const tables = new Map();
+const ideas = [];
+const board = new Map();
 const key = (g, w) => String(g) + ":" + String(w);
 function read(req) {
   return new Promise((resolve) => {
@@ -94,6 +96,32 @@ const server = http.createServer(async (req, res) => {
     const id = url.pathname.split("/state/")[1];
     return res.end(JSON.stringify(tables.get(id) || {}));
   }
+
+  if (req.method === "POST" && url.pathname === "/ideas") {
+    const body = await read(req);
+    const idea = { id: Date.now(), wallet: String(body.wallet || "unknown"), text: String(body.text || "").slice(0, 4000), t: Date.now() };
+    if (idea.text.trim()) ideas.unshift(idea);
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "GET" && url.pathname === "/ideas") {
+    return res.end(JSON.stringify(ideas.slice(0, 100)));
+  }
+  if (req.method === "POST" && url.pathname === "/board") {
+    const body = await read(req);
+    const w = String(body.wallet || "");
+    if (!w) return res.end(JSON.stringify({ ok: false }));
+    const row = board.get(w) || { wallet: w, wins: 0, losses: 0, won: 0, played: 0 };
+    row.played += 1;
+    if (body.type === "win") { row.wins += 1; row.won += Number(body.amount || 0); }
+    else row.losses += 1;
+    board.set(w, row);
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (req.method === "GET" && url.pathname === "/board") {
+    const rows = [...board.values()].sort((a, b) => (b.won - a.won) || (b.wins - a.wins));
+    return res.end(JSON.stringify(rows.slice(0, 25)));
+  }
+
   if (req.method === "POST" && url.pathname === "/payout") {
     try {
       const body = await read(req);

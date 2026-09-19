@@ -187,6 +187,11 @@ export default function App() {
   const [deskSlide, setDeskSlide] = useState(0);
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
+  const [liveBoard, setLiveBoard] = useState([]);
+  const [ideaText, setIdeaText] = useState('');
+  const [armoryPin, setArmoryPin] = useState('');
+  const [armoryOk, setArmoryOk] = useState(false);
+  const [armoryIdeas, setArmoryIdeas] = useState([]);
 
   const connectWallet = async () => {
     setWalletList(listWallets());
@@ -235,6 +240,10 @@ export default function App() {
         const f = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed").then(r => r.json());
         if (Array.isArray(f) && f.length) setLiveFeed(f.slice(0, 8));
       } catch (e) {}
+      try {
+        const b = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/board").then(r => r.json());
+        if (Array.isArray(b)) setLiveBoard(b);
+      } catch (e) {}
       const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
       if (pk) {
         fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: view === "crash" ? "chariot" : view === "plinko" ? "phalanx" : view === "dice" ? "bones" : "tap", wallet: String(pk.toBase58 ? pk.toBase58() : pk) }) }).catch(() => {});
@@ -247,6 +256,8 @@ export default function App() {
   const addFeed = (user, game, wager, multiplier, payout, type) => {
     setLiveFeed(prev => [{ id: Date.now(), user, game, wager, multiplier, payout, type }, ...prev].slice(0, 8));
     fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user, game, wager, multiplier, payout, type }) }).catch(() => {});
+    const amt = Number(String(payout).replace(/[^0-9.]/g, "")) || 0;
+    fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/board", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet: user, type, amount: type === "win" ? amt : 0, game }) }).catch(() => {});
   };
 
 
@@ -385,6 +396,7 @@ export default function App() {
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Information</p>
           <SidebarItem icon={Trophy} label="Leaderboard" target="leaderboard" active={view === 'leaderboard'} />
           <SidebarItem icon={ScrollText} label="Rules & Terms" target="rules" active={view === 'rules'} />
+          <SidebarItem icon={Key} label="Armory" target="armory" active={view === 'armory'} />
         </div>
       </aside>
 
@@ -666,12 +678,22 @@ export default function App() {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6 text-sm text-neutral-300">
                   Have an idea for a Web3 PVP game? Describe the mechanics below. If the developers build your game, you'll receive a massive $SPARTAN bounty dropped directly to your connected wallet.
                 </div>
-                <textarea 
+                <textarea
                   rows={6}
+                  value={ideaText}
+                  onChange={(e) => setIdeaText(e.target.value)}
                   placeholder="Describe your game mechanics, theme, and how it utilizes $SPARTAN..."
                   className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-white placeholder-neutral-600 focus:outline-none focus:border-orange-500 resize-none mb-4 shadow-inner"
                 />
-                <button onClick={() => {alert("Idea submitted to the Oracle!"); setView('home');}} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 font-black text-sm tracking-widest uppercase hover:brightness-110 shadow-[0_0_20px_rgba(234,88,12,0.4)] transition-all text-white">
+                <button onClick={async () => {
+                  const pk = window.__spartanWallet?.publicKey;
+                  if (!pk) { alert("Sign in first so we can attach your wallet."); return; }
+                  if (!ideaText.trim()) return;
+                  const host = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+                  await fetch(host + "/ideas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet: String(pk.toBase58 ? pk.toBase58() : pk), text: ideaText.trim() }) });
+                  setIdeaText("");
+                  setView("home");
+                }} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 font-black text-sm tracking-widest uppercase text-white">
                   Submit to the Oracle
                 </button>
               </div>
@@ -706,10 +728,16 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3 flex items-center gap-3">
-                    <Lock className="w-6 h-6 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Welcome Allowance Play-Through
+                    <Shield className="w-6 h-6 text-red-400" /> Fair Play & Cheating
                   </h3>
                   <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
-                    The 1,000 $SPARTAN credit granted on account creation remains locked. Users must complete an aggregate wager turnover of 1,000 $SPARTAN across any arena games before balances unlock for chain withdrawal. Automated bot behavior will result in execution and forfeiture of funds.
+                    Matches are live 1v1. Scores sync on the match server. Scripts, auto-clickers, multi-account collusion, latency abuse, or any tool that plays for you is cheating. We watch odd win patterns and matched wallets. Cheat and the wallet is banned from matchmaking. Stakes already in a match follow the on-chain 95 / 3 / 2 split. No refund for a ban.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white uppercase tracking-widest mb-3">House rules</h3>
+                  <p className="bg-black/50 p-6 rounded-2xl border border-white/5 shadow-inner">
+                    You need a connected Solana wallet and a small SOL fee to start a match. Only $SPARTAN is staked. You play humans, not bots. Same stake on both sides. Winner takes 95% of the pot, 3% treasury, 2% burn. Private rooms use a 6-digit code. Locked games (300 Stand, Oracle Jackpot) stay closed until those pots are live. The Arena does not custody your keys. You are responsible for your device, your wallet, and your stakes. 18+ only. Play what you can lose.
                   </p>
                 </div>
               </div>
@@ -732,24 +760,64 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    <tr className="bg-gradient-to-r from-amber-900/30 to-transparent">
-                      <td className="p-6 font-black text-yellow-500 text-xl drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">#1</td>
-                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">ARES_99</td>
-                      <td className="p-6 font-bold text-neutral-300">78%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">142,500 $SPARTAN</td>
-                    </tr>
-                    <tr className="bg-gradient-to-r from-neutral-600/20 to-transparent">
-                      <td className="p-6 font-black text-neutral-300 text-xl drop-shadow-[0_0_10px_rgba(163,163,163,0.5)]">#2</td>
-                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">LEONIDAS</td>
-                      <td className="p-6 font-bold text-neutral-300">65%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">89,200 $SPARTAN</td>
-                    </tr>
-                    <tr className="bg-gradient-to-r from-orange-900/20 to-transparent">
-                      <td className="p-6 font-black text-orange-600 text-xl drop-shadow-[0_0_10px_rgba(234,88,12,0.5)]">#3</td>
-                      <td className="p-6 font-black text-white uppercase tracking-wider text-base">BLOOD_GHOST</td>
-                      <td className="p-6 font-bold text-neutral-300">61%</td>
-                      <td className="p-6 text-right font-black text-amber-400 text-base">45,100 $SPARTAN</td>
-                    </tr>
+                    {liveBoard.length === 0 && (
+                      <tr><td className="p-8 text-neutral-500" colSpan={4}>No live results yet. Finished matches land here.</td></tr>
+                    )}
+
+          {view === 'armory' && (
+            <div className="max-w-3xl mx-auto mt-16 px-4 relative z-20">
+              {!armoryOk ? (
+                <div className="bg-black/60 border border-white/10 rounded-3xl p-10 text-center">
+                  <Key className="w-10 h-10 text-amber-400 mx-auto mb-4" />
+                  <h1 className="font-spartan text-3xl font-black text-white mb-2">ARMORY</h1>
+                  <p className="text-neutral-400 text-sm mb-6">Operator gate. Enter the key you keep offline.</p>
+                  <input type="password" value={armoryPin} onChange={(e) => setArmoryPin(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-center text-white mb-4" placeholder="Key" />
+                  <button onClick={async () => {
+                    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(armoryPin));
+                    const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+                    if (hex === "7c9cef143914af7d37164220ef9990287b623e52b7a746cfe5a185fb934a5db4") {
+                      setArmoryOk(true);
+                      setArmoryPin("");
+                      const host = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+                      const rows = await fetch(host + "/ideas").then((r) => r.json()).catch(() => []);
+                      setArmoryIdeas(Array.isArray(rows) ? rows : []);
+                    } else {
+                      setArmoryPin("");
+                    }
+                  }} className="w-full py-3 rounded-xl bg-orange-600 font-black uppercase tracking-widest text-white">Enter</button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-black/60 border border-white/10 rounded-3xl p-8">
+                    <h2 className="font-spartan text-2xl font-black text-white mb-2">Rebuild prompt</h2>
+                    <p className="text-neutral-400 text-sm mb-4">Paste this to Grok when you want to keep editing the live casino.</p>
+                    <textarea readOnly rows={12} className="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-xs text-neutral-200" value={"SPARTAN ARENA REBUILD / EDIT PROMPT\nContinue the live Spartan Arena PvP casino. Do not start over.\n\nRepo: GitHub SpartanOnChain-crypto/spartan-arena\nLocal: /mnt/c/Users/XRP/spartan-arena-web\nLive: https://spartan-arena-one.vercel.app\nMatch server: https://grand-exploration-production-d941.up.railway.app\nMint $SPARTAN: 8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi\nTreasury: 8sYXvt5WSk1SVJ8UmWPLSTAYapZ1BBf2VbQECSPF2H34\nOperator public: 2fzt95p1oznswzeAFNcpv86qjN4bVSoeJ7dMQXurN59y\nProgram: Dw8c9YJLzv8m3EiKcwdCg2DiQPPeJAB3bwTfqRRe3riN\nSplit: 95% winner / 3% treasury / 2% burn. Humans only. No bots.\nGames live: Colosseum Tap, Chariot Deathrace, Poison Pick (2 cups, first to 3 poison drinks loses), Bones of Sparta.\nLocked: 300 Stand, Oracle Jackpot.\nEdits go in Ubuntu as python patches, then git add / commit / pull --rebase / push origin main. Vercel builds the site. Railway serves match-server.\n\nI am the operator. Keep Ready Wallet live. Keep VS opponent wallet on every game. Keep sign-in required before Find Match. Change only what I ask next."} />
+                  </div>
+                  <div className="bg-black/60 border border-white/10 rounded-3xl p-8">
+                    <h2 className="font-spartan text-2xl font-black text-white mb-4">Game suggestions</h2>
+                    {armoryIdeas.length === 0 && <p className="text-neutral-500">No ideas yet.</p>}
+                    <div className="space-y-4">
+                      {armoryIdeas.map((it) => (
+                        <div key={it.id} className="border border-white/10 rounded-2xl p-5">
+                          <p className="text-xs font-black text-orange-300 mb-2">{it.wallet}</p>
+                          <p className="text-sm text-neutral-200 whitespace-pre-wrap">{it.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+                    {liveBoard.map((row, i) => (
+                      <tr key={row.wallet} className={i === 0 ? "bg-gradient-to-r from-amber-900/30 to-transparent" : ""}>
+                        <td className="p-6 font-black text-amber-400 text-xl">#{i + 1}</td>
+                        <td className="p-6 font-black text-white tracking-wider">{String(row.wallet).slice(0,4)}...{String(row.wallet).slice(-4)}</td>
+                        <td className="p-6 font-bold text-neutral-300">{row.played ? Math.round((row.wins / row.played) * 100) : 0}%</td>
+                        <td className="p-6 text-right font-black text-amber-400">{Number(row.won || 0).toLocaleString()} $SPARTAN</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
