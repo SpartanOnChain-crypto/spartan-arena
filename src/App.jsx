@@ -539,13 +539,13 @@ export default function App() {
         <div className="flex-1 overflow-y-auto relative custom-scrollbar z-10">
           
           {view === 'home' && (
-            <div className="max-w-[92rem] mx-auto p-4 md:p-8 flex justify-center items-start gap-0">
+            <div className="relative p-4 md:p-8 xl:px-40">
               <SideReel side="left" slides={[
-                { kicker: "NFT WALL", title: "Your drop. This wall.", line: "Crest hits the marble. Floor notices.", top: "bg-gradient-to-b from-red-700 to-transparent", bot: "bg-gradient-to-t from-orange-700 to-transparent" },
-                { kicker: "MINT LANE", title: "Helmets in the lights.", line: "Not a pitch. A billboard that slashes.", top: "bg-gradient-to-b from-amber-600 to-transparent", bot: "bg-gradient-to-t from-red-800 to-transparent" },
-                { kicker: "GALLERY", title: "Could be yours.", line: "Same frame. New legend every loop.", top: "bg-gradient-to-b from-orange-500 to-transparent", bot: "bg-gradient-to-t from-black to-transparent" },
+                { ep: "EP 01", kicker: "NFT WALL", title: "Crest hits the gate.", line: "The floor saw the mint.", skin: "bg-gradient-to-b from-red-800 via-orange-950 to-black" },
+                { ep: "EP 02", kicker: "MINT LANE", title: "Helmets catch fire.", line: "Your art. This marble.", skin: "bg-gradient-to-b from-amber-700 via-red-950 to-black" },
+                { ep: "EP 03", kicker: "GALLERY", title: "Could be yours.", line: "Next loop, new legend.", skin: "bg-gradient-to-b from-orange-600 via-stone-950 to-black" },
               ]} />
-              <div className="max-w-7xl flex-1 min-w-0">
+              <div className="max-w-7xl mx-auto">
               
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
@@ -706,9 +706,9 @@ export default function App() {
               </footer>
               </div>
               <SideReel side="right" slides={[
-                { kicker: "TICKER", title: "Your coin. This board.", line: "Sits next to BTC. Does not whisper.", top: "bg-gradient-to-b from-cyan-700 to-transparent", bot: "bg-gradient-to-t from-orange-700 to-transparent" },
-                { kicker: "BOARD", title: "Parked by $SPARTAN.", line: "One week of lights. Then the next blade.", top: "bg-gradient-to-b from-fuchsia-700 to-transparent", bot: "bg-gradient-to-t from-red-800 to-transparent" },
-                { kicker: "SIGNAL", title: "Could be yours.", line: "Same slot. New ticker every loop.", top: "bg-gradient-to-b from-amber-500 to-transparent", bot: "bg-gradient-to-t from-black to-transparent" },
+                { ep: "EP 01", kicker: "TICKER", title: "Coin cuts the board.", line: "Parked next to $SPARTAN.", skin: "bg-gradient-to-b from-cyan-800 via-orange-950 to-black" },
+                { ep: "EP 02", kicker: "BOARD", title: "Lights stay on.", line: "One week. Then the next blade.", skin: "bg-gradient-to-b from-fuchsia-800 via-red-950 to-black" },
+                { ep: "EP 03", kicker: "SIGNAL", title: "Could be yours.", line: "Same slot. New ticker.", skin: "bg-gradient-to-b from-amber-600 via-stone-950 to-black" },
               ]} />
             </div>
           )}
@@ -898,19 +898,24 @@ export default function App() {
 function SideReel({ side, slides }) {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setI((n) => (n + 1) % slides.length), 3200);
+    const id = setInterval(() => setI((n) => (n + 1) % slides.length), 2800);
     return () => clearInterval(id);
   }, [slides.length]);
   const s = slides[i];
   return (
-    <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className={"hidden xl:flex flex-col justify-between rounded-2xl overflow-hidden border border-orange-400/30 bg-black/70 shadow-[0_0_30px_rgba(234,88,12,0.25)] w-[5.25rem] min-h-[28rem] sticky top-8 " + (side === "left" ? "mr-3" : "ml-3")}>
-      <div className={"h-24 " + s.top} />
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-2 py-4">
-        <p className="text-[9px] font-black uppercase tracking-[0.22em] text-orange-300 mb-3">{s.kicker}</p>
-        <p className="font-spartan text-sm font-black text-white leading-tight mb-3">{s.title}</p>
-        <p className="text-[10px] text-orange-100/80 leading-snug">{s.line}</p>
+    <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className={"hidden xl:flex flex-col overflow-hidden rounded-2xl border border-orange-400/40 bg-black/80 shadow-[0_0_40px_rgba(234,88,12,0.35)] w-32 " + (side === "left" ? "absolute left-3 top-6 bottom-8" : "absolute right-3 top-6 bottom-8")}>
+      <div className={"relative h-full flex flex-col " + s.skin}>
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: "repeating-linear-gradient(115deg, transparent 0 10px, rgba(255,255,255,.07) 10px 11px)" }} />
+        <div className="relative px-2 pt-3 text-[9px] font-black tracking-[0.2em] text-orange-200">{s.ep}</div>
+        <div className="relative flex-1 flex flex-col items-center justify-center text-center px-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-300 mb-2">{s.kicker}</p>
+          <p className="font-spartan text-base font-black text-white leading-tight mb-2">{s.title}</p>
+          <p className="text-[10px] text-orange-50/90 leading-snug">{s.line}</p>
+        </div>
+        <div className="relative h-1.5 bg-white/10 m-2 rounded-full overflow-hidden">
+          <div key={i} className="h-full bg-orange-400 animate-[pulse_2.8s_linear]" style={{ width: "100%" }} />
+        </div>
       </div>
-      <div className={"h-20 " + s.bot} />
     </a>
   );
 }
