@@ -381,6 +381,7 @@ export default function App() {
               { id: "night", label: "Night", c: "bg-amber-600" },
               { id: "neon", label: "Neon", c: "bg-cyan-400" },
               { id: "anime", label: "Anime", c: "bg-red-500" },
+              { id: "raid", label: "Raid", c: "bg-yellow-400" },
               { id: "marble", label: "Marble", c: "bg-neutral-300" },
             ].map((x) => (
               <button key={x.id} type="button" title={x.label} onClick={() => setLook(x.id)} className={"look-dot " + x.c + (look === x.id ? " on" : "")} />
