@@ -862,8 +862,10 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
           fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
-            if (j && j.sig) alert("Payout sent: " + j.sig.slice(0,8) + "...");
-            else alert("Payout failed: " + (j && j.error ? j.error : "no response"));
+            if (j && j.sig) {
+              alert("Winnings paid. Tap OK, then the page will refresh so READY updates.");
+              window.location.reload();
+            } else alert("Payout failed: " + (j && j.error ? j.error : "no response"));
           }).catch((e)=>alert("Payout failed: " + String(e)));
         }
 
