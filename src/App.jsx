@@ -221,7 +221,7 @@ export default function App() {
 
   
   useEffect(() => {
-    const id = setInterval(() => setDeskSlide((s) => (s + 1) % 2), 8000);
+    const id = setInterval(() => setDeskSlide((s) => (s + 1) % 2), 5000);
     return () => clearInterval(id);
   }, []);
   useEffect(() => {
@@ -485,42 +485,43 @@ export default function App() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
                 <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 group">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full" />
-                  <div className="relative z-10 p-7 md:p-9 flex flex-col justify-between h-full">
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
                     {deskSlide === 0 ? (
-                      <div>
-                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs mb-2 flex items-center gap-2"><MessageCircle className="w-4 h-4" /> Community Hall</h2>
-                        <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">Join the Discord</h1>
-                        <p className="text-orange-100/80 text-sm md:text-base leading-relaxed max-w-md">Weekly prize drops. Monthly treasury giveaways. The Spartan OnChain NFT collection opens October 1st. Warriors who are in the hall get first look at raids, codes, and mint day.</p>
-                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block mt-5 bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Open Discord</a>
+                      <div className="max-w-md">
+                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-[11px] mb-3">Community Hall</h2>
+                        <h1 className="font-spartan text-3xl font-black text-white mb-3">Join the Discord</h1>
+                        <p className="text-orange-100/80 text-sm leading-relaxed mb-5">Weekly and monthly giveaways. Spartan OnChain NFTs launch October 1st. First look lives in the hall.</p>
+                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Open Discord</a>
                       </div>
                     ) : (
-                      <div>
-                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-xs mb-2 flex items-center gap-2"><Coins className="w-4 h-4" /> Token Desk</h2>
-                        <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">List Your Coin Here</h1>
-                        <p className="text-orange-100/80 text-sm md:text-base leading-relaxed max-w-md">Submit a token to play on the Arena or to ride the live ticker next to BTC, ETH, SOL, and $SPARTAN. One-week or one-month placements. Same board the floor watches all day.</p>
-                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block mt-5 bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Submit in Discord</a>
+                      <div className="max-w-md">
+                        <h2 className="text-orange-200 font-black uppercase tracking-widest text-[11px] mb-3">Token Desk</h2>
+                        <h1 className="font-spartan text-3xl font-black text-white mb-3">List Your Coin Here</h1>
+                        <p className="text-orange-100/80 text-sm leading-relaxed mb-5">Play it on the Arena or park it on the ticker next to BTC, ETH, SOL, and $SPARTAN. Week or month placements.</p>
+                        <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Submit in Discord</a>
                       </div>
                     )}
-                    <div className="flex gap-2 mt-4">
+                    <div className="absolute bottom-5 left-0 right-0 flex justify-center gap-2">
                       <button type="button" onClick={() => setDeskSlide(0)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 0 ? "bg-white" : "bg-white/25")} />
                       <button type="button" onClick={() => setDeskSlide(1)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 1 ? "bg-white" : "bg-white/25")} />
                     </div>
                   </div>
                 </div>
 
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 cursor-pointer group hidden lg:block">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 group hidden lg:block">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
                   <div className="relative z-10 p-10 flex flex-col justify-center h-full w-2/3">
                     <h2 className="text-purple-200 font-black uppercase tracking-widest text-sm mb-2 opacity-90">Oracle's Jackpot</h2>
                     <h1 className="font-spartan text-4xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-2">
                       1,250,000 <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">$SPARTAN</span>
+                      <span className="ml-3 align-middle text-xs font-black uppercase tracking-widest text-purple-200/80 border border-purple-300/40 rounded-full px-3 py-1">Coming Soon</span>
                     </h1>
                     <p className="text-purple-100/70 font-medium mb-6">
                       The treasury grows with every drop of blood.
                     </p>
-                    <button onClick={() => setView('jackpot')} className="self-start bg-purple-600 border border-purple-400 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:bg-purple-500 transition-all">
-                      View Pot
-                    </button>
+                    <div className="self-start bg-purple-600/40 border border-purple-400/50 text-white/80 px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">
+                      Coming Soon
+                    </div>
                   </div>
                   <Trophy className="absolute -right-4 top-1/2 -translate-y-1/2 w-48 h-48 text-purple-400/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" />
                 </div>
