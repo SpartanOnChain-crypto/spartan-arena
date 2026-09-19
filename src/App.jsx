@@ -185,6 +185,7 @@ export default function App() {
   }, []);
   
   const [deskSlide, setDeskSlide] = useState(0);
+  const [searchQ, setSearchQ] = useState('');
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
   const [liveBoard, setLiveBoard] = useState([]);
@@ -410,11 +411,55 @@ export default function App() {
           <div className="w-64 hidden xl:block shrink-0">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <input 
-                type="text" 
-                placeholder="Search arena..." 
+                            <input
+                type="text"
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const hit = [
+                      { k: "tap colosseum", v: "tap" },
+                      { k: "chariot deathrace", v: "crash" },
+                      { k: "poison pick", v: "plinko" },
+                      { k: "bones sparta", v: "dice" },
+                      { k: "300 stand", v: "stand" },
+                      { k: "oracle jackpot", v: "jackpot" },
+                      { k: "suggest game", v: "suggest" },
+                      { k: "leaderboard hall", v: "leaderboard" },
+                      { k: "rules terms fair play", v: "rules" },
+                      { k: "lobby home arena", v: "home" },
+                    ].find((x) => x.k.includes(searchQ.trim().toLowerCase()) || searchQ.trim().toLowerCase().split(" ").some((w) => w && x.k.includes(w)));
+                    if (hit) { setView(hit.v); setSearchQ(""); }
+                  }
+                }}
+                placeholder="Search arena..."
                 className="w-full bg-black/50 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-orange-500/50 transition-all shadow-inner"
               />
+              {searchQ.trim() && (
+                <div className="absolute left-0 right-0 top-12 bg-black/95 border border-white/10 rounded-2xl overflow-hidden z-50">
+                  {[
+                    { label: "Colosseum Tap", v: "tap" },
+                    { label: "Chariot Deathrace", v: "crash" },
+                    { label: "Poison Pick", v: "plinko" },
+                    { label: "Bones of Sparta", v: "dice" },
+                    { label: "The 300 Stand", v: "stand" },
+                    { label: "Oracle Jackpot", v: "jackpot" },
+                    { label: "Suggest a Game", v: "suggest" },
+                    { label: "Leaderboard", v: "leaderboard" },
+                    { label: "Rules & Terms", v: "rules" },
+                    { label: "Arena Lobby", v: "home" },
+                    { label: "Discord / Support", href: "https://discord.gg/ME8PRr8YG" },
+                    { label: "X (Twitter)", href: "https://x.com/SpartansOnchain" },
+                    { label: "Dexscreener", href: "https://dexscreener.com/solana/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi" },
+                  ].filter((x) => x.label.toLowerCase().includes(searchQ.trim().toLowerCase())).map((x) => (
+                    <button key={x.label} type="button" className="w-full text-left px-4 py-3 text-sm text-white hover:bg-white/10" onClick={() => {
+                      if (x.href) window.open(x.href, "_blank");
+                      else setView(x.v);
+                      setSearchQ("");
+                    }}>{x.label}</button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -764,7 +809,23 @@ export default function App() {
                       <tr><td className="p-8 text-neutral-500" colSpan={4}>No live results yet. Finished matches land here.</td></tr>
                     )}
 
-          {view === 'armory' && (
+
+
+                    {liveBoard.map((row, i) => (
+                      <tr key={row.wallet} className={i === 0 ? "bg-gradient-to-r from-amber-900/30 to-transparent" : ""}>
+                        <td className="p-6 font-black text-amber-400 text-xl">#{i + 1}</td>
+                        <td className="p-6 font-black text-white tracking-wider">{String(row.wallet).slice(0,4)}...{String(row.wallet).slice(-4)}</td>
+                        <td className="p-6 font-bold text-neutral-300">{row.played ? Math.round((row.wins / row.played) * 100) : 0}%</td>
+                        <td className="p-6 text-right font-black text-amber-400">{Number(row.won || 0).toLocaleString()} $SPARTAN</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+{view === 'armory' && (
             <div className="max-w-3xl mx-auto mt-16 px-4 relative z-20">
               {!armoryOk ? (
                 <div className="bg-black/60 border border-white/10 rounded-3xl p-10 text-center">
@@ -807,20 +868,6 @@ export default function App() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-                    {liveBoard.map((row, i) => (
-                      <tr key={row.wallet} className={i === 0 ? "bg-gradient-to-r from-amber-900/30 to-transparent" : ""}>
-                        <td className="p-6 font-black text-amber-400 text-xl">#{i + 1}</td>
-                        <td className="p-6 font-black text-white tracking-wider">{String(row.wallet).slice(0,4)}...{String(row.wallet).slice(-4)}</td>
-                        <td className="p-6 font-bold text-neutral-300">{row.played ? Math.round((row.wins / row.played) * 100) : 0}%</td>
-                        <td className="p-6 text-right font-black text-amber-400">{Number(row.won || 0).toLocaleString()} $SPARTAN</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
           )}
 
