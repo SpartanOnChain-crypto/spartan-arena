@@ -44,6 +44,54 @@ const startTapOnChain = async (w, afterLock, game) => {
   }
 };
 
+
+const MATCH_HOST = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
+function myPk() {
+  const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+  return pk ? String(pk.toBase58 ? pk.toBase58() : pk) : "";
+}
+function isHumanMatch() {
+  return !window.__spartanPractice && !!window.__spartanMatchId;
+}
+function postScore(val) {
+  const matchId = window.__spartanMatchId;
+  const wallet = myPk();
+  if (!matchId || !wallet || window.__spartanPractice) return;
+  fetch(MATCH_HOST + "/score", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId, wallet, taps: val }) }).catch(() => {});
+}
+async function getOppScore() {
+  const matchId = window.__spartanMatchId;
+  const me = myPk();
+  if (!matchId) return null;
+  try {
+    const row = await fetch(MATCH_HOST + "/score/" + matchId).then((r) => r.json());
+    for (const [w, v] of Object.entries(row || {})) {
+      if (w && w !== me) return Number(v);
+    }
+  } catch (e) {}
+  return null;
+}
+async function waitOppScore(okFn, tries) {
+  tries = tries || 80;
+  for (let i = 0; i < tries; i++) {
+    const v = await getOppScore();
+    if (okFn(v)) return v;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return null;
+}
+function payIfWin(wager) {
+  const pot = (parseWager(wager) || 0) * 2;
+  const winPk = myPk();
+  if (!(pot > 0) || !winPk) return;
+  fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner: winPk, amountUi: pot }) }).catch(() => {});
+  if (typeof window.__spartanSetReady === "function") {
+    const stake = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
+    window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
+  }
+  window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
+}
+
 export default function App() {
   const [wallet, setWallet] = useState(null);
   const [showWallets, setShowWallets] = useState(false);
@@ -1070,9 +1118,12 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
       const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      setCrashPoint(1.1 + Math.random() * 4);
-      setOpp1Target(1.0 + Math.random() * 3.5);
-      setOpp2Target(1.0 + Math.random() * 3.5);
+      const mid = String(window.__spartanMatchId || "bot");
+      let seed = 0;
+      for (let i = 0; i < mid.length; i++) seed = (seed + mid.charCodeAt(i) * (i + 1)) % 350;
+      setCrashPoint(1.1 + seed / 100);
+      setOpp1Target(isHumanMatch() ? 99 : (1.0 + Math.random() * 3.5));
+      setOpp2Target(99);
       setMultiplier(1.0);
       setMyStatus('racing'); setOpp1Status('racing'); setOpp2Status('racing');
       setView('arena');
@@ -1103,7 +1154,20 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     if(myStatus !== 'racing') return;
     setMyStatus('bailed');
     setMyBail(multiplier);
+    if (isHumanMatch()) postScore(Math.round(multiplier * 100));
   };
+  useEffect(() => {
+    if (view !== 'arena') return;
+    const id = setInterval(async () => {
+      if (!isHumanMatch()) return;
+      const v = await getOppScore();
+      if (v && v > 0 && v < 9000) {
+        setOpp1Target(v / 100);
+        setOpp1Status('bailed');
+      }
+    }, 400);
+    return () => clearInterval(id);
+  }, [view]);
 
   const settleMatch = () => {
     setView('result');
@@ -1112,6 +1176,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
     if (myStatus === 'bailed' && myBail >= (opp1Status==='bailed'?opp1Target:0) && myBail >= (opp2Status==='bailed'?opp2Target:0)) winner = 'you';
     
     if (winner === 'you') {
+        payIfWin(wager);
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
@@ -1132,7 +1197,7 @@ function ChariotDeathrace({ addWager, addFeed, username, onBack }) {
   if (view === 'lobby') return (
     <MatchmakingLobby 
       title="Chariot Deathrace" 
-      subtitle="3-Player PvP. Bail before the crash." 
+      subtitle="1v1 PvP. Same stake. Bail before the crash." 
       icon={TrendingUp} 
       iconColor="from-cyan-600 to-blue-800" 
       onBack={onBack} 
@@ -1278,11 +1343,22 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     }
   }, [view, countdown]);
 
-  const playRound = (choice) => {
+  const playRound = async (choice) => {
     if(roundState !== 'choosing') return;
     const choices = ['Spear', 'Shield', 'Parry'];
-    const oppC = choices[Math.floor(Math.random() * 3)];
-    setMyChoice(choice); setOppChoice(oppC);
+    const map = { Spear: 1, Shield: 2, Parry: 3 };
+    const rev = { 1: 'Spear', 2: 'Shield', 3: 'Parry' };
+    setMyChoice(choice);
+    setRoundState('waiting');
+    let oppC;
+    if (!isHumanMatch()) {
+      oppC = choices[Math.floor(Math.random() * 3)];
+    } else {
+      postScore(map[choice]);
+      const v = await waitOppScore(function(n){ return n === 1 || n === 2 || n === 3; });
+      oppC = rev[v] || choices[Math.floor(Math.random() * 3)];
+    }
+    setOppChoice(oppC);
     
     let res = 'draw';
     if (choice === 'Spear' && oppC === 'Parry') res = 'win';
@@ -1305,6 +1381,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
             if(m === 2) {
               confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
               const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+              payIfWin(wager);
               addFeed(username || 'Hoplite', "Phalanx Stance", wager, "2.0x", `+${payoutStr}`, 'win');
             } else {
               addFeed(username || 'Hoplite', "Phalanx Stance", wager, "0.0x", `-${wager}`, 'loss');
@@ -1502,11 +1579,19 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
       setOppRoll(Math.floor(Math.random() * 100) + 1);
     }, 50);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       clearInterval(anim);
       let m = Math.floor(Math.random() * 100) + 1;
-      let o = Math.floor(Math.random() * 100) + 1;
-      if (m === o) m = Math.min(100, m + 1); 
+      let o;
+      if (!isHumanMatch()) {
+        o = Math.floor(Math.random() * 100) + 1;
+        if (m === o) m = Math.min(100, m + 1);
+      } else {
+        postScore(m);
+        o = await waitOppScore(function(n){ return n >= 1 && n <= 100; });
+        if (!o) o = Math.floor(Math.random() * 100) + 1;
+        if (m === o) m = Math.min(100, m + 1);
+      }
       setMyRoll(m); setOppRoll(o);
       setIsRolling(false);
       
@@ -1515,6 +1600,7 @@ function BonesOfSparta({ addWager, addFeed, username, onBack }) {
         if (m > o) {
           confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
           const payoutStr = wager.includes('M') ? (parseFloat(wager)*2)+'M' : wager.includes('K') ? (parseFloat(wager)*2)+'K' : (parseFloat(wager)*2).toString();
+          payIfWin(wager);
           addFeed(username || 'Hoplite', "Bones of Sparta", wager, "2.0x", `+${payoutStr}`, 'win');
         } else {
           addFeed(username || 'Hoplite', "Bones of Sparta", wager, "0.0x", `-${wager}`, 'loss');

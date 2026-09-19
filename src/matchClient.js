@@ -21,10 +21,9 @@ export async function queueForMatch({ game, wager }) {
   const first = await join.json();
   if (first.status === "matched") return first;
   const ticket = first.ticket;
-  for (let i = 0; i < 45; i++) {
+  for (;;) {
     const s = await fetch(MATCH_URL + "/status/" + ticket).then((r) => r.json());
-    if (s.status === "matched") return s;
+    if (s.status === "matched" && !s.practice) return s;
     await sleep(1000);
   }
-  return { status: "matched", practice: true, opponent: "Practice Bot" };
 }
