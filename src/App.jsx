@@ -753,7 +753,7 @@ export default function App() {
                     const r = await fetch(host + "/ideas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet, text: ideaText.trim() }) });
                     if (!r.ok) throw new Error("bad");
                     setIdeaText("");
-                    setIdeaNote("Submitted. It is in the Armory feed.");
+                    setIdeaNote("Submitted");
                   } catch (e) {
                     setIdeaNote("Could not reach the idea board. Try again.");
                   }
