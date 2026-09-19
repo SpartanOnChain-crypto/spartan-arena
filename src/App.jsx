@@ -7,7 +7,7 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2 } from 'lucide-react';
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2, Wine } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain, getWalletBalances, settleMatch as settleMatchOnChain } from './vaultClient.js';
 import { queueForMatch } from './matchClient.js';
@@ -368,7 +368,7 @@ export default function App() {
           <p className="px-4 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Spartan Originals (PvP)</p>
           <SidebarItem icon={Swords} label="Colosseum Tap" target="tap" active={view === 'tap'} />
           <SidebarItem icon={TrendingUp} label="Chariot Deathrace" target="crash" active={view === 'crash'} />
-          <SidebarItem icon={Shield} label="Poison Pick" target="plinko" active={view === 'plinko'} />
+          <SidebarItem icon={Wine} label="Poison Pick" target="plinko" active={view === 'plinko'} />
           <SidebarItem icon={Dices} label="Bones of Sparta" target="dice" active={view === 'dice'} />
           <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
           
@@ -572,7 +572,7 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Poison Pick" icon={Shield} target="plinko" players={String(liveHere.phalanx||0)} tag="1v1 PvP"
+                    title="Poison Pick" icon={Wine} target="plinko" players={String(liveHere.phalanx||0)} tag="1v1 PvP"
                     bgBase="bg-[#001a0a]" accentColor="text-green-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
@@ -1384,7 +1384,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
       if (st.picker) setPicker(st.picker);
       if (st.phase) setPhase(st.phase);
       if (st.round) setRound(st.round);
-      if (Array.isArray(st.poison)) setPoison(st.poison);
+      if (Array.isArray(st.poison) && st.poison.length) setPoison(st.poison);
       if (st.guess != null) setGuess(st.guess);
       if (st.hits) {
         setMyHits(Number(st.hits[me()] || 0));
@@ -1408,7 +1408,7 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     }
     const t = setTimeout(() => setTimer((n) => n - 1), 1000);
     return () => clearTimeout(t);
-  }, [view, step, timer, over, poison, phase, picker]);
+  }, [view, step, timer, over]);
   const need = () => (phase === 1 ? 1 : 2);
   const autoPoison = () => {
     const n = need(); const set = [];
@@ -1419,7 +1419,14 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     if (over) return;
     if (step === 'pickPoison' && iPick()) {
       const max = need();
-      setPoison((prev) => { let next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]; if (next.length > max) next = next.slice(next.length - max); return next; });
+      if (max === 1) { setPoison([n]); lockPoison([n]); return; }
+      setPoison((prev) => {
+        let next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n];
+        if (next.length > max) next = next.slice(next.length - max);
+        if (next.length === max) setTimeout(() => lockPoison(next), 0);
+        return next;
+      });
+      return;
     }
     if (step === 'guess' && !iPick()) { setGuess(n); resolveGuess(n); }
   };
@@ -1461,8 +1468,15 @@ function PhalanxStance({ addWager, addFeed, username, onBack }) {
     }
   };
   if (view === 'lobby') return (
-    <MatchmakingLobby title="Poison Pick" subtitle="1v1 PvP. Hide the poison. First to 3 poison drinks loses." icon={Shield} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}>
-      <div className="mt-8 bg-black/50 border border-white/10 rounded-3xl p-8"><h3 className="font-spartan text-xl font-black text-white uppercase mb-4">How to Play Poison Pick</h3><div className="grid md:grid-cols-3 gap-4 text-xs text-neutral-400"><p><b className="text-white">1. Hide.</b> One warrior marks the poison cup. 10 seconds.</p><p><b className="text-white">2. Spin.</b> Cups shuffle. The other picks one cup.</p><p><b className="text-white">3. Drink.</b> Three poisons and you lose. After 4 rounds there are 2 poisons.</p></div></div>
+    <MatchmakingLobby title="Poison Pick" subtitle="1v1 PvP. Hide the poison. First to 3 poison drinks loses." icon={Wine} iconColor="from-green-600 to-teal-800" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { setWager(w); setView('countdown'); }, 'phalanx', room)}>
+      <div className="mt-8 bg-black/50 border border-white/10 rounded-3xl p-8">
+        <h3 className="font-spartan text-xl font-black text-white uppercase mb-6">How to Play Poison Pick</h3>
+        <div className="grid md:grid-cols-3 gap-6 text-sm text-neutral-300 leading-relaxed">
+          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">1. Hide the poison</h4><p>A 10-second clock starts. One warrior is chosen to hide the poison. Tap a cup to lock it. Early rounds have 1 poison cup. After both of you have hidden twice and guessed twice, it becomes 2 poison cups and 1 safe cup.</p></div>
+          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">2. Spin then choose</h4><p>Cups shuffle so the guesser cannot track which one you tapped. When they stop, the other warrior has 10 seconds to pick one cup. You see the same cups and the same clock on both screens.</p></div>
+          <div><h4 className="text-white font-black uppercase tracking-widest mb-2">3. Drink or survive</h4><p>Safe cup = you live, roles swap, next round. Poison cup = one mark against you. First warrior to drink poison 3 times loses. The other takes the 95 / 3 / 2 pot. Rounds keep going until someone hits 3.</p></div>
+        </div>
+      </div>
     </MatchmakingLobby>
   );
   if (view === 'countdown') return (<div className="h-[60vh] flex flex-col items-center justify-center text-center"><h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Poison Pick begins in</h3><span className="font-spartan text-[10rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-green-400 to-teal-600 animate-pulse">{countdown}</span></div>);
