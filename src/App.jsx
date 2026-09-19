@@ -30,46 +30,18 @@ const startTapOnChain = async (w, afterLock, game, room) => {
       throw new Error("MUST_SIGN_IN");
     }
     const wagerNum = parseWager(w);
-    window.__spartanSearching = true;
-    window.__spartanDidStart = false;
-    window.__spartanLocked = false;
-    window.__spartanLockedAmount = 0;
-    const match = await queueForMatch({ game: game || "tap", wager: wagerNum, room: room || "" });
-    if (!window.__spartanSearching) return;
-    window.__spartanPractice = false;
-    window.__spartanOpponent = match?.opponent || "";
-    window.__spartanMatchId = match?.matchId || "";
     const sig = await lockStakeOnChain(wagerNum);
     if (!sig) throw new Error("Lock did not finish. Approve the wallet popup.");
-    window.__spartanLocked = true;
-    window.__spartanLockedAmount = wagerNum;
-    await reportLock({ matchId: match.matchId, wallet: myPk(), sig, amount: wagerNum });
-    await waitBothLocked(match.matchId);
-    if (!window.__spartanSearching) return;
-    window.__spartanDidStart = true;
     if (myPk()) fetch(MATCH_HOST + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: game || "tap", wallet: myPk() }) }).catch(() => {});
+    const match = await queueForMatch({ game: game || "tap", wager: wagerNum, room: room || "" });
+    window.__spartanPractice = !!match?.practice;
+    window.__spartanOpponent = match?.opponent || "";
+    window.__spartanMatchId = match?.matchId || "";
     afterLock();
   } catch (err) {
-    window.__spartanSearching = false;
     alert(String(err?.message || err));
   }
 };
-if (!window.__spartanLeaveBound) {
-  window.__spartanLeaveBound = true;
-  const bail = () => {
-    if (window.__spartanDidStart) return;
-    window.__spartanSearching = false;
-    const pk = (window.__spartanWallet?.publicKey || window.solana?.publicKey);
-    const wallet = pk ? String(pk.toBase58 ? pk.toBase58() : pk) : "";
-    leaveQueue({ ticket: window.__spartanTicket || "", wallet });
-    if (window.__spartanLocked && window.__spartanLockedAmount > 0 && wallet) {
-      fetch("/api/settle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner: wallet, amountUi: window.__spartanLockedAmount }) }).catch(() => {});
-    }
-  };
-  window.addEventListener("pagehide", bail);
-  window.addEventListener("beforeunload", bail);
-}
-
 
 const MATCH_HOST = (import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "");
 function myPk() {
@@ -127,7 +99,7 @@ function payIfWin(wager) {
   const winPk = myPk();
   if (!(pot > 0) || !winPk) return;
   const winner = String(winPk.toBase58 ? winPk.toBase58() : winPk);
-  fetch("/api/settle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
+  fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
     .then((r) => r.json())
     .then((j) => {
       if (j && j.sig) {
@@ -1161,7 +1133,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
-          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
+          fetch(MATCH_HOST + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
             if (j && j.sig) {
               window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
               if (typeof window.__spartanSetReady === "function") {
