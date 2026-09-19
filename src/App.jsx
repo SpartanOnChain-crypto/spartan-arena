@@ -25,7 +25,7 @@ const parseWager = (amount) => {
 
 const startTapOnChain = async (w, afterLock, game, room) => {
   try {
-    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+    const ready = window.__spartanWallet?.publicKey;
     if (!ready) {
       throw new Error("MUST_SIGN_IN");
     }
@@ -197,6 +197,7 @@ export default function App() {
     if (!w.provider) { alert(w.note || (w.name + " is not installed")); return; }
     try {
       const pk = await connectProvider(w.provider);
+      window.__spartanWallet = { publicKey: pk };
       setWallet(pk.toString().slice(0,4) + "..." + pk.toString().slice(-4));
       setShowWallets(false);
       try {
@@ -775,7 +776,7 @@ function MatchmakingLobby({ title, subtitle, icon: Icon, iconColor, onBack, onSt
 
   const [needSign, setNeedSign] = useState(false);
   const handleStart = (room) => {
-    const ready = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+    const ready = window.__spartanWallet?.publicKey;
     if (!ready) { setNeedSign(true); return; }
     setNeedSign(false);
     if (isSearching) return;
