@@ -95,15 +95,24 @@ async function readState() {
   try { return await fetch(MATCH_HOST + "/state/" + matchId).then((r) => r.json()); } catch (e) { return {}; }
 }
 function payIfWin(wager) {
-  const pot = (parseWager(wager) || 0) * 2;
+  const stake = parseWager(wager) || 0;
+  const pot = stake * 2;
   const winPk = myPk();
   if (!(pot > 0) || !winPk) return;
-  fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner: winPk, amountUi: pot }) }).catch(() => {});
-  if (typeof window.__spartanSetReady === "function") {
-    const stake = Number(String(wager).replace(/[^0-9.]/g, "")) || 0;
-    window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
-  }
-  window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
+  const winner = String(winPk.toBase58 ? winPk.toBase58() : winPk);
+  fetch("/api/settle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
+    .then((r) => r.json())
+    .then((j) => {
+      if (j && j.sig) {
+        window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
+        if (typeof window.__spartanSetReady === "function") {
+          window.__spartanSetReady((prev) => Number(prev) + stake * 0.9);
+        }
+      } else {
+        window.__spartanPayoutNote = "Payout failed: " + (j && j.error ? j.error : "no response");
+      }
+    })
+    .catch((e) => { window.__spartanPayoutNote = "Payout failed: " + String(e); });
 }
 
 export default function App() {
@@ -1104,7 +1113,7 @@ function ArenaGame({ wallet, addWager, addFeed, username, onBack }) {
         const pot = (parseWager(wager) || 0) * 2;
         const winPk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
         if (pot > 0 && winPk) {
-          fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/payout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
+          fetch("/api/settle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({winner:String(winPk.toBase58?winPk.toBase58():winPk),amountUi:pot})}).then(async r=>{ const text = await r.text(); let j={}; try { j = JSON.parse(text); } catch { throw new Error(text.slice(0,180)); } return j; }).then(j=>{
             if (j && j.sig) {
               window.__spartanPayoutNote = "Winnings paid. Check your READY wallet.";
               if (typeof window.__spartanSetReady === "function") {
