@@ -35,7 +35,39 @@
         animation: pulseGlow 1.8s infinite ease-in-out;
       }
     </style>
-  </head>
+  
+    <style id="arena-themes">
+      .theme-bg { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+      .theme-grain:after { content:""; position:absolute; inset:0; opacity:.12; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E"); mix-blend-mode:overlay; }
+      [data-theme="classic"] .theme-extra { display:none; }
+      [data-theme="night"] { background:#070309 !important; }
+      [data-theme="night"] .theme-extra { position:absolute; inset:0; background:
+        radial-gradient(ellipse at 50% 120%, rgba(234,88,12,.22), transparent 55%),
+        radial-gradient(ellipse at 20% 80%, rgba(127,29,29,.2), transparent 40%),
+        radial-gradient(ellipse at 80% 85%, rgba(245,158,11,.12), transparent 42%),
+        linear-gradient(to top, #1a0600 0%, transparent 45%); }
+      [data-theme="night"] aside, [data-theme="night"] header { box-shadow: inset 0 0 0 1px rgba(245,158,11,.12); }
+      [data-theme="neon"] { background:#030014 !important; }
+      [data-theme="neon"] .theme-extra { position:absolute; inset:0; background:
+        linear-gradient(180deg, rgba(0,255,200,.04), transparent 30%),
+        repeating-linear-gradient(to bottom, transparent 0 3px, rgba(0,0,0,.18) 3px 4px),
+        radial-gradient(ellipse at 80% 0%, rgba(168,85,247,.2), transparent 45%),
+        radial-gradient(ellipse at 10% 100%, rgba(234,88,12,.2), transparent 40%); }
+      [data-theme="neon"] aside { border-right-color: rgba(34,211,238,.25) !important; }
+      [data-theme="anime"] { background:#140206 !important; }
+      [data-theme="anime"] .theme-extra { position:absolute; inset:0; background:
+        linear-gradient(115deg, rgba(255,40,40,.08) 0%, transparent 40%, rgba(255,200,60,.08) 70%, transparent 100%),
+        radial-gradient(circle at 85% 15%, rgba(255,80,0,.18), transparent 35%),
+        repeating-linear-gradient(100deg, transparent 0 18px, rgba(255,255,255,.03) 18px 19px); }
+      [data-theme="marble"] { background:#0b0b0d !important; }
+      [data-theme="marble"] .theme-extra { position:absolute; inset:0; background:
+        radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.05), transparent 40%),
+        radial-gradient(ellipse at 70% 80%, rgba(120,20,20,.18), transparent 45%),
+        linear-gradient(135deg, rgba(255,255,255,.03) 0%, transparent 40%, rgba(0,0,0,.25) 100%); }
+      .look-dot { width:10px; height:10px; border-radius:99px; border:1px solid rgba(255,255,255,.35); }
+      .look-dot.on { outline:2px solid #fff; outline-offset:2px; }
+    </style>
+</head>
   <body class="bg-[#050505] text-white antialiased selection:bg-orange-600 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/App.jsx"></script>

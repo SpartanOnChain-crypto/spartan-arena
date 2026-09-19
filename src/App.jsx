@@ -185,6 +185,7 @@ export default function App() {
   }, []);
   
   const [deskSlide, setDeskSlide] = useState(0);
+  const [look, setLook] = useState(() => localStorage.getItem('spartan-look') || 'classic');
   const [searchQ, setSearchQ] = useState('');
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
@@ -231,6 +232,7 @@ export default function App() {
     const id = setInterval(() => setDeskSlide((s) => (s + 1) % 2), 5000);
     return () => clearInterval(id);
   }, []);
+  useEffect(() => { localStorage.setItem('spartan-look', look); }, [look]);
   useEffect(() => {
     const tick = async () => {
       try {
@@ -347,15 +349,16 @@ export default function App() {
   );
 
   return (
-    <div className="flex h-screen bg-[#0a0200] text-neutral-100 font-sans overflow-hidden select-none relative">
+    <div data-theme={look} className="flex h-screen bg-[#0a0200] text-neutral-100 font-sans overflow-hidden select-none relative">
       <WalletModal open={showWallets} wallets={walletList} onPick={pickWallet} onClose={() => setShowWallets(false)} />
       
       {/* SMOLDERING FIRE BACKGROUND */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#050100]">
+      <div className="theme-bg theme-grain z-0 bg-[#050100]">
         <div className="absolute bottom-0 left-0 w-full h-[120%] bg-gradient-to-t from-[#ea580c]/10 via-[#7f1d1d]/10 to-transparent" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-orange-600/20 blur-[100px] rounded-full mix-blend-screen animate-[pulse_6s_ease-in-out_infinite]" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-red-700/20 blur-[120px] rounded-full mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
         <div className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] bg-amber-600/10 blur-[90px] rounded-full mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '1s' }} />
+        <div className="theme-extra" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.8)_100%)]" />
       </div>
 
@@ -369,6 +372,21 @@ export default function App() {
             <h1 className="font-spartan text-2xl font-black tracking-widest text-white uppercase leading-none mt-1 drop-shadow-lg">Spartan</h1>
             <span className="text-[11px] text-orange-400 font-black uppercase tracking-widest mt-1">Arena</span>
           </div>
+        </div>
+        <div className="px-4 py-3 border-b border-white/5">
+          <p className="text-[9px] uppercase tracking-widest text-neutral-500 font-black mb-2">Look</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "classic", label: "Classic", c: "bg-orange-800" },
+              { id: "night", label: "Night", c: "bg-amber-600" },
+              { id: "neon", label: "Neon", c: "bg-cyan-400" },
+              { id: "anime", label: "Anime", c: "bg-red-500" },
+              { id: "marble", label: "Marble", c: "bg-neutral-300" },
+            ].map((x) => (
+              <button key={x.id} type="button" title={x.label} onClick={() => setLook(x.id)} className={"look-dot " + x.c + (look === x.id ? " on" : "")} />
+            ))}
+          </div>
+          <p className="text-[10px] text-neutral-500 mt-2 uppercase tracking-widest">{look}</p>
         </div>
         
         <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-1 custom-scrollbar relative z-10">
