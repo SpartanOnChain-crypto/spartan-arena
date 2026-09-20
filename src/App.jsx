@@ -396,9 +396,9 @@ export default function App() {
     </button>
   );
 
-  const ArenaCard = ({ title, icon: Icon, target, bgBase, accentColor, renderArt, tag, players }) => (
+  const ArenaCard = ({ title, icon: Icon, target, href, bgBase, accentColor, renderArt, tag, players }) => (
     <div 
-      onClick={() => target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : (setView(target), setMenuOpen(false))}
+      onClick={() => href ? window.open(href, '_blank') : target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : (setView(target), setMenuOpen(false))}
       className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-white/20 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
@@ -689,8 +689,9 @@ export default function App() {
               <div className="flex gap-3 overflow-x-auto pb-4 mb-4 custom-scrollbar">
                 <CategoryPill icon={LayoutDashboard} label="Lobby" />
                 <CategoryPill icon={Swords} label="Spartan Originals" />
-                <CategoryPill icon={Flame} label="High Stakes" />
-                <CategoryPill icon={Skull} label="Live Multiplayer" />
+                <CategoryPill icon={Zap} label="Live Events" />
+                <CategoryPill icon={Users} label="Community" />
+                <CategoryPill icon={ScrollText} label="Information" />
               </div>
               
               {/* Premium Realistic Game Grid */}
@@ -698,7 +699,7 @@ export default function App() {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="flex items-center gap-3 font-spartan text-2xl font-black text-white uppercase tracking-widest drop-shadow-md">
                     <span className="w-1.5 h-7 bg-gradient-to-b from-orange-400 to-red-600 rounded-full shadow-[0_0_10px_#ea580c]" />
-                    Spartan Originals
+                    {category === "Lobby" ? "Spartan Originals" : category}
                   </h2>
                   <div className="flex gap-2">
                     <button className="bg-black/50 border border-white/10 p-2.5 rounded-xl hover:bg-white/10 text-neutral-400 hover:text-white transition-all"><ChevronRight className="w-5 h-5 rotate-180" /></button>
@@ -706,6 +707,7 @@ export default function App() {
                   </div>
                 </div>
                 
+                {(category === "Lobby" || category === "Spartan Originals") && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
                   <ArenaCard 
                     title="Colosseum Tap" icon={Swords} target="tap" players={String(liveHere.tap||0)} tag="1v1 PvP"
@@ -756,16 +758,47 @@ export default function App() {
                       </div>
                     )}
                   />
-                  <ArenaCard 
-                    title="The 300 Stand" icon={Skull} target="stand-locked" players="0" tag="Royale"
-                    bgBase="bg-[#240a00]" accentColor="text-yellow-500"
-                    renderArt={() => (
-                      <div className="absolute inset-0">
-                        <div className="absolute bottom-0 left-0 w-full h-[150%] bg-[radial-gradient(ellipse_at_bottom,rgba(245,158,11,0.5),transparent_70%)]" />
-                      </div>
-                    )}
-                  />
                 </div>
+                )}
+
+                {category === "Live Events" && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
+                  <ArenaCard title="The 300 Stand" icon={Skull} target="stand-locked" players="0" tag="Locked"
+                    bgBase="bg-[#240a00]" accentColor="text-yellow-500"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(245,158,11,0.5),transparent_70%)]" />)} />
+                  <ArenaCard title="Oracle Jackpot" icon={Zap} target="jackpot-locked" players="0" tag="Locked"
+                    bgBase="bg-[#120024]" accentColor="text-purple-400"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.5),transparent_70%)]" />)} />
+                </div>
+                )}
+
+                {category === "Community" && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                  <ArenaCard title="Leaderboard" icon={Trophy} target="leaderboard" players="" tag="Hall"
+                    bgBase="bg-[#1a1200]" accentColor="text-amber-400"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.45),transparent_70%)]" />)} />
+                  <ArenaCard title="X (Twitter)" icon={Twitter} href="https://x.com/SpartansOnchain" players="" tag="Social"
+                    bgBase="bg-[#041018]" accentColor="text-sky-400"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(56,189,248,0.4),transparent_70%)]" />)} />
+                  <ArenaCard title="Discord / Support" icon={MessageCircle} href="https://discord.gg/ME8PRr8YG" players="" tag="Hall"
+                    bgBase="bg-[#0b1024]" accentColor="text-indigo-300"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(99,102,241,0.45),transparent_70%)]" />)} />
+                  <ArenaCard title="Dexscreener" icon={BarChart3} href="https://dexscreener.com/solana/8omgduFEjztUuJy1gpo2rzpX95FA9n6y96NAEVdRT6oi" players="" tag="Chart"
+                    bgBase="bg-[#001a10]" accentColor="text-emerald-400"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.45),transparent_70%)]" />)} />
+                </div>
+                )}
+
+                {category === "Information" && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                  <ArenaCard title="Rules & Terms" icon={ScrollText} target="rules" players="" tag="Fair play"
+                    bgBase="bg-[#1a1008]" accentColor="text-orange-300"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(251,146,60,0.4),transparent_70%)]" />)} />
+                  <ArenaCard title="Armory" icon={Key} target="armory" players="" tag="Dev"
+                    bgBase="bg-[#140800]" accentColor="text-red-400"
+                    renderArt={() => (<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_80%,rgba(220,38,38,0.4),transparent_70%)]" />)} />
+                </div>
+                )}
               </div>
 
               <div className="mt-12 mb-10">
