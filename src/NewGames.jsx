@@ -44,6 +44,8 @@ export function PlankCrossing({ onBack }) {
   const [map, setMap] = useState([]);
   const [over, setOver] = useState("");
   const [shake, setShake] = useState(false);
+  const [myLives, setMyLives] = useState(2);
+  const [oppLives, setOppLives] = useState(2);
 
   const mapFor = (id) => {
     let n = 1;
@@ -76,22 +78,33 @@ export function PlankCrossing({ onBack }) {
       setFallen(true);
       setShake(true);
       setWalking(null);
-      await patchState({ over: "opp", fall: row });
-      setTimeout(() => setView("result"), 1100);
+      const left = myLives - 1;
+      setMyLives(left);
+      if (left <= 0) {
+        await patchState({ over: "opp", myLives: 0, oppLives, fall: row });
+        setTimeout(() => setView("result"), 1100);
+        return;
+      }
+      await patchState({ myLives: left, oppLives, fall: row });
+      setNote("Plank snapped. " + left + " life left. Walk again.");
+      setTimeout(() => {
+        setFallen(false); setShake(false); setRow(0);
+        setMap(mapFor((window.__spartanMatchId || myPk()) + ":" + Date.now()));
+      }, 900);
       return;
     }
     const next = row + 1;
     setWalking(null);
-    setRow(next);
     if (next >= 6) {
-      setOver(myPk());
-      if (!window.__plankPaid) { window.__plankPaid = true; payIfWin(wager); }
-      await patchState({ over: myPk() });
-      setTimeout(() => setView("result"), 700);
+      setRow(0);
+      setMap(mapFor((window.__spartanMatchId || myPk()) + ":" + Date.now()));
+      setNote("You cleared the span. New boards. First to fall twice still loses.");
+      await patchState({ row: 0, last: side, myLives, oppLives });
       return;
     }
+    setRow(next);
     setNote("Your step. Pick a plank.");
-    await patchState({ row: next, last: side });
+    await patchState({ row: next, last: side, myLives, oppLives });
   };
 
   if (view === "result") return <ResultCard won={over === myPk() && !fallen} wager={wager} onBack={() => { setView("lobby"); setRow(0); setFallen(false); setOver(""); }} />;
@@ -113,6 +126,7 @@ export function PlankCrossing({ onBack }) {
     <div className="max-w-3xl mx-auto">
       <div className="flex justify-between text-xs font-black uppercase tracking-widest text-amber-200 mb-2">
         <span>Row {Math.min(row + 1, 6)} / 6</span>
+        <span>Lives {myLives} / 2 · Foe {oppLives} / 2</span>
         <span>{fallen ? "Falling" : "Walk"}</span>
       </div>
       <div className={"relative h-[460px] rounded-3xl overflow-hidden border border-amber-900/40 " + (shake ? "animate-pulse" : "")} style={{ background: "linear-gradient(#1a0b04,#050200)", perspective: "900px" }}>
