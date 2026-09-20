@@ -9,6 +9,7 @@ const ideas = [];
 const board = new Map();
 const locks = new Map();
 const history = [];
+const paidMatches = new Map();
 const ticketsByWallet = new Map();
 const key = (g, w) => String(g) + ":" + String(w);
 function read(req) {
@@ -144,6 +145,16 @@ const server = http.createServer(async (req, res) => {
       const connection = new Connection("https://solana-rpc.publicnode.com", "confirmed");
       const mintInfo = await connection.getAccountInfo(MINT);
       const tokenProgram = mintInfo && mintInfo.owner.equals(TOKEN_2022) ? TOKEN_2022 : TOKEN_LEGACY;
+      const matchId = String(body.matchId || "");
+      const winnerStr = String(body.winner || "");
+      const loserStr = String(body.loser || "");
+      if (!winnerStr) return res.end(JSON.stringify({ ok: false, error: "winner required" }));
+      if (loserStr && winnerStr === loserStr) return res.end(JSON.stringify({ ok: false, error: "winner cannot be loser" }));
+      if (matchId && paidMatches.has(matchId)) {
+        const prev = paidMatches.get(matchId);
+        return res.end(JSON.stringify({ ok: false, error: "already settled", winner: prev.winner, sig: prev.sig || "" }));
+      }
+      if (matchId) paidMatches.set(matchId, { winner: winnerStr, pending: true });
       const winner = new PublicKey(body.winner);
       const [escrowAuthority] = PublicKey.findProgramAddressSync([Buffer.from("escrow")], PROGRAM_ID);
       const ata = (owner) => PublicKey.findProgramAddressSync(
@@ -190,7 +201,8 @@ const server = http.createServer(async (req, res) => {
       tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
       tx.sign(kp);
       const sig = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: true });
-      return res.end(JSON.stringify({ ok: true, sig }));
+      if (matchId) paidMatches.set(matchId, { winner: winnerStr, sig });
+      return res.end(JSON.stringify({ ok: true, sig, winner: winnerStr }));
     } catch (e) {
       return res.end(JSON.stringify({ ok: false, error: String(e && e.message ? e.message : e) }));
     }

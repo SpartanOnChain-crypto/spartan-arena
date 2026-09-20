@@ -153,9 +153,10 @@ export function SpartanFeud({ onBack }) {
 
   const nextRound = (a, b) => {
     if (round >= 5) {
-      const winner = a > b ? myPk() : b > a ? "opp" : myPk();
-      if (a === b) setNote("Tie goes to the first warrior.");
-      finish(a >= b ? myPk() : "opp", a, b);
+      const me = myPk();
+      const opp = String(window.__spartanOpponent || "opp");
+      const winner = a > b ? me : b > a ? "opp" : ([me, opp].sort()[0] === me ? me : "opp");
+      finish(winner, a, b);
       return;
     }
     const nr = round + 1;

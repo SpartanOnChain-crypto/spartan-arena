@@ -117,7 +117,10 @@ export function payIfWin(wager) {
   if (!(pot > 0) || !winPk) return;
   const winner = String(winPk.toBase58 ? winPk.toBase58() : winPk);
   const loser = String(window.__spartanOpponent || "");
-  fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
+  if (loser && winner === loser) return;
+  if (window.__spartanMatchId && window.__spartanPaidMatch === window.__spartanMatchId) return;
+  window.__spartanPaidMatch = window.__spartanMatchId || ("once:" + winner);
+  fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, loser, matchId: window.__spartanMatchId || "", amountUi: pot }) })
     .then((r) => r.json())
     .then((j) => {
       const paid = !!(j && (j.ok || j.sig) && !j.error);
