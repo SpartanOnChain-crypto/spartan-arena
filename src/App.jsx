@@ -84,12 +84,12 @@ function warriorName() {
   if (p && p.length > 8) return p.slice(0,4) + "..." + p.slice(-4);
   return "Warrior";
 }
-async export function patchState(patch) {
+export async function patchState(patch) {
   const matchId = window.__spartanMatchId;
   if (!matchId) return {};
   try { return await fetch(MATCH_HOST + "/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId, patch }) }).then((r) => r.json()); } catch (e) { return {}; }
 }
-async export function readState() {
+export async function readState() {
   const matchId = window.__spartanMatchId;
   if (!matchId) return {};
   try { return await fetch(MATCH_HOST + "/state/" + matchId).then((r) => r.json()); } catch (e) { return {}; }
