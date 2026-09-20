@@ -1,317 +1,253 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Footprints, Target, Trophy, Skull } from "lucide-react";
-import { MatchmakingLobby, myPk, parseWager, payIfWin, patchState, readState, startTapOnChain } from "./App.jsx";
+import { Crown, Trophy, Skull } from "lucide-react";
+import { MatchmakingLobby, myPk, payIfWin, patchState, readState, startTapOnChain } from "./App.jsx";
 
-function ResultCard({ won, wager, onBack }) {
+function ResultCard({ won, wager, onBack, mine, opp }) {
   return (
     <div className="max-w-md mx-auto text-center py-16">
       {won ? <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" /> : <Skull className="w-16 h-16 text-red-500 mx-auto mb-4" />}
-      <div className="font-spartan text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-red-500 to-yellow-400 drop-shadow-[0_0_18px_rgba(249,115,22,0.8)]">
-        {won ? "VICTORY" : "SLAIN"}
-      </div>
-      <p className="text-neutral-300 mt-3">{won ? "Refresh Ready Wallet for updated balance." : "Stake stays with the winner."}</p>
+      <div className="font-spartan text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-red-500 to-yellow-400 drop-shadow-[0_0_18px_rgba(249,115,22,0.8)]">{won ? "VICTORY" : "SLAIN"}</div>
+      <p className="text-neutral-300 mt-3">Final board {mine} – {opp}</p>
+      <p className="text-neutral-300">{won ? "Refresh Ready Wallet for updated balance." : "Stake stays with the winner."}</p>
       <p className="text-orange-300 font-black mt-1">{wager} $SPARTAN</p>
       <button onClick={onBack} className="mt-6 px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-black uppercase tracking-widest">Back to Arena</button>
     </div>
   );
 }
 
-function StickSpartan({ flip, dead }) {
-  return (
-    <svg viewBox="0 0 80 140" className={"w-20 h-36 " + (flip ? "scale-x-[-1]" : "")} style={{ filter: dead ? "grayscale(1) opacity(0.45)" : "none" }}>
-      <ellipse cx="40" cy="128" rx="18" ry="5" fill="rgba(0,0,0,0.35)" />
-      <line x1="40" y1="38" x2="40" y2="88" stroke="#e8c37a" strokeWidth="5" strokeLinecap="round" />
-      <line x1="40" y1="50" x2="18" y2="78" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
-      <line x1="40" y1="50" x2="62" y2="72" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
-      <line x1="40" y1="88" x2="24" y2="122" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
-      <line x1="40" y1="88" x2="56" y2="122" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
-      <path d="M22 28 L40 8 L58 28 Z" fill="#7a1a12" stroke="#f59e0b" strokeWidth="2" />
-      <circle cx="40" cy="32" r="11" fill="#e8c37a" />
-      <path d="M28 34 Q40 44 52 34" fill="#7a1a12" />
-      <rect x="58" y="48" width="6" height="28" rx="2" fill="#92400e" />
-      <circle cx="61" cy="46" r="5" fill="#b45309" />
-    </svg>
-  );
+function hashStr(s) {
+  let h = 2166136261;
+  for (const c of String(s)) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return h >>> 0;
+}
+function rng(seed) {
+  let s = seed || 1;
+  return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+}
+function shuffle(arr, r) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
 }
 
-export function PlankCrossing({ onBack }) {
+const BANK = [
+  ["What city trained the Spartans?", ["Athens", "Sparta", "Rome"], 1],
+  ["How many men stood with Leonidas at Thermopylae in the legend?", ["300", "3,000", "30"], 0],
+  ["A hoplite’s round shield is a…", ["Xiphos", "Aspis", "Kopis"], 1],
+  ["Which sea sits east of Greece?", ["Baltic", "Aegean", "Caspian"], 1],
+  ["Solana transactions settle on which chain?", ["Ethereum", "Solana", "Bitcoin"], 1],
+  ["$SPARTAN lives on which network?", ["Solana", "Base", "Tron"], 0],
+  ["A Solana wallet address is closest to…", ["A phone number", "A public key", "A password"], 1],
+  ["What does a gas fee pay?", ["The casino dealer", "Network validators", "The token mint"], 1],
+  ["Phantom is a…", ["DEX", "Wallet", "L2"], 1],
+  ["Raydium is mainly a…", ["Wallet", "Exchange / AMM", "Explorer"], 1],
+  ["A mint address points to…", ["A token type", "A person’s name", "A domain"], 0],
+  ["Burning a token means…", ["Hiding it", "Destroying supply", "Staking it"], 1],
+  ["Which is a Laconian warrior culture?", ["Sparta", "Troy", "Carthage"], 0],
+  ["The pass of Thermopylae is in…", ["Italy", "Greece", "Egypt"], 1],
+  ["A phalanx is a…", ["Ship", "Shield wall", "Coin"], 1],
+  ["Which is NOT a Solana explorer?", ["Solscan", "Etherscan", "SolanaFM"], 1],
+  ["1 SOL equals how many lamports?", ["1,000", "1,000,000,000", "100"], 1],
+  ["A seed phrase should be…", ["Tweeted", "Kept private", "Shared with mods"], 1],
+  ["Devnet is for…", ["Real money", "Testing", "Taxes"], 1],
+  ["Mainnet is for…", ["Fake tokens only", "Live value", "School demos"], 1],
+  ["An NFT on Solana is usually a…", ["Token with supply 1", "PDF", "Tweet"], 0],
+  ["Which god was linked to Spartan war?", ["Ares", "Hades", "Hermes"], 0],
+  ["The Peloponnese is a…", ["River", "Peninsula", "Temple"], 1],
+  ["Which city rivaled Sparta?", ["Athens", "Oslo", "Venice"], 0],
+  ["A smart contract on Solana is a…", ["Program", "Spreadsheet", "VPN"], 0],
+  ["Escrow in this arena holds…", ["Emails", "Staked $SPARTAN", "NFTs only"], 1],
+  ["95 / 3 / 2 means winner / treasury / …", ["Burn", "Dev tip", "Gas"], 0],
+  ["Which button starts a PvP lock?", ["Find Match", "Armory", "Jackpot"], 0],
+  ["Leonidas was a king of…", ["Sparta", "Persia", "Macedonia"], 0],
+  ["Xerxes led which empire?", ["Persian", "Roman", "Ottoman"], 0],
+  ["A spear in Greek war is often a…", ["Dory", "Lyre", "Trireme"], 0],
+  ["Helots in Sparta were…", ["Kings", "Bound laborers", "Ships"], 1],
+  ["Which planet is Solana named after?", ["None — it’s a word for sun", "Mars", "Jupiter"], 0],
+  ["A blockhash is used to…", ["Color the UI", "Expire an old tx", "Name a token"], 1],
+  ["Which is a hardware wallet brand?", ["Ledger", "Raydium", "Jito"], 0],
+  ["Slippage is about…", ["Price moving during a swap", "Losing a password", "Airdrops"], 0],
+  ["A rug pull is…", ["A dance", "Devs draining liquidity", "A tax form"], 1],
+  ["Which number is even?", ["13", "27", "42"], 2],
+  ["How many sides does a hexagon have?", ["5", "6", "8"], 1],
+  ["A decade has how many years?", ["5", "10", "20"], 1],
+  ["Olympia hosted the ancient…", ["Senate", "Olympic games", "Oracle of Delphi"], 1],
+  ["Delphi was famous for its…", ["Oracle", "Navy", "Mint"], 0],
+  ["Which metal is classically a Spartan blade?", ["Bronze / iron", "Plastic", "Silver leaf only"], 0],
+  ["A validator on Solana…", ["Draws NFTs", "Produces blocks", "Hosts Discord"], 1],
+  ["Which is the native Solana token?", ["ETH", "SOL", "BTC"], 1],
+  ["Airdrop means…", ["Free tokens sent to wallets", "A plane crash", "Burning LP"], 0],
+  ["Which month has 28 days in a common year?", ["February", "June", "August"], 0],
+  ["How many degrees in a right angle?", ["45", "90", "180"], 1],
+  ["Sparta’s dual kings came in…", ["Pairs", "Trios", "Tens"], 0],
+  ["A trireme is a…", ["Warship", "Helmet", "Coin press"], 0],
+];
+
+function makeQuestion(matchKey, round) {
+  const r = rng(hashStr(String(matchKey) + "#" + String(round)));
+  const mode = Math.floor(r() * 5);
+  if (mode <= 2) {
+    const item = BANK[Math.floor(r() * BANK.length)];
+    const pairs = item[1].map((text, i) => ({ text, ok: i === item[2] }));
+    const mixed = shuffle(pairs, r);
+    return { q: item[0], answers: mixed.map((p) => p.text), correct: mixed.findIndex((p) => p.ok) };
+  }
+  const a = 8 + Math.floor(r() * 40);
+  const b = 4 + Math.floor(r() * 24);
+  const ops = [["+", a + b], ["−", a - b], ["×", a * b]];
+  const op = ops[Math.floor(r() * 3)];
+  const right = op[1];
+  const wrong = shuffle([right + 3 + Math.floor(r() * 6), right - (2 + Math.floor(r() * 5)), right + 11], r).filter((n) => n !== right).slice(0, 2);
+  const opts = shuffle([right, wrong[0], wrong[1]], r);
+  return { q: "What is " + a + " " + op[0] + " " + b + "?", answers: opts.map(String), correct: opts.indexOf(right) };
+}
+
+export function SpartanFeud({ onBack }) {
   const [view, setView] = useState("lobby");
   const [wager, setWager] = useState("100");
-  const [row, setRow] = useState(0);
-  const [fallen, setFallen] = useState(false);
-  const [walking, setWalking] = useState(null);
-  const [note, setNote] = useState("Your step. Pick a plank.");
-  const [map, setMap] = useState([]);
+  const [round, setRound] = useState(1);
+  const [q, setQ] = useState(null);
+  const [mine, setMine] = useState(0);
+  const [opp, setOpp] = useState(0);
+  const [picked, setPicked] = useState(-1);
+  const [lock, setLock] = useState(false);
+  const [note, setNote] = useState("");
   const [over, setOver] = useState("");
-  const [shake, setShake] = useState(false);
-  const [myLives, setMyLives] = useState(2);
-  const [oppLives, setOppLives] = useState(2);
+  const [secs, setSecs] = useState(12);
+  const started = useRef(0);
+  const key = useRef("feud");
+  const closed = useRef({});
 
-  const mapFor = (id) => {
-    let n = 1;
-    String(id || "x").split("").forEach((c) => n = (n * 33 + c.charCodeAt(0)) >>> 0);
-    return [0,1,2,3,4,5].map((i) => ((n >> (i * 3)) & 1) === 0 ? "L" : "R");
+  const loadQ = (r) => setQ(makeQuestion(key.current, r));
+
+  const begin = (w, room) => startTapOnChain(w, async () => {
+    window.__feudPaid = false;
+    const t = Date.now();
+    started.current = t;
+    key.current = String(window.__spartanMatchId || myPk()) + ":" + t;
+    setWager(w); setRound(1); setMine(0); setOpp(0); setPicked(-1); setLock(false); setOver(""); setSecs(12); setNote("Fastest correct answer takes the round.");
+    loadQ(1);
+    await patchState({ t, over: "", r: 1, a: 0, b: 0, key: key.current, buzz: null });
+    setView("play");
+  }, "feud", room);
+
+  useEffect(() => {
+    if (view !== "play" || over) return;
+    const id = setInterval(() => setSecs((s) => s <= 0 ? 0 : s - 1), 1000);
+    return () => clearInterval(id);
+  }, [view, round, over]);
+
+  useEffect(() => {
+    if (view !== "play" || over || secs > 0 || lock) return;
+    setLock(true);
+    setNote("Time. No point this round.");
+    setTimeout(() => nextRound(mine, opp), 900);
+  }, [secs]);
+
+  const finish = (winner, a, b) => {
+    setOver(winner);
+    if (winner === myPk() && !window.__feudPaid) { window.__feudPaid = true; payIfWin(wager); }
+    patchState({ t: started.current, over: winner, a, b });
+    setTimeout(() => setView("result"), 700);
+  };
+
+  const nextRound = (a, b) => {
+    if (round >= 5) {
+      const winner = a > b ? myPk() : b > a ? "opp" : myPk();
+      if (a === b) setNote("Tie goes to the first warrior.");
+      finish(a >= b ? myPk() : "opp", a, b);
+      return;
+    }
+    const nr = round + 1;
+    setRound(nr); setPicked(-1); setLock(false); setSecs(12); setNote("Round " + nr + ".");
+    loadQ(nr);
   };
 
   useEffect(() => {
     if (view !== "play") return;
     const t = setInterval(async () => {
       const s = await readState();
-      if (s.over && !over) {
+      if (!s || (s.t && s.t < started.current)) return;
+      if (s.key && s.key !== key.current && s.t >= started.current) {
+        key.current = s.key;
+        loadQ(round);
+      }
+      if (s.buzz && s.buzz.r === round && !closed.current[round]) {
+        closed.current[round] = true;
+        const mineWin = s.buzz.ok && s.buzz.pk === myPk();
+        const oppWin = s.buzz.ok && s.buzz.pk !== myPk();
+        let a = mine, b = opp;
+        if (mineWin) { a += 1; setMine(a); setNote("You took the board."); }
+        else if (oppWin) { b += 1; setOpp(b); setNote("Foe took the board."); }
+        else if (s.buzz.pk === myPk()) setNote("Wrong. Board stays open.");
+        if (s.buzz.ok) {
+          setLock(true);
+          setTimeout(() => nextRound(a, b), 1000);
+        } else if (s.buzz.pk !== myPk()) {
+          /* they missed, you can still answer */
+        }
+      }
+      if (s.over && s.t >= started.current && !over) {
         setOver(s.over);
-        setTimeout(() => {
-          if (s.over === myPk() && !window.__plankPaid) { window.__plankPaid = true; payIfWin(wager); }
-          setView("result");
-        }, 900);
+        if (s.over === myPk() && !window.__feudPaid) { window.__feudPaid = true; payIfWin(wager); }
+        setTimeout(() => setView("result"), 600);
       }
-    }, 700);
+    }, 280);
     return () => clearInterval(t);
-  }, [view, over, wager]);
+  }, [view, round, mine, opp, over, wager]);
 
-  const step = async (side) => {
-    if (walking || fallen || over) return;
-    const safe = map[row] === side;
-    setWalking(side);
-    setNote(safe ? "Solid wood. Keep moving." : "The plank snaps.");
-    await new Promise((r) => setTimeout(r, 520));
-    if (!safe) {
-      setFallen(true);
-      setShake(true);
-      setWalking(null);
-      const left = myLives - 1;
-      setMyLives(left);
-      if (left <= 0) {
-        await patchState({ over: "opp", myLives: 0, oppLives, fall: row });
-        setTimeout(() => setView("result"), 1100);
-        return;
-      }
-      await patchState({ myLives: left, oppLives, fall: row });
-      setNote("Plank snapped. " + left + " life left. Walk again.");
-      setTimeout(() => {
-        setFallen(false); setShake(false); setRow(0);
-        setMap(mapFor((window.__spartanMatchId || myPk()) + ":" + Date.now()));
-      }, 900);
+  const pick = async (i) => {
+    if (lock || picked >= 0 || !q || over) return;
+    setPicked(i);
+    const ok = i === q.correct;
+    if (!ok) {
+      setNote("Wrong answer. Foe can still steal.");
+      await patchState({ t: started.current, buzz: { pk: myPk(), r: round, ok: 0, i } });
       return;
     }
-    const next = row + 1;
-    setWalking(null);
-    if (next >= 6) {
-      setRow(0);
-      setMap(mapFor((window.__spartanMatchId || myPk()) + ":" + Date.now()));
-      setNote("You cleared the span. New boards. First to fall twice still loses.");
-      await patchState({ row: 0, last: side, myLives, oppLives });
-      return;
-    }
-    setRow(next);
-    setNote("Your step. Pick a plank.");
-    await patchState({ row: next, last: side, myLives, oppLives });
+    setLock(true);
+    setNote("Correct.");
+    await patchState({ t: started.current, buzz: { pk: myPk(), r: round, ok: 1, i } });
   };
 
-  if (view === "result") return <ResultCard won={over === myPk() && !fallen} wager={wager} onBack={() => { setView("lobby"); setRow(0); setFallen(false); setOver(""); }} />;
-
+  if (view === "result") return <ResultCard won={over === myPk()} wager={wager} onBack={() => setView("lobby")} mine={mine} opp={opp} />;
   if (view !== "play") {
     return (
-      <MatchmakingLobby title="Plank Crossing" subtitle="Six rows. One path is wood. One path is air." icon={Footprints} iconColor="from-amber-700 to-yellow-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { window.__plankPaid = false; setWager(w); setMap(mapFor(window.__spartanMatchId || myPk())); setRow(0); setFallen(false); setOver(""); setView("play"); }, "plank", room)}>
+      <MatchmakingLobby title="Spartan Feud" subtitle="Five questions. Fastest correct answer owns the round." icon={Crown} iconColor="from-yellow-600 to-red-800" onBack={onBack} onStart={begin}>
         <div className="grid md:grid-cols-3 gap-3 text-sm text-neutral-300">
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Bridge</p>You stand at the mouth of a six-row wood bridge. Each row has a left plank and a right plank. Only one holds.</div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Walk</p>Tap LEFT or RIGHT. Your Spartan steps onto that plank. Safe wood carries you forward. Fake wood shatters and you fall.</div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Prize</p>First to the far gate wins the pot. Same lock, same 95 / 3 / 2 as every other original.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-yellow-300 font-black uppercase text-xs mb-2">The Board</p>A question hits both warriors at once. Three answers. Only one is true.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-yellow-300 font-black uppercase text-xs mb-2">The Buzz</p>Tap the right line first and you take the round. Miss and the other Spartan can steal.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-yellow-300 font-black uppercase text-xs mb-2">The Pot</p>Five rounds. Most points wins. Same lock and 95 / 3 / 2 as Tap. New match, new questions.</div>
         </div>
       </MatchmakingLobby>
     );
   }
 
-  const rows = [0,1,2,3,4,5];
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex justify-between text-xs font-black uppercase tracking-widest text-amber-200 mb-2">
-        <span>Row {Math.min(row + 1, 6)} / 6</span>
-        <span>Lives {myLives} / 2 · Foe {oppLives} / 2</span>
-        <span>{fallen ? "Falling" : "Walk"}</span>
+      <div className="flex justify-between font-black text-white mb-3 text-sm uppercase tracking-widest">
+        <span>You {mine}</span>
+        <span className="text-yellow-300">Round {round} / 5 · {secs}s</span>
+        <span>Foe {opp}</span>
       </div>
-      <div className={"relative h-[460px] rounded-3xl overflow-hidden border border-amber-900/40 " + (shake ? "animate-pulse" : "")} style={{ background: "linear-gradient(#1a0b04,#050200)", perspective: "900px" }}>
-        <div className="absolute inset-0" style={{ background: "repeating-linear-gradient(90deg, transparent 0 18px, rgba(245,158,11,0.05) 18px 19px)" }} />
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[86%] h-[86%]" style={{ transformStyle: "preserve-3d", transform: "rotateX(62deg)" }}>
-          <div className="absolute left-1/2 -translate-x-1/2 top-[-6%] w-28 h-10 rounded-t-2xl bg-gradient-to-b from-yellow-700 to-amber-950 border border-yellow-600/40" />
-          {rows.map((i) => {
-            const z = (5 - i) * 58;
-            const scale = 1 - i * 0.08;
-            const here = i === row;
+      <div className="rounded-3xl border border-yellow-800/40 bg-gradient-to-b from-[#2a1408] to-black p-6 md:p-10">
+        <p className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-yellow-500 mb-3">Survey says</p>
+        <h2 className="text-center font-spartan text-2xl md:text-4xl font-black text-white leading-tight">{q ? q.q : "…"}</h2>
+        <div className="mt-8 grid gap-3">
+          {(q ? q.answers : ["…","…","…"]).map((ans, i) => {
+            const minePick = picked === i;
+            const showCorrect = lock && q && i === q.correct;
             return (
-              <div key={i} className="absolute left-1/2 flex gap-3" style={{ transform: `translateX(-50%) translateY(${z}px) scale(${scale})`, width: 280 - i * 16 }}>
-                {["L","R"].map((side) => {
-                  const picked = walking === side && here;
-                  const broken = fallen && here && walking !== side && map[row] !== side;
-                  return (
-                    <button key={side} disabled={!here || !!walking || fallen} onClick={() => step(side)}
-                      className={"flex-1 h-16 rounded-md border transition-all " + (picked ? "bg-amber-400/80 border-yellow-200 translate-y-1" : here ? "bg-amber-200/20 border-amber-300/50 hover:bg-amber-300/30" : "bg-black/40 border-white/10")}
-                      style={{ boxShadow: here ? "0 12px 24px rgba(0,0,0,0.45)" : "none", opacity: i < row ? 0.35 : 1 }}>
-                      {broken ? <span className="text-[10px] text-red-300 font-black">SNAP</span> : <span className="text-[10px] text-amber-100 font-black">{side === "L" ? "LEFT" : "RIGHT"}</span>}
-                    </button>
-                  );
-                })}
-              </div>
+              <button key={i} disabled={lock || picked === i} onClick={() => pick(i)}
+                className={"text-left px-5 py-4 rounded-2xl border font-black uppercase tracking-wide transition " +
+                  (showCorrect ? "bg-green-700/70 border-green-300 text-white" : minePick && q && i !== q.correct ? "bg-red-800/60 border-red-400 text-white" : "bg-black/40 border-yellow-700/40 text-yellow-50 hover:bg-yellow-900/30")}>
+                <span className="text-yellow-500 mr-3">{i + 1}</span>{ans}
+              </button>
             );
           })}
         </div>
-        <div className={"absolute left-1/2 -translate-x-1/2 transition-all duration-500 " + (fallen ? "top-[78%] rotate-45 opacity-40" : "bottom-8") }>
-          <StickSpartan />
-        </div>
+        <p className="text-center text-amber-200 font-bold mt-5">{note}</p>
       </div>
-      <p className="text-center text-amber-200 font-bold mt-3">{note}</p>
-    </div>
-  );
-}
-
-export function SpearDuel({ onBack }) {
-  const [view, setView] = useState("lobby");
-  const [wager, setWager] = useState("100");
-  const [mine, setMine] = useState(0);
-  const [opp, setOpp] = useState(0);
-  const [turn, setTurn] = useState("");
-  const [note, setNote] = useState("");
-  const [over, setOver] = useState("");
-  const [drag, setDrag] = useState(null);
-  const [spear, setSpear] = useState(null);
-  const [blood, setBlood] = useState([]);
-  const box = useRef(null);
-  const fly = useRef(null);
-
-  const mineTurn = () => turn === myPk();
-
-  useEffect(() => {
-    if (view !== "play") return;
-    const t = setInterval(async () => {
-      const s = await readState();
-      if (s.turn) setTurn(s.turn);
-      if (typeof s.a === "number") setMine(s.a);
-      if (typeof s.b === "number") setOpp(s.b);
-      if (s.shot && s.shot.id !== spear?.id && s.turn !== myPk()) {
-        setSpear({ id: s.shot.id, x: 780, y: 210, vx: -s.shot.power * 7.2, vy: -s.shot.aim * 0.55, from: "opp" });
-      }
-      if (s.over && !over) {
-        setOver(s.over);
-        setTimeout(() => {
-          if (s.over === myPk() && !window.__spearPaid) { window.__spearPaid = true; payIfWin(wager); }
-          setView("result");
-        }, 800);
-      }
-    }, 450);
-    return () => clearInterval(t);
-  }, [view, over, wager, spear]);
-
-  useEffect(() => {
-    if (!spear) return;
-    cancelAnimationFrame(fly.current);
-    const tick = () => {
-      setSpear((sp) => {
-        if (!sp) return null;
-        const nx = sp.x + sp.vx;
-        const ny = sp.y + sp.vy;
-        const nvy = sp.vy + 0.42;
-        const hitFoe = sp.from !== "opp" && nx > 730 && ny > 120 && ny < 300;
-        const hitMe = sp.from === "opp" && nx < 90 && ny > 120 && ny < 300;
-        const miss = nx > 900 || nx < -20 || ny > 390;
-        if (hitFoe || hitMe) {
-          setBlood((b) => [...b, { x: hitFoe ? 760 : 70, y: ny }]);
-          const nextMine = mine + (hitFoe ? 1 : 0);
-          const nextOpp = opp + (hitMe ? 1 : 0);
-          if (hitFoe) setMine(nextMine); else setOpp(nextOpp);
-          setNote(hitFoe ? "HIT." : "You were struck.");
-          const winner = nextMine >= 3 ? myPk() : nextOpp >= 3 ? "opp" : "";
-          if (winner) {
-            setOver(winner);
-            if (winner === myPk() && !window.__spearPaid) { window.__spearPaid = true; payIfWin(wager); }
-            patchState({ a: nextMine, b: nextOpp, over: winner });
-            setTimeout(() => setView("result"), 700);
-          } else {
-            const nxt = hitFoe ? "opp" : myPk();
-            setTurn(nxt);
-            patchState({ a: nextMine, b: nextOpp, turn: nxt });
-          }
-          return null;
-        }
-        if (miss) {
-          setNote("Miss.");
-          const nxt = sp.from === "opp" ? myPk() : "opp";
-          setTurn(nxt);
-          patchState({ turn: nxt, shot: { id: Date.now(), miss: true } });
-          return null;
-        }
-        return { ...sp, x: nx, y: ny, vy: nvy };
-      });
-      fly.current = requestAnimationFrame(tick);
-    };
-    fly.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(fly.current);
-  }, [!!spear]);
-
-  const pos = (e) => {
-    const r = box.current.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
-  const onDown = (e) => {
-    if (!mineTurn() || spear) return;
-    setDrag({ ...pos(e), ox: 92, oy: 210 });
-  };
-  const onMove = (e) => { if (drag) setDrag({ ...drag, ...pos(e) }); };
-  const onUp = async () => {
-    if (!drag || !mineTurn()) { setDrag(null); return; }
-    const dx = drag.ox - drag.x;
-    const dy = drag.oy - drag.y;
-    const power = Math.min(18, Math.max(6, Math.hypot(dx, dy) / 8));
-    const aim = Math.max(-18, Math.min(18, dy / 6));
-    const shot = { id: Date.now(), power, aim };
-    setSpear({ id: shot.id, x: 110, y: 210, vx: power * 7.2, vy: -aim * 0.9, from: "me" });
-    setDrag(null);
-    setNote("Spear loosed.");
-    await patchState({ shot, turn: "opp" });
-    setTurn("opp");
-  };
-
-  if (view === "result") return <ResultCard won={over === myPk()} wager={wager} onBack={() => { setView("lobby"); setMine(0); setOpp(0); setOver(""); setBlood([]); }} />;
-
-  if (view !== "play") {
-    return (
-      <MatchmakingLobby title="Spear Duel" subtitle="Draw the line. Loose the spear. First to 3 hits." icon={Target} iconColor="from-red-700 to-orange-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, async () => { window.__spearPaid = false; setWager(w); setMine(0); setOpp(0); setBlood([]); const first = myPk(); setTurn(first); await patchState({ turn: first, a: 0, b: 0 }); setView("play"); }, "spear", room)}>
-        <div className="grid md:grid-cols-3 gap-3 text-sm text-neutral-300">
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Draw</p>Click your Spartan and drag back. The line is power. The tilt is aim. Let go to throw.</div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Flight</p>The spear arcs with weight. Too low and it dies in the dirt. Too high and it sails over the helm.</div>
-          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Blood</p>A body hit scores. First Spartan to land 3 spears takes the pot. Same 95 / 3 / 2.</div>
-        </div>
-      </MatchmakingLobby>
-    );
-  }
-
-  const ang = drag ? Math.atan2(drag.oy - drag.y, drag.x - drag.ox) : 0;
-  const pow = drag ? Math.min(18, Math.hypot(drag.ox - drag.x, drag.oy - drag.y) / 8) : 0;
-
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between font-black text-white mb-2">
-        <span>You {mine}</span>
-        <span className={mineTurn() && !spear ? "text-orange-400" : "text-neutral-500"}>{mineTurn() && !spear ? "Draw your spear" : "Watch the sky"}</span>
-        <span>Foe {opp}</span>
-      </div>
-      <div ref={box} onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
-        className="relative h-[420px] rounded-3xl overflow-hidden border border-red-900/40 cursor-crosshair select-none"
-        style={{ background: "linear-gradient(#2a1208 0%, #120805 55%, #3a2a14 55%, #1a140c 100%)" }}>
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-orange-950/40 to-transparent" />
-        <div className="absolute left-6 bottom-16"><StickSpartan /></div>
-        <div className="absolute right-6 bottom-16"><StickSpartan flip dead={opp >= 3} /></div>
-        {drag && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            <line x1="92" y1="210" x2={drag.x} y2={drag.y} stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" />
-          </svg>
-        )}
-        {spear && (
-          <div className="absolute w-16 h-1.5 bg-gradient-to-r from-amber-200 to-orange-800 rounded-full origin-left"
-            style={{ left: spear.x, top: spear.y, transform: `rotate(${Math.atan2(spear.vy, spear.vx)}rad)` }} />
-        )}
-        {blood.map((b, i) => <div key={i} className="absolute w-2 h-2 rounded-full bg-red-600" style={{ left: b.x, top: b.y }} />)}
-        {drag && <div className="absolute left-28 top-8 text-amber-200 font-black text-sm">{pow.toFixed(0)} power · {(ang * 57.3).toFixed(0)}°</div>}
-      </div>
-      <p className="text-center text-amber-200 font-bold mt-3">{note}</p>
     </div>
   );
 }

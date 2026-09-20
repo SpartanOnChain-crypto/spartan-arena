@@ -7,10 +7,10 @@ import {
   Swords, Flame, Zap, Search, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
-  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2, Wine, Footprints } from 'lucide-react';
+  Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2, Wine, Crown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { lockStakeOnChain, getWalletBalances, settleMatch as settleMatchOnChain } from './vaultClient.js';
-import { PlankCrossing, SpearDuel } from './NewGames.jsx';
+import { SpartanFeud } from './NewGames.jsx';
 import { queueForMatch, leaveQueue, waitBothLocked, reportLock } from './matchClient.js';
 
 
@@ -238,7 +238,7 @@ export default function App() {
   const [deskSlide, setDeskSlide] = useState(0);
   const [look] = useState('anime');
   const [searchQ, setSearchQ] = useState('');
-  const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0, plank: 0, spear: 0 });
+  const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0, feud: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
   const [txHistory, setTxHistory] = useState([]);
   const [readyFlash, setReadyFlash] = useState('');
@@ -306,7 +306,7 @@ export default function App() {
     const tick = async () => {
       try {
         const h = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here").then(r => r.json());
-        if (h) setLiveHere({ tap: h.tap||0, chariot: h.chariot||0, phalanx: h.phalanx||0, bones: h.bones||0, plank: h.plank||0, spear: h.spear||0 });
+        if (h) setLiveHere({ tap: h.tap||0, chariot: h.chariot||0, phalanx: h.phalanx||0, bones: h.bones||0, feud: h.feud||0 });
       } catch (e) {}
       try {
         const f = await fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed").then(r => r.json());
@@ -320,7 +320,7 @@ export default function App() {
       } catch (e) {}
       const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
       if (pk) {
-        fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: view === "crash" ? "chariot" : view === "plinko" ? "phalanx" : view === "dice" ? "bones" : view === "plank" ? "plank" : view === "spear" ? "spear" : "tap", wallet: String(pk.toBase58 ? pk.toBase58() : pk) }) }).catch(() => {});
+        fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/here", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: view === "crash" ? "chariot" : view === "plinko" ? "phalanx" : view === "dice" ? "bones" : view === "feud" ? "feud" : "tap", wallet: String(pk.toBase58 ? pk.toBase58() : pk) }) }).catch(() => {});
       }
     };
     tick();
@@ -455,8 +455,7 @@ export default function App() {
           <SidebarItem icon={TrendingUp} label="Chariot Deathrace" target="crash" active={view === 'crash'} />
           <SidebarItem icon={Wine} label="Poison Pick" target="plinko" active={view === 'plinko'} />
           <SidebarItem icon={Dices} label="Bones of Sparta" target="dice" active={view === 'dice'} />
-          <SidebarItem icon={Footprints} label="Plank Crossing" target="plank" active={view === 'plank'} />
-          <SidebarItem icon={Target} label="Spear Duel" target="spear" active={view === 'spear'} />
+          <SidebarItem icon={Crown} label="Spartan Feud" target="feud" active={view === 'feud'} />
           <SidebarItem icon={Lightbulb} label="Suggest a Game" target="suggest" active={view === 'suggest'} />
           
           <div className="my-3 border-t border-white/5" />
@@ -719,19 +718,12 @@ export default function App() {
                     )}
                   />
                   <ArenaCard 
-                    title="Plank Crossing" icon={Footprints} target="plank" players={String(liveHere.plank||0)} tag="1v1 PvP"
+                    title="Spartan Feud" icon={Crown} target="feud" players={String(liveHere.feud||0)} tag="1v1 PvP"
                     bgBase="bg-[#1a0c00]" accentColor="text-amber-400"
                     renderArt={() => (
                       <div className="absolute inset-0">
                         <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_18px,rgba(245,158,11,0.15)_18px,rgba(245,158,11,0.15)_20px)]" />
                       </div>
-                    )}
-                  />
-                  <ArenaCard 
-                    title="Spear Duel" icon={Target} target="spear" players={String(liveHere.spear||0)} tag="1v1 PvP"
-                    bgBase="bg-[#140000]" accentColor="text-orange-400"
-                    renderArt={() => (
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(234,88,12,0.45),transparent_70%)]" />
                     )}
                   />
                   <ArenaCard 
@@ -783,8 +775,7 @@ export default function App() {
           {view === 'tap' && <ArenaGame wallet={wallet} addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'crash' && <ChariotDeathrace addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'dice' && <BonesOfSparta addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          {view === 'plank' && <PlankCrossing addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
-          {view === 'spear' && <SpearDuel addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'feud' && <SpartanFeud addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'plinko' && <PhalanxStance addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'stand' && <The300Stand addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'jackpot' && <OracleJackpot addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
