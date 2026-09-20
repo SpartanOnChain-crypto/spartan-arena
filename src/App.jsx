@@ -98,6 +98,14 @@ function shortPk(pk) {
   if (s.length < 8) return s || "----";
   return s.slice(0, 4) + "..." + s.slice(-4);
 }
+function refreshReady() {
+  const pk = window.__spartanWallet?.publicKey || window.solana?.publicKey;
+  if (!pk || typeof getWalletBalances !== "function") return;
+  getWalletBalances(pk).then((b) => {
+    if (!b || typeof b.spartan !== "number") return;
+    if (typeof window.__spartanSetReady === "function") window.__spartanSetReady(Number(b.spartan) || 0);
+  }).catch(() => {});
+}
 function postHistory(row) {
   fetch(MATCH_HOST + "/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(row) }).catch(() => {});
 }
@@ -116,6 +124,8 @@ function payIfWin(wager) {
       if (paid && typeof window.__spartanSetReady === "function") {
         window.__spartanSetReady((prev) => Number(prev) + stake);
       }
+      setTimeout(refreshReady, 1500);
+      setTimeout(refreshReady, 4000);
       postHistory({
         game: window.__spartanGame || "Match",
         stake,
@@ -232,6 +242,12 @@ export default function App() {
   const [liveFeed, setLiveFeed] = useState([]);
   const [txHistory, setTxHistory] = useState([]);
   const [readyFlash, setReadyFlash] = useState('');
+  useEffect(() => {
+    if (!wallet) return;
+    refreshReady();
+    const id = setInterval(refreshReady, 5000);
+    return () => clearInterval(id);
+  }, [wallet, view]);
   const [liveBoard, setLiveBoard] = useState([]);
   const [ideaText, setIdeaText] = useState('');
   const [ideaNote, setIdeaNote] = useState('');
