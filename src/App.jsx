@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   Shield, Trophy, Wallet, Skull, Bot, 
-  Swords, Flame, Zap, Search, LayoutDashboard, 
+  Swords, Flame, Zap, Search, Menu, LayoutDashboard, 
   Dices, ScrollText, User, Lock, Coins, ChevronRight,
   TrendingUp, Activity, History, MessageCircle, 
   Twitter, BarChart3, Lightbulb, Users, Key, Target, Crosshair, Info, Loader2, Wine, Crown } from 'lucide-react';
@@ -236,6 +236,7 @@ export default function App() {
   }, []);
   
   const [deskSlide, setDeskSlide] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [nftSlide, setNftSlide] = useState(0);
   const [look] = useState('anime');
   useEffect(() => {
@@ -356,7 +357,7 @@ export default function App() {
 
   const SidebarItem = ({ icon: Icon, label, target, active, locked }) => (
     <button 
-      onClick={() => locked ? alert("The 300 Stand and Oracle Jackpot are locked until live pots are ready.") : target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : setView(target)}
+      onClick={() => locked ? alert("The 300 Stand and Oracle Jackpot are locked until live pots are ready.") : target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : (setView(target), setMenuOpen(false))}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
         active 
         ? 'bg-neutral-800/80 text-white shadow-[0_0_15px_rgba(234,88,12,0.15)] border border-orange-500/20' 
@@ -397,7 +398,7 @@ export default function App() {
 
   const ArenaCard = ({ title, icon: Icon, target, bgBase, accentColor, renderArt, tag, players }) => (
     <div 
-      onClick={() => target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : setView(target)}
+      onClick={() => target === 'stand-locked' || target === 'jackpot-locked' ? alert('This game is locked until the live pot is ready.') : (setView(target), setMenuOpen(false))}
       className="relative w-full aspect-[4/5] rounded-2xl cursor-pointer group p-[1px] transition-all duration-500 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(234,88,12,0.4)] overflow-hidden"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-white/20 group-hover:from-orange-500/80 group-hover:via-purple-500/80 group-hover:to-amber-500/80 transition-colors duration-500" />
@@ -440,7 +441,8 @@ export default function App() {
       </div>
 
       {/* LEFT SIDEBAR */}
-      <aside className="w-64 bg-black/50 backdrop-blur-2xl border-r border-white/5 flex flex-col z-20 shrink-0 hidden md:flex shadow-[5px_0_30px_rgba(0,0,0,0.8)]">
+      {menuOpen && <button type="button" className="md:hidden fixed inset-0 bg-black/70 z-40" onClick={() => setMenuOpen(false)} aria-label="Close menu" />}
+      <aside className={"w-72 md:w-64 bg-black/95 md:bg-black/50 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50 md:z-20 shrink-0 shadow-[5px_0_30px_rgba(0,0,0,0.8)] fixed md:relative inset-y-0 left-0 transition-transform duration-200 " + (menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0")}>
         <div className="h-24 px-6 flex items-center gap-4 shrink-0 cursor-pointer border-b border-white/5" onClick={() => setView('home')}>
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-600 to-red-800 flex items-center justify-center shadow-[0_0_25px_rgba(234,88,12,0.5)] border border-orange-400/40">
             <span className="font-spartan text-3xl font-black text-white drop-shadow-md">Λ</span>
@@ -486,8 +488,15 @@ export default function App() {
       <div className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         
         {/* TOP NAV WITH LIVE CRYPTO TICKERS */}
-        <header className="h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
+        <header className="h-auto min-h-16 md:h-24 border-b border-white/5 bg-black/30 backdrop-blur-xl px-3 md:px-8 flex flex-wrap md:flex-nowrap items-center justify-between gap-2 shrink-0 shadow-sm relative z-20 py-2 md:py-0">
           
+          <button type="button" className="md:hidden p-2 rounded-xl bg-black/50 border border-white/10" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+            <Menu className="w-5 h-5 text-orange-400" />
+          </button>
+          <button type="button" className="md:hidden flex items-center gap-2" onClick={() => setView("home")}>
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-600 to-red-800 flex items-center justify-center font-spartan font-black text-white">Λ</span>
+            <span className="font-spartan font-black uppercase tracking-widest text-sm">Arena</span>
+          </button>
           {/* Left: Search Bar */}
           <div className="w-64 hidden xl:block shrink-0">
             <div className="relative">
@@ -545,7 +554,7 @@ export default function App() {
           </div>
 
           {/* Center: Live SOL, BTC, ETH, $SPARTAN Tickers */}
-          <div className="flex items-center gap-4 mx-auto overflow-x-auto py-1 px-4 custom-scrollbar flex-1 justify-center">
+          <div className="flex items-center gap-2 md:gap-4 mx-auto overflow-x-auto py-1 px-1 md:px-4 custom-scrollbar flex-1 justify-start md:justify-center min-w-0">
             {/* SOL */}
             <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-inner">
               <span className="text-[11px] font-black text-purple-400">SOL</span>
@@ -606,7 +615,7 @@ export default function App() {
 
             <button 
               onClick={connectWallet}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-all text-white shadow-[0_0_20px_rgba(234,88,12,0.4)] border border-orange-400/50 shrink-0"
             >
               {!wallet && <Wallet className="w-3.5 h-3.5" />}
               {wallet ? "Connected" : "Sign In"}
@@ -697,7 +706,7 @@ export default function App() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
                   <ArenaCard 
                     title="Colosseum Tap" icon={Swords} target="tap" players={String(liveHere.tap||0)} tag="1v1 PvP"
                     bgBase="bg-[#1a0500]" accentColor="text-orange-400"
