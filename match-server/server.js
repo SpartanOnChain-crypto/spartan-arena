@@ -69,7 +69,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "GET" && url.pathname === "/here") {
     const now = Date.now();
-    const counts = { tap: 0, chariot: 0, phalanx: 0, bones: 0 };
+    const counts = { tap: 0, chariot: 0, phalanx: 0, bones: 0, plank: 0, spear: 0 };
     for (const [w, row] of here) {
       if (now - row.t > 45000) { here.delete(w); continue; }
       const g = row.game || "tap";
