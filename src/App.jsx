@@ -631,9 +631,9 @@ export default function App() {
               
               {/* Premium Promo Banners */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] h-64 md:h-72 group">
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 via-orange-950 to-black border border-orange-500/30 shadow-[0_10px_40px_rgba(234,88,12,0.2)] min-h-[22rem] md:min-h-0 md:h-72 group">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full" />
-                  <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 pt-7 pb-14">
                     {deskSlide === 0 ? (
                       <div className="max-w-md">
                         <h2 className="text-orange-200 font-black uppercase tracking-widest text-[11px] mb-3">Community Hall</h2>
@@ -649,7 +649,7 @@ export default function App() {
                         <a href="https://discord.gg/ME8PRr8YG" target="_blank" rel="noreferrer" className="inline-block bg-white text-black px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Submit in Discord</a>
                       </div>
                     )}
-                    <div className="absolute bottom-5 left-0 right-0 flex justify-center gap-2">
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
                       <button type="button" onClick={() => setDeskSlide(0)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 0 ? "bg-white" : "bg-white/25")} />
                       <button type="button" onClick={() => setDeskSlide(1)} className={"w-8 h-1.5 rounded-full " + (deskSlide === 1 ? "bg-white" : "bg-white/25")} />
                     </div>
