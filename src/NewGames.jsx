@@ -1,320 +1,303 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Footprints, Target, Trophy, Skull } from "lucide-react";
-import confetti from "canvas-confetti";
 import { MatchmakingLobby, myPk, parseWager, payIfWin, patchState, readState, startTapOnChain } from "./App.jsx";
 
 function ResultCard({ won, wager, onBack }) {
   return (
-    <div className="w-full max-w-md mx-auto mt-10 bg-black/60 border border-white/10 rounded-[2rem] p-12 text-center">
-      {won ? (
-        <>
-          <Trophy className="w-24 h-24 text-green-400 mx-auto mb-6" />
-          <h2 className="font-spartan text-5xl font-black text-green-400 mb-2">VICTORY</h2>
-          <div className="bg-green-500/10 border border-green-500/30 rounded-2xl py-6 mb-6">
-            <span className="text-4xl font-black text-green-400">+{parseWager(wager) * 2} $SPARTAN</span>
-          </div>
-          {window.__spartanPayoutNote && (
-            <div className="mb-6 font-spartan text-xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-red-500 to-yellow-300 animate-pulse">
-              {window.__spartanPayoutNote}
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <Skull className="w-24 h-24 text-red-600 mx-auto mb-6" />
-          <h2 className="font-spartan text-5xl font-black text-red-600 mb-2">SLAIN</h2>
-          <div className="bg-red-900/20 border border-red-500/30 rounded-2xl py-6 mb-6">
-            <span className="text-4xl font-black text-red-500">-{wager} $SPARTAN</span>
-          </div>
-        </>
-      )}
-      <button onClick={onBack} className="w-full py-4.5 rounded-xl bg-white/10 text-white font-black text-sm uppercase">Return to Matchmaking</button>
+    <div className="max-w-md mx-auto text-center py-16">
+      {won ? <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" /> : <Skull className="w-16 h-16 text-red-500 mx-auto mb-4" />}
+      <div className="font-spartan text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-red-500 to-yellow-400 drop-shadow-[0_0_18px_rgba(249,115,22,0.8)]">
+        {won ? "VICTORY" : "SLAIN"}
+      </div>
+      <p className="text-neutral-300 mt-3">{won ? "Refresh Ready Wallet for updated balance." : "Stake stays with the winner."}</p>
+      <p className="text-orange-300 font-black mt-1">{wager} $SPARTAN</p>
+      <button onClick={onBack} className="mt-6 px-6 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-black uppercase tracking-widest">Back to Arena</button>
     </div>
   );
 }
 
-function mapFor(pk) {
-  const s = String(pk || "x");
-  const out = [];
-  for (let i = 0; i < 6; i++) out.push((s.charCodeAt(i % s.length) + i * 7) % 2);
-  return out;
+function StickSpartan({ flip, dead }) {
+  return (
+    <svg viewBox="0 0 80 140" className={"w-20 h-36 " + (flip ? "scale-x-[-1]" : "")} style={{ filter: dead ? "grayscale(1) opacity(0.45)" : "none" }}>
+      <ellipse cx="40" cy="128" rx="18" ry="5" fill="rgba(0,0,0,0.35)" />
+      <line x1="40" y1="38" x2="40" y2="88" stroke="#e8c37a" strokeWidth="5" strokeLinecap="round" />
+      <line x1="40" y1="50" x2="18" y2="78" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
+      <line x1="40" y1="50" x2="62" y2="72" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
+      <line x1="40" y1="88" x2="24" y2="122" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
+      <line x1="40" y1="88" x2="56" y2="122" stroke="#e8c37a" strokeWidth="4" strokeLinecap="round" />
+      <path d="M22 28 L40 8 L58 28 Z" fill="#7a1a12" stroke="#f59e0b" strokeWidth="2" />
+      <circle cx="40" cy="32" r="11" fill="#e8c37a" />
+      <path d="M28 34 Q40 44 52 34" fill="#7a1a12" />
+      <rect x="58" y="48" width="6" height="28" rx="2" fill="#92400e" />
+      <circle cx="61" cy="46" r="5" fill="#b45309" />
+    </svg>
+  );
 }
 
-export function PlankCrossing({ addWager, addFeed, username, onBack }) {
+export function PlankCrossing({ onBack }) {
   const [view, setView] = useState("lobby");
   const [wager, setWager] = useState("100");
-  const [countdown, setCountdown] = useState(3);
-  const [turn, setTurn] = useState("");
   const [row, setRow] = useState(0);
-  const [anim, setAnim] = useState("");
-  const [picked, setPicked] = useState(null);
-  const [note, setNote] = useState("The ravine waits.");
-  const [over, setOver] = useState(null);
-  const me = () => myPk();
-  const mine = () => turn && turn === me();
+  const [fallen, setFallen] = useState(false);
+  const [walking, setWalking] = useState(null);
+  const [note, setNote] = useState("Your step. Pick a plank.");
+  const [map, setMap] = useState([]);
+  const [over, setOver] = useState("");
+  const [shake, setShake] = useState(false);
 
-  useEffect(() => {
-    if (view !== "countdown") return;
-    if (countdown > 0) {
-      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
-    }
-    const a = me();
-    const b = String(window.__spartanOpponent || "opp");
-    const first = [a, b].sort()[0] || a;
-    setTurn(first); setRow(0); setOver(null); setPicked(null);
-    setNote(first === a ? "Your step. Choose a plank." : "Watch the other warrior.");
-    setView("arena");
-    patchState({ turn: first, row: 0, over: null, last: null });
-  }, [view, countdown]);
-
-  useEffect(() => {
-    if (view !== "arena" || over) return;
-    const id = setInterval(async () => {
-      const st = await readState();
-      if (!st) return;
-      if (st.turn) setTurn(st.turn);
-      if (typeof st.row === "number") setRow(st.row);
-      if (st.last && st.last.who && st.last.who !== me() && st.last.t !== window.__plankSeen) {
-        window.__plankSeen = st.last.t;
-        setPicked(st.last.side);
-        setAnim(st.last.ok ? "safe" : "fall");
-        setNote(st.last.ok ? "They held the wood." : "The plank snapped.");
-        setTimeout(() => { setAnim(""); setPicked(null); }, 1600);
-      }
-      if (st.over) { setOver(st.over); finish(st.over === me()); }
-    }, 400);
-    return () => clearInterval(id);
-  }, [view, over]);
-
-  const finish = (won) => {
-    if (window.__plankPaid) return;
-    window.__plankPaid = true;
-    window.__spartanGame = "Plank Crossing";
-    addWager(wager);
-    if (won) {
-      payIfWin(wager);
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-      addFeed(username || "Warrior", "Plank Crossing", wager, "2.0x", "+" + (parseWager(wager) * 2), "win");
-    } else {
-      if (typeof window.__spartanSetReady === "function") {
-        window.__spartanSetReady((prev) => Math.max(0, Number(prev) - (parseWager(wager) || 0)));
-      }
-      addFeed(username || "Warrior", "Plank Crossing", wager, "0.0x", "-" + wager, "loss");
-    }
-    setView("result");
+  const mapFor = (id) => {
+    let n = 1;
+    String(id || "x").split("").forEach((c) => n = (n * 33 + c.charCodeAt(0)) >>> 0);
+    return [0,1,2,3,4,5].map((i) => ((n >> (i * 3)) & 1) === 0 ? "L" : "R");
   };
 
-  const stepOn = async (side) => {
-    if (!mine() || anim || over) return;
-    const safe = mapFor(me())[row] === side;
-    setPicked(side);
-    setAnim(safe ? "safe" : "fall");
-    setNote(safe ? "The wood holds." : "The plank splits.");
-    const a = me();
-    const b = String(window.__spartanOpponent || "opp");
+  useEffect(() => {
+    if (view !== "play") return;
+    const t = setInterval(async () => {
+      const s = await readState();
+      if (s.over && !over) {
+        setOver(s.over);
+        setTimeout(() => {
+          if (s.over === myPk() && !window.__plankPaid) { window.__plankPaid = true; payIfWin(wager); }
+          setView("result");
+        }, 900);
+      }
+    }, 700);
+    return () => clearInterval(t);
+  }, [view, over, wager]);
+
+  const step = async (side) => {
+    if (walking || fallen || over) return;
+    const safe = map[row] === side;
+    setWalking(side);
+    setNote(safe ? "Solid wood. Keep moving." : "The plank snaps.");
+    await new Promise((r) => setTimeout(r, 520));
     if (!safe) {
-      await patchState({ over: b, last: { who: a, side, ok: false, t: Date.now() } });
-      setTimeout(() => finish(false), 1400);
+      setFallen(true);
+      setShake(true);
+      setWalking(null);
+      await patchState({ over: "opp", fall: row });
+      setTimeout(() => setView("result"), 1100);
       return;
     }
-    const nextRow = row + 1;
-    if (nextRow >= 6) {
-      await patchState({ over: a, last: { who: a, side, ok: true, t: Date.now() } });
-      setTimeout(() => finish(true), 1400);
+    const next = row + 1;
+    setWalking(null);
+    setRow(next);
+    if (next >= 6) {
+      setOver(myPk());
+      if (!window.__plankPaid) { window.__plankPaid = true; payIfWin(wager); }
+      await patchState({ over: myPk() });
+      setTimeout(() => setView("result"), 700);
       return;
     }
-    await patchState({ turn: b, row: nextRow, last: { who: a, side, ok: true, t: Date.now() } });
-    setTimeout(() => { setAnim(""); setPicked(null); setRow(nextRow); setTurn(b); setNote("Watch the other warrior."); }, 1400);
+    setNote("Your step. Pick a plank.");
+    await patchState({ row: next, last: side });
   };
 
-  if (view === "lobby") {
+  if (view === "result") return <ResultCard won={over === myPk() && !fallen} wager={wager} onBack={() => { setView("lobby"); setRow(0); setFallen(false); setOver(""); }} />;
+
+  if (view !== "play") {
     return (
-      <MatchmakingLobby title="Plank Crossing" subtitle="Six rows. Two boards. One lies." icon={Footprints} iconColor="from-amber-700 to-yellow-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { window.__plankPaid = false; setWager(w); setCountdown(3); setView("countdown"); }, "plank", room)}>
-        <div className="mt-8 bg-black/40 border border-white/10 rounded-2xl p-6">
-          <h3 className="font-spartan text-xl font-black text-white uppercase mb-4">How to Play Plank Crossing</h3>
-          <p className="text-neutral-300 text-sm leading-relaxed mb-3">The canyon does not care who you are. Six rows of twin wooden boards stretch into the fog. One board on each row is sound. The other is rot painted to look proud.</p>
-          <p className="text-neutral-300 text-sm leading-relaxed mb-3">Warriors take turns. On your turn you choose left or right. If the wood holds, you live and the other warrior walks. If it splits, you fall and the pot is theirs.</p>
-          <p className="text-neutral-400 text-sm leading-relaxed">Cross all six without falling and you take the field. Each warrior has their own hidden path, so watching them does not teach you your boards. No popups. The ravine is the only judge.</p>
+      <MatchmakingLobby title="Plank Crossing" subtitle="Six rows. One path is wood. One path is air." icon={Footprints} iconColor="from-amber-700 to-yellow-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { window.__plankPaid = false; setWager(w); setMap(mapFor(window.__spartanMatchId || myPk())); setRow(0); setFallen(false); setOver(""); setView("play"); }, "plank", room)}>
+        <div className="grid md:grid-cols-3 gap-3 text-sm text-neutral-300">
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Bridge</p>You stand at the mouth of a six-row wood bridge. Each row has a left plank and a right plank. Only one holds.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Walk</p>Tap LEFT or RIGHT. Your Spartan steps onto that plank. Safe wood carries you forward. Fake wood shatters and you fall.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-amber-300 font-black uppercase text-xs mb-2">The Prize</p>First to the far gate wins the pot. Same lock, same 95 / 3 / 2 as every other original.</div>
         </div>
       </MatchmakingLobby>
     );
   }
-  if (view === "countdown") {
-    return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center">
-        <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. The planks wait in</h3>
-        {window.__spartanOpponent && <div className="mb-4 font-spartan text-2xl font-black text-orange-400">VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}</div>}
-        <div className="text-7xl font-black text-white">{countdown}</div>
-      </div>
-    );
-  }
-  if (view === "result") return <ResultCard won={over === me()} wager={wager} onBack={() => { setView("lobby"); setCountdown(3); }} />;
 
+  const rows = [0,1,2,3,4,5];
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex justify-between text-xs font-black uppercase tracking-widest text-neutral-400 mb-3">
-        <span>Row {row + 1} / 6</span>
-        <span className={mine() ? "text-amber-400" : "text-neutral-500"}>{mine() ? "Your step" : "Watching"}</span>
+      <div className="flex justify-between text-xs font-black uppercase tracking-widest text-amber-200 mb-2">
+        <span>Row {Math.min(row + 1, 6)} / 6</span>
+        <span>{fallen ? "Falling" : "Walk"}</span>
       </div>
-      <div className="relative h-[420px] rounded-3xl overflow-hidden border border-amber-900/40 bg-gradient-to-b from-[#1a0c00] to-black">
-        <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(120,53,15,0.12)_40px,rgba(120,53,15,0.12)_42px)]" />
-        <div className="absolute left-1/2 top-6 bottom-6 w-1 bg-amber-900/50" />
-        <div className="relative z-10 h-full flex items-end justify-center gap-16 pb-16">
-          {[0, 1].map((side) => (
-            <button key={side} disabled={!mine() || !!anim} onClick={() => stepOn(side)}
-              className={"w-36 h-28 rounded-md border-2 transition-all duration-500 " +
-                (picked === side && anim === "fall" ? "translate-y-40 rotate-12 opacity-0 border-red-600 bg-red-950" :
-                 picked === side && anim === "safe" ? "scale-105 border-green-400 bg-amber-700 shadow-[0_0_30px_#22c55e66]" :
-                 "border-amber-700 bg-gradient-to-b from-amber-800 to-amber-950 hover:border-amber-400")}>
-              <div className="h-full flex items-center justify-center font-spartan font-black text-amber-200 uppercase">{side === 0 ? "Left" : "Right"}</div>
-            </button>
-          ))}
+      <div className={"relative h-[460px] rounded-3xl overflow-hidden border border-amber-900/40 " + (shake ? "animate-pulse" : "")} style={{ background: "linear-gradient(#1a0b04,#050200)", perspective: "900px" }}>
+        <div className="absolute inset-0" style={{ background: "repeating-linear-gradient(90deg, transparent 0 18px, rgba(245,158,11,0.05) 18px 19px)" }} />
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 w-[86%] h-[86%]" style={{ transformStyle: "preserve-3d", transform: "rotateX(62deg)" }}>
+          <div className="absolute left-1/2 -translate-x-1/2 top-[-6%] w-28 h-10 rounded-t-2xl bg-gradient-to-b from-yellow-700 to-amber-950 border border-yellow-600/40" />
+          {rows.map((i) => {
+            const z = (5 - i) * 58;
+            const scale = 1 - i * 0.08;
+            const here = i === row;
+            return (
+              <div key={i} className="absolute left-1/2 flex gap-3" style={{ transform: `translateX(-50%) translateY(${z}px) scale(${scale})`, width: 280 - i * 16 }}>
+                {["L","R"].map((side) => {
+                  const picked = walking === side && here;
+                  const broken = fallen && here && walking !== side && map[row] !== side;
+                  return (
+                    <button key={side} disabled={!here || !!walking || fallen} onClick={() => step(side)}
+                      className={"flex-1 h-16 rounded-md border transition-all " + (picked ? "bg-amber-400/80 border-yellow-200 translate-y-1" : here ? "bg-amber-200/20 border-amber-300/50 hover:bg-amber-300/30" : "bg-black/40 border-white/10")}
+                      style={{ boxShadow: here ? "0 12px 24px rgba(0,0,0,0.45)" : "none", opacity: i < row ? 0.35 : 1 }}>
+                      {broken ? <span className="text-[10px] text-red-300 font-black">SNAP</span> : <span className="text-[10px] text-amber-100 font-black">{side === "L" ? "LEFT" : "RIGHT"}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <div className={"absolute left-1/2 -translate-x-1/2 transition-all duration-500 " + (fallen ? "top-[78%] rotate-45 opacity-40" : "bottom-8") }>
+          <StickSpartan />
         </div>
       </div>
-      <p className="mt-4 text-center text-amber-200 font-bold">{note}</p>
+      <p className="text-center text-amber-200 font-bold mt-3">{note}</p>
     </div>
   );
 }
 
-export function SpearDuel({ addWager, addFeed, username, onBack }) {
+export function SpearDuel({ onBack }) {
   const [view, setView] = useState("lobby");
   const [wager, setWager] = useState("100");
-  const [countdown, setCountdown] = useState(3);
+  const [mine, setMine] = useState(0);
+  const [opp, setOpp] = useState(0);
   const [turn, setTurn] = useState("");
-  const [mineScore, setMineScore] = useState(0);
-  const [oppScore, setOppScore] = useState(0);
-  const [power, setPower] = useState(40);
-  const [aim, setAim] = useState(0);
-  const [fly, setFly] = useState(false);
-  const [note, setNote] = useState("Draw the spear.");
-  const [over, setOver] = useState(null);
-  const dragging = useRef(false);
-  const me = () => myPk();
-  const mine = () => turn && turn === me();
+  const [note, setNote] = useState("");
+  const [over, setOver] = useState("");
+  const [drag, setDrag] = useState(null);
+  const [spear, setSpear] = useState(null);
+  const [blood, setBlood] = useState([]);
+  const box = useRef(null);
+  const fly = useRef(null);
+
+  const mineTurn = () => turn === myPk();
 
   useEffect(() => {
-    if (view !== "countdown") return;
-    if (countdown > 0) {
-      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
-    }
-    const a = me();
-    const b = String(window.__spartanOpponent || "opp");
-    const first = [a, b].sort()[0] || a;
-    setTurn(first); setMineScore(0); setOppScore(0); setOver(null);
-    setNote(first === a ? "Draw. Aim. Loose." : "Watch their throw.");
-    setView("arena");
-    patchState({ turn: first, scores: {}, over: null, last: null });
-  }, [view, countdown]);
+    if (view !== "play") return;
+    const t = setInterval(async () => {
+      const s = await readState();
+      if (s.turn) setTurn(s.turn);
+      if (typeof s.a === "number") setMine(s.a);
+      if (typeof s.b === "number") setOpp(s.b);
+      if (s.shot && s.shot.id !== spear?.id && s.turn !== myPk()) {
+        setSpear({ id: s.shot.id, x: 780, y: 210, vx: -s.shot.power * 7.2, vy: -s.shot.aim * 0.55, from: "opp" });
+      }
+      if (s.over && !over) {
+        setOver(s.over);
+        setTimeout(() => {
+          if (s.over === myPk() && !window.__spearPaid) { window.__spearPaid = true; payIfWin(wager); }
+          setView("result");
+        }, 800);
+      }
+    }, 450);
+    return () => clearInterval(t);
+  }, [view, over, wager, spear]);
 
   useEffect(() => {
-    if (view !== "arena" || over) return;
-    const id = setInterval(async () => {
-      const st = await readState();
-      if (!st) return;
-      if (st.turn) setTurn(st.turn);
-      if (st.scores) {
-        setMineScore(Number(st.scores[me()] || 0));
-        const other = Object.keys(st.scores).find((k) => k && k !== me());
-        if (other) setOppScore(Number(st.scores[other] || 0));
-      }
-      if (st.last && st.last.who !== me() && st.last.t !== window.__spearSeen) {
-        window.__spearSeen = st.last.t;
-        setPower(st.last.power); setAim(st.last.aim); setFly(true);
-        setNote(st.last.hit ? "They struck." : "They missed.");
-        setTimeout(() => setFly(false), 1200);
-      }
-      if (st.over) { setOver(st.over); finish(st.over === me()); }
-    }, 400);
-    return () => clearInterval(id);
-  }, [view, over]);
+    if (!spear) return;
+    cancelAnimationFrame(fly.current);
+    const tick = () => {
+      setSpear((sp) => {
+        if (!sp) return null;
+        const nx = sp.x + sp.vx;
+        const ny = sp.y + sp.vy;
+        const nvy = sp.vy + 0.42;
+        const hitFoe = sp.from !== "opp" && nx > 730 && ny > 120 && ny < 300;
+        const hitMe = sp.from === "opp" && nx < 90 && ny > 120 && ny < 300;
+        const miss = nx > 900 || nx < -20 || ny > 390;
+        if (hitFoe || hitMe) {
+          setBlood((b) => [...b, { x: hitFoe ? 760 : 70, y: ny }]);
+          const nextMine = mine + (hitFoe ? 1 : 0);
+          const nextOpp = opp + (hitMe ? 1 : 0);
+          if (hitFoe) setMine(nextMine); else setOpp(nextOpp);
+          setNote(hitFoe ? "HIT." : "You were struck.");
+          const winner = nextMine >= 3 ? myPk() : nextOpp >= 3 ? "opp" : "";
+          if (winner) {
+            setOver(winner);
+            if (winner === myPk() && !window.__spearPaid) { window.__spearPaid = true; payIfWin(wager); }
+            patchState({ a: nextMine, b: nextOpp, over: winner });
+            setTimeout(() => setView("result"), 700);
+          } else {
+            const nxt = hitFoe ? "opp" : myPk();
+            setTurn(nxt);
+            patchState({ a: nextMine, b: nextOpp, turn: nxt });
+          }
+          return null;
+        }
+        if (miss) {
+          setNote("Miss.");
+          const nxt = sp.from === "opp" ? myPk() : "opp";
+          setTurn(nxt);
+          patchState({ turn: nxt, shot: { id: Date.now(), miss: true } });
+          return null;
+        }
+        return { ...sp, x: nx, y: ny, vy: nvy };
+      });
+      fly.current = requestAnimationFrame(tick);
+    };
+    fly.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(fly.current);
+  }, [!!spear]);
 
-  const finish = (won) => {
-    if (window.__spearPaid) return;
-    window.__spearPaid = true;
-    window.__spartanGame = "Spear Duel";
-    addWager(wager);
-    if (won) {
-      payIfWin(wager);
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-      addFeed(username || "Warrior", "Spear Duel", wager, "2.0x", "+" + (parseWager(wager) * 2), "win");
-    } else {
-      if (typeof window.__spartanSetReady === "function") {
-        window.__spartanSetReady((prev) => Math.max(0, Number(prev) - (parseWager(wager) || 0)));
-      }
-      addFeed(username || "Warrior", "Spear Duel", wager, "0.0x", "-" + wager, "loss");
-    }
-    setView("result");
+  const pos = (e) => {
+    const r = box.current.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+  const onDown = (e) => {
+    if (!mineTurn() || spear) return;
+    setDrag({ ...pos(e), ox: 92, oy: 210 });
+  };
+  const onMove = (e) => { if (drag) setDrag({ ...drag, ...pos(e) }); };
+  const onUp = async () => {
+    if (!drag || !mineTurn()) { setDrag(null); return; }
+    const dx = drag.ox - drag.x;
+    const dy = drag.oy - drag.y;
+    const power = Math.min(18, Math.max(6, Math.hypot(dx, dy) / 8));
+    const aim = Math.max(-18, Math.min(18, dy / 6));
+    const shot = { id: Date.now(), power, aim };
+    setSpear({ id: shot.id, x: 110, y: 210, vx: power * 7.2, vy: -aim * 0.9, from: "me" });
+    setDrag(null);
+    setNote("Spear loosed.");
+    await patchState({ shot, turn: "opp" });
+    setTurn("opp");
   };
 
-  const throwSpear = async () => {
-    if (!mine() || fly || over) return;
-    const hit = power >= 52 && power <= 88 && Math.abs(aim) <= 14;
-    setFly(true);
-    setNote(hit ? "Strike." : "Wide.");
-    const a = me();
-    const b = String(window.__spartanOpponent || "opp");
-    const st = await readState();
-    const scores = Object.assign({}, st.scores || {});
-    scores[a] = Number(scores[a] || 0) + (hit ? 1 : 0);
-    let nextOver = null;
-    if (scores[a] >= 3) nextOver = a;
-    await patchState({ turn: b, scores, over: nextOver, last: { who: a, power, aim, hit, t: Date.now() } });
-    setMineScore(scores[a]);
-    setTimeout(() => {
-      setFly(false);
-      if (nextOver) finish(true);
-      else { setTurn(b); setNote("Watch their throw."); }
-    }, 1200);
-  };
+  if (view === "result") return <ResultCard won={over === myPk()} wager={wager} onBack={() => { setView("lobby"); setMine(0); setOpp(0); setOver(""); setBlood([]); }} />;
 
-  if (view === "lobby") {
+  if (view !== "play") {
     return (
-      <MatchmakingLobby title="Spear Duel" subtitle="Draw. Aim. First to 3 hits." icon={Target} iconColor="from-red-700 to-orange-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, () => { window.__spearPaid = false; setWager(w); setCountdown(3); setView("countdown"); }, "spear", room)}>
-        <div className="mt-8 bg-black/40 border border-white/10 rounded-2xl p-6">
-          <h3 className="font-spartan text-xl font-black text-white uppercase mb-4">How to Play Spear Duel</h3>
-          <p className="text-neutral-300 text-sm leading-relaxed mb-3">Two hoplites. One spear each throw. Drag the power bar back like a bowstring. Tilt aim up or down. Loose it and watch the shaft fly.</p>
-          <p className="text-neutral-300 text-sm leading-relaxed mb-3">A hit needs a strong draw and a true line. Too soft and it drops. Too hard and it sails. First warrior to land three spears takes the pot.</p>
-          <p className="text-neutral-400 text-sm leading-relaxed">Turns swap after every throw. You watch their flight on this same field. No extra windows. Just wood, iron, and nerve.</p>
+      <MatchmakingLobby title="Spear Duel" subtitle="Draw the line. Loose the spear. First to 3 hits." icon={Target} iconColor="from-red-700 to-orange-900" onBack={onBack} onStart={(w, room) => startTapOnChain(w, async () => { window.__spearPaid = false; setWager(w); setMine(0); setOpp(0); setBlood([]); const first = myPk(); setTurn(first); await patchState({ turn: first, a: 0, b: 0 }); setView("play"); }, "spear", room)}>
+        <div className="grid md:grid-cols-3 gap-3 text-sm text-neutral-300">
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Draw</p>Click your Spartan and drag back. The line is power. The tilt is aim. Let go to throw.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Flight</p>The spear arcs with weight. Too low and it dies in the dirt. Too high and it sails over the helm.</div>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/10"><p className="text-orange-300 font-black uppercase text-xs mb-2">Blood</p>A body hit scores. First Spartan to land 3 spears takes the pot. Same 95 / 3 / 2.</div>
         </div>
       </MatchmakingLobby>
     );
   }
-  if (view === "countdown") {
-    return (
-      <div className="h-[60vh] flex flex-col items-center justify-center text-center">
-        <h3 className="text-sm uppercase tracking-widest text-neutral-400 font-black mb-4">Opponent locked. Spears ready in</h3>
-        {window.__spartanOpponent && <div className="mb-4 font-spartan text-2xl font-black text-orange-400">VS {String(window.__spartanOpponent).slice(0,4)}...{String(window.__spartanOpponent).slice(-4)}</div>}
-        <div className="text-7xl font-black text-white">{countdown}</div>
-      </div>
-    );
-  }
-  if (view === "result") return <ResultCard won={over === me()} wager={wager} onBack={() => { setView("lobby"); setCountdown(3); }} />;
+
+  const ang = drag ? Math.atan2(drag.oy - drag.y, drag.x - drag.ox) : 0;
+  const pow = drag ? Math.min(18, Math.hypot(drag.ox - drag.x, drag.oy - drag.y) / 8) : 0;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="flex justify-between font-black text-white mb-3">
-        <span>You {mineScore}</span>
-        <span className={mine() ? "text-orange-400" : "text-neutral-500"}>{mine() ? "Your throw" : "Watching"}</span>
-        <span>Foe {oppScore}</span>
+    <div className="max-w-4xl mx-auto">
+      <div className="flex justify-between font-black text-white mb-2">
+        <span>You {mine}</span>
+        <span className={mineTurn() && !spear ? "text-orange-400" : "text-neutral-500"}>{mineTurn() && !spear ? "Draw your spear" : "Watch the sky"}</span>
+        <span>Foe {opp}</span>
       </div>
-      <div className="relative h-[360px] rounded-3xl border border-white/10 bg-[#0b0f0a] overflow-hidden">
-        <div className="absolute left-10 bottom-16 w-8 h-24 bg-black rounded-full" />
-        <div className="absolute right-10 bottom-16 w-8 h-24 bg-black rounded-full" />
-        <div className={"absolute left-16 bottom-28 origin-left transition-all duration-1000 " + (fly ? "translate-x-[520px] -translate-y-8 rotate-12" : "translate-x-0")}
-          style={{ transform: fly ? undefined : "rotate(" + (-aim) + "deg)" }}>
-          <div className="w-40 h-1.5 bg-gradient-to-r from-amber-200 to-orange-700 rounded-full shadow-[0_0_12px_#f97316]" />
-        </div>
+      <div ref={box} onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
+        className="relative h-[420px] rounded-3xl overflow-hidden border border-red-900/40 cursor-crosshair select-none"
+        style={{ background: "linear-gradient(#2a1208 0%, #120805 55%, #3a2a14 55%, #1a140c 100%)" }}>
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-orange-950/40 to-transparent" />
+        <div className="absolute left-6 bottom-16"><StickSpartan /></div>
+        <div className="absolute right-6 bottom-16"><StickSpartan flip dead={opp >= 3} /></div>
+        {drag && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <line x1="92" y1="210" x2={drag.x} y2={drag.y} stroke="#fbbf24" strokeWidth="2" strokeDasharray="6 6" />
+          </svg>
+        )}
+        {spear && (
+          <div className="absolute w-16 h-1.5 bg-gradient-to-r from-amber-200 to-orange-800 rounded-full origin-left"
+            style={{ left: spear.x, top: spear.y, transform: `rotate(${Math.atan2(spear.vy, spear.vx)}rad)` }} />
+        )}
+        {blood.map((b, i) => <div key={i} className="absolute w-2 h-2 rounded-full bg-red-600" style={{ left: b.x, top: b.y }} />)}
+        {drag && <div className="absolute left-28 top-8 text-amber-200 font-black text-sm">{pow.toFixed(0)} power · {(ang * 57.3).toFixed(0)}°</div>}
       </div>
-      <div className="mt-5 space-y-3">
-        <label className="block text-xs uppercase tracking-widest text-neutral-400 font-black">Power {power}</label>
-        <input type="range" min="10" max="100" value={power} disabled={!mine() || fly} onChange={(e) => setPower(Number(e.target.value))} className="w-full" />
-        <label className="block text-xs uppercase tracking-widest text-neutral-400 font-black">Aim {aim}</label>
-        <input type="range" min="-30" max="30" value={aim} disabled={!mine() || fly} onChange={(e) => setAim(Number(e.target.value))} className="w-full" />
-        <button disabled={!mine() || fly} onClick={throwSpear} className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-red-700 text-white font-black uppercase disabled:opacity-40">Loose Spear</button>
-        <p className="text-center text-amber-200 font-bold">{note}</p>
-      </div>
+      <p className="text-center text-amber-200 font-bold mt-3">{note}</p>
     </div>
   );
 }
