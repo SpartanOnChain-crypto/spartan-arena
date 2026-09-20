@@ -119,13 +119,12 @@ function payIfWin(wager) {
   fetch(MATCH_HOST + "/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winner, amountUi: pot }) })
     .then((r) => r.json())
     .then((j) => {
-      const paid = !!(j && j.sig);
+      const paid = !!(j && (j.ok || j.sig) && !j.error);
       window.__spartanPayoutNote = paid ? "Winnings paid. Check your READY wallet." : ("Payout failed: " + (j && j.error ? j.error : "no response"));
-      if (paid && typeof window.__spartanSetReady === "function") {
+      if (typeof window.__spartanSetReady === "function") {
         window.__spartanSetReady((prev) => Number(prev) + stake);
       }
-      setTimeout(refreshReady, 1500);
-      setTimeout(refreshReady, 4000);
+      refreshReady();
       postHistory({
         game: window.__spartanGame || "Match",
         stake,
@@ -332,11 +331,7 @@ export default function App() {
     fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/feed", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user, game, wager, multiplier, payout, type }) }).catch(() => {});
     const amt = Number(String(payout).replace(/[^0-9.]/g, "")) || 0;
     fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/board", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet: user, type, amount: type === "win" ? amt : 0, game }) }).catch(() => {});
-    const me = myPk();
-    const opp = String(window.__spartanOpponent || "");
-    if (me && opp && opp.indexOf("Practice") < 0) {
-      fetch((import.meta.env.VITE_MATCH_URL || "https://grand-exploration-production-d941.up.railway.app").replace(/\/$/, "") + "/history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, stake: wager, a: me, b: opp, winner: type === "win" ? me : opp, loser: type === "win" ? opp : me }) }).catch(() => {});
-    }
+
   };
 
 
