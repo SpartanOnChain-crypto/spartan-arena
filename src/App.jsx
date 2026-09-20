@@ -236,7 +236,12 @@ export default function App() {
   }, []);
   
   const [deskSlide, setDeskSlide] = useState(0);
+  const [nftSlide, setNftSlide] = useState(0);
   const [look] = useState('anime');
+  useEffect(() => {
+    const id = setInterval(() => setNftSlide((n) => (n + 1) % 2), 5000);
+    return () => clearInterval(id);
+  }, []);
   const [searchQ, setSearchQ] = useState('');
   const [liveHere, setLiveHere] = useState({ tap: 0, chariot: 0, phalanx: 0, bones: 0, feud: 0 });
   const [liveFeed, setLiveFeed] = useState([]);
@@ -642,17 +647,33 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-950 to-black border border-purple-500/30 shadow-[0_10px_40px_rgba(168,85,247,0.2)] h-64 md:h-72 group hidden lg:block">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-colors duration-700" />
-                  <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-8">
-                    <h2 className="text-purple-200 font-black uppercase tracking-widest text-[11px] mb-3">Oracle's Jackpot</h2>
-                    <h1 className="font-spartan text-3xl md:text-4xl font-black text-white leading-tight mb-3">
-                      1,250,000 <span className="text-purple-300">$SPARTAN</span>
-                    </h1>
-                    <p className="text-purple-100/80 text-sm leading-relaxed max-w-sm mb-5">The treasury grows with every drop of blood.</p>
-                    <div className="bg-white/10 border border-white/20 text-white px-6 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs">Coming Soon</div>
+                <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.35)] h-64 md:h-72 group">
+                  <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-black/65 border border-white/15 text-[10px] font-black uppercase tracking-[0.22em] text-white">NFT Hot Watch</div>
+                  {[{
+                    name: "Z Work Cat",
+                    href: "https://zworkcat.xyz/",
+                    img: "https://zworkcat.xyz/img/bag_cutout.png",
+                    tone: "from-sky-950/20 via-black/25 to-black/80"
+                  },{
+                    name: "Spartans OnChain",
+                    href: "https://spartansonchain.xyz/",
+                    img: "/nfts/spartan.png",
+                    tone: "from-red-950/10 via-black/20 to-black/80"
+                  }].map((n, i) => (
+                    <a key={n.name} href={n.href} target="_blank" rel="noreferrer"
+                      className={"absolute inset-0 block transition-opacity duration-700 " + (nftSlide === i ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none")}>
+                      <img src={n.img} alt={n.name} className="absolute inset-0 w-full h-full object-cover" />
+                      <div className={"absolute inset-0 bg-gradient-to-t " + n.tone} />
+                      <div className="absolute bottom-0 left-0 right-0 p-5">
+                        <p className="font-spartan text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">{n.name}</p>
+                        <p className="text-[11px] font-black uppercase tracking-widest text-white/70 mt-1">View collection →</p>
+                      </div>
+                    </a>
+                  ))}
+                  <div className="absolute bottom-4 right-4 z-20 flex gap-1.5">
+                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNftSlide(0); }} className={"w-7 h-1.5 rounded-full " + (nftSlide === 0 ? "bg-white" : "bg-white/30")} />
+                    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNftSlide(1); }} className={"w-7 h-1.5 rounded-full " + (nftSlide === 1 ? "bg-white" : "bg-white/30")} />
                   </div>
-                  <Trophy className="absolute -right-4 top-1/2 -translate-y-1/2 w-48 h-48 text-purple-400/30 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700 pointer-events-none drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" />
                 </div>
               </div>
 
