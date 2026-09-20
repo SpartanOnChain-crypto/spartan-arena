@@ -783,6 +783,8 @@ export default function App() {
           {view === 'tap' && <ArenaGame wallet={wallet} addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'crash' && <ChariotDeathrace addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'dice' && <BonesOfSparta addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'plank' && <PlankCrossing addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
+          {view === 'spear' && <SpearDuel addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'plinko' && <PhalanxStance addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'stand' && <The300Stand addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
           {view === 'jackpot' && <OracleJackpot addWager={addWager} addFeed={addFeed} username={username} onBack={() => setView('home')} />}
