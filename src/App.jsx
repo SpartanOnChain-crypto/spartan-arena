@@ -727,41 +727,30 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Live Arena Feed Table */}
               <div className="mt-12 mb-10">
                 <div className="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">
-                  <button className="text-white font-black uppercase tracking-widest flex items-center gap-2 bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg shadow-inner">
-                    <History className="w-4 h-4 text-orange-500" /> Transaction History
-                  </button>
+                  <div className="text-white font-black uppercase tracking-widest flex items-center gap-2">
+                    <History className="w-4 h-4 text-orange-500" /> Recent Battles
+                  </div>
                 </div>
-                
-                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-black/80 text-neutral-400 text-xs uppercase tracking-widest font-black border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-5">Game</th>
-                        <th className="px-6 py-5">Players</th>
-                        <th className="px-6 py-5 text-right">Stake</th>
-                        <th className="px-6 py-5">Winner</th>
-                        <th className="px-6 py-5">Loser</th>
-                        <th className="px-6 py-5 text-right">Payout</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {(txHistory.length ? txHistory : liveFeed).map((feed) => (
-                        <tr key={feed.id || feed.t || Math.random()} className="hover:bg-white/5 transition-colors duration-200">
-                          <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
-                            <span className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#ea580c]" /> {feed.game || "Match"}
-                          </td>
-                          <td className="px-6 py-4 font-black text-neutral-300 tracking-wider">{shortPk(feed.a || feed.user)} vs {shortPk(feed.b)}</td>
-                          <td className="px-6 py-4 text-right font-bold text-neutral-400">{feed.stake || feed.wager}</td>
-                          <td className="px-6 py-4 font-black text-green-400">{shortPk(feed.winner)}</td>
-                          <td className="px-6 py-4 font-black text-red-400">{shortPk(feed.loser)}</td>
-                          <td className={"px-6 py-4 text-right font-black " + (feed.paid ? "text-green-400" : "text-red-400")}>{feed.paid ? "PAID" : (feed.winner ? "FAILED" : (feed.payout || ""))}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-3">
+                  {liveFeed.length === 0 && (
+                    <div className="text-neutral-500 text-sm bg-black/30 border border-white/5 rounded-xl p-4">No battles yet. Play a match and it shows here.</div>
+                  )}
+                  {liveFeed.map((feed) => (
+                    <div key={feed.id} className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className={"w-8 h-8 rounded-lg flex items-center justify-center " + (feed.type === "win" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400")}>
+                          {feed.type === "win" ? <Trophy className="w-4 h-4" /> : <Skull className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <div className="text-white text-xs font-bold">{feed.user}</div>
+                          <div className="text-neutral-500 text-[10px]">{feed.game} • {feed.wager}</div>
+                        </div>
+                      </div>
+                      <div className={"text-xs font-black " + (feed.type === "win" ? "text-green-400" : "text-red-400")}>{feed.payout}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
